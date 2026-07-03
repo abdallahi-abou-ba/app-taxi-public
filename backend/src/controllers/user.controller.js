@@ -1,0 +1,25 @@
+const asyncHandler = require('../utils/asyncHandler');
+const { sendSuccess } = require('../utils/apiResponse');
+const userService = require('../services/user.service');
+const { toPublicUser } = require('../services/auth.service');
+
+const getMe = asyncHandler(async (req, res) => {
+  sendSuccess(res, { data: toPublicUser(req.user) });
+});
+
+const updateMe = asyncHandler(async (req, res) => {
+  const user = await userService.updateProfile(req.user.id, req.body);
+  sendSuccess(res, { data: user });
+});
+
+const updateAvailability = asyncHandler(async (req, res) => {
+  const user = await userService.updateAvailability(req.user.id, req.user.role, req.body);
+  sendSuccess(res, { data: user });
+});
+
+const updatePushToken = asyncHandler(async (req, res) => {
+  const user = await userService.updatePushToken(req.user.id, req.body.pushToken);
+  sendSuccess(res, { data: user });
+});
+
+module.exports = { getMe, updateMe, updateAvailability, updatePushToken };

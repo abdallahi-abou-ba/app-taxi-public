@@ -1,0 +1,158 @@
+import { useCallback, useEffect, useState } from 'react';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { useSocket } from '../../context/SocketContext';
+import { useDriverLocationStatus } from '../../context/DriverLocationContext';
+import { getRide, arriveRide, startRide, completeRide, cancelRide, rateRide, markRidePaid } from '../../api/rideApi';
+import OsmMapView from '../../components/OsmMapView';
+import RideStatusBadge from '../../components/RideStatusBadge';
+import RideSummaryCard from '../../components/RideSummaryCard';
+import RatingPrompt from '../../components/RatingPrompt';
+import PaymentStatus from '../../components/PaymentStatus';
+import PrimaryButton from '../../components/PrimaryButton';
+import ErrorBanner from '../../components/ErrorBanner';
+import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
+
+const NEXT_ACTION = {
+  [RIDE_STATUS.ACCEPTED]: { label: "I've arrived", action: arriveRide },
+  [RIDE_STATUS.ARRIVED]: { label: 'Start trip', action: startRide },
+  [RIDE_STATUS.IN_PROGRESS]: { label: 'Complete trip', action: completeRide },
+};
+
+export default function DriverActiveRideScreen({ route, navigation }) {
+  const { rideId } = route.params;
+  const socket = useSocket();
+  const { setHasActiveRide } = useDriverLocationStatus();
+  const [ride, setRide] = useState(route.params.ride);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setHasActiveRide(true);
+    return () => setHasActiveRide(false);
+  }, [setHasActiveRide]);
+
+  const handleStatus = useCallback(
+    (updated) => {
+      if (!updated || updated.id !== rideId) return;
+      setRide(updated);
+    },
+    [rideId]
+  );
+
+  useEffect(() => {
+    if (!socket) return undefined;
+    socket.on('ride:status', handleStatus);
+    return () => socket.off('ride:status', handleStatus);
+  }, [socket, handleStatus]);
+
+  useEffect(() => {
+    if (ride?.status === RIDE_STATUS.COMPLETED || ride?.status === RIDE_STATUS.CANCELLED) return undefined;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getRide(rideId);
+        handleStatus(updated);
+      } catch (err) {
+        // transient poll failure - a socket event or the next tick will catch up
+      }
+    }, RIDE_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [rideId, ride?.status, handleStatus]);
+
+  const handleAdvance = async () => {
+    const step = NEXT_ACTION[ride.status];
+    if (!step) return;
+    setError(null);
+    setBusy(true);
+    try {
+      const updated = await step.action(rideId);
+      setRide(updated);
+    } catch (err) {
+      setError(err.message || 'Could not update the ride');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const updated = await cancelRide(rideId);
+      setRide(updated);
+    } catch (err) {
+      setError(err.message || 'Could not cancel the ride');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRate = async (value, comment) => {
+    const updated = await rateRide(rideId, value, comment);
+    setRide(updated);
+  };
+
+  const handleMarkPaid = async () => {
+    const updated = await markRidePaid(rideId);
+    setRide(updated);
+  };
+
+  if (!ride) return null;
+
+  if (ride.status === RIDE_STATUS.COMPLETED || ride.status === RIDE_STATUS.CANCELLED) {
+    return (
+      <ScrollView contentContainerStyle={styles.endedContainer}>
+        <RideStatusBadge status={ride.status} />
+        <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
+        {ride.status === RIDE_STATUS.COMPLETED ? (
+          <>
+            <PaymentStatus ride={ride} viewerRole={ROLE.DRIVER} onMarkPaid={handleMarkPaid} />
+            <RatingPrompt ride={ride} viewerRole={ROLE.DRIVER} onSubmit={handleRate} />
+          </>
+        ) : null}
+        <PrimaryButton title="Back home" onPress={() => navigation.replace('DriverHome')} />
+      </ScrollView>
+    );
+  }
+
+  const markers = [
+    { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: 'Pickup' },
+    { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: 'Destination' },
+  ];
+
+  const step = NEXT_ACTION[ride.status];
+
+  return (
+    <View style={styles.container}>
+      <OsmMapView
+        initialRegion={{ latitude: ride.pickupLat, longitude: ride.pickupLng, zoom: 14 }}
+        markers={markers}
+        polyline={ride.routeGeometry}
+      />
+
+      <View style={styles.panel}>
+        <ErrorBanner message={error} />
+        <RideStatusBadge status={ride.status} />
+        <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
+        {step ? <PrimaryButton title={step.label} onPress={handleAdvance} loading={busy} /> : null}
+        <PrimaryButton title="Cancel ride" variant="danger" onPress={handleCancel} loading={busy} />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  panel: {
+    padding: 16,
+    gap: 10,
+    backgroundColor: '#fff',
+  },
+  endedContainer: {
+    flexGrow: 1,
+    padding: 24,
+    justifyContent: 'center',
+    gap: 16,
+  },
+});
