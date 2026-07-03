@@ -37,6 +37,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Set when the user deletes their account. The row is kept (anonymized,
+  // not hard-deleted) so existing rides still resolve their counterpart's
+  // name/rating - email/name/phone are scrubbed and the password hash is
+  // replaced with an unusable random value at that point.
+  deletedAt DateTime?
+
   // Driver-only fields. Left null for CLIENT rows. Kept on User (rather than a
   // separate DriverProfile table) because it's a strict 1:1 relation and
   // location pings are a high-frequency hot path where a join isn't worth it.

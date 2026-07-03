@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Text, ScrollView, View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
 import RatingPrompt from '../../components/RatingPrompt';
@@ -10,6 +11,7 @@ import { formatDateTime } from '../../utils/formatters';
 import { RIDE_STATUS } from '../../config/constants';
 
 export default function RideDetailScreen({ route }) {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [ride, setRide] = useState(route.params.ride);
 
@@ -28,10 +30,14 @@ export default function RideDetailScreen({ route }) {
       <RideStatusBadge status={ride.status} />
       <RideSummaryCard ride={ride} viewerRole={user.role} />
       <View style={styles.timestamps}>
-        <Text style={styles.label}>Requested: {formatDateTime(ride.requestedAt)}</Text>
-        {ride.completedAt ? <Text style={styles.label}>Completed: {formatDateTime(ride.completedAt)}</Text> : null}
-        {ride.cancelledAt ? <Text style={styles.label}>Cancelled: {formatDateTime(ride.cancelledAt)}</Text> : null}
-        {ride.cancellationReason ? <Text style={styles.label}>Reason: {ride.cancellationReason}</Text> : null}
+        <Text style={styles.label}>{t('rideDetail.requested', { date: formatDateTime(ride.requestedAt, i18n.language) })}</Text>
+        {ride.completedAt ? (
+          <Text style={styles.label}>{t('rideDetail.completed', { date: formatDateTime(ride.completedAt, i18n.language) })}</Text>
+        ) : null}
+        {ride.cancelledAt ? (
+          <Text style={styles.label}>{t('rideDetail.cancelled', { date: formatDateTime(ride.cancelledAt, i18n.language) })}</Text>
+        ) : null}
+        {ride.cancellationReason ? <Text style={styles.label}>{t('rideDetail.reason', { reason: ride.cancellationReason })}</Text> : null}
       </View>
       {ride.status === RIDE_STATUS.COMPLETED ? (
         <>

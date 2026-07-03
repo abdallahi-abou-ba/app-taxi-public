@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -8,6 +9,8 @@ import usePushRegistration from './src/hooks/usePushRegistration';
 import useNotificationTapNavigation from './src/hooks/useNotificationTapNavigation';
 import { navigationRef } from './src/navigation/navigationRef';
 import RootNavigator from './src/navigation/RootNavigator';
+import SplashScreen from './src/screens/common/SplashScreen';
+import { loadStoredLanguage } from './src/i18n/languageManager';
 
 // Foreground behavior for incoming pushes - shown as a banner/sound like a
 // backgrounded notification would, rather than being silently swallowed.
@@ -32,6 +35,16 @@ function PushNotificationRegistrar() {
 }
 
 export default function App() {
+  const [languageReady, setLanguageReady] = useState(false);
+
+  useEffect(() => {
+    loadStoredLanguage().finally(() => setLanguageReady(true));
+  }, []);
+
+  if (!languageReady) {
+    return <SplashScreen />;
+  }
+
   return (
     <SafeAreaProvider>
       <AuthProvider>

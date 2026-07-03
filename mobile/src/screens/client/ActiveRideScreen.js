@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
 import { getRide, cancelRide, rateRide } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
@@ -14,6 +15,7 @@ import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants
 const TERMINAL_STATUSES = [RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCELLED];
 
 export default function ActiveRideScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
   const [ride, setRide] = useState(route.params.ride);
@@ -64,7 +66,7 @@ export default function ActiveRideScreen({ route, navigation }) {
       const updated = await cancelRide(rideId);
       setRide(updated);
     } catch (err) {
-      setError(err.message || 'Could not cancel the ride');
+      setError(err.message || t('client.cancelError'));
     } finally {
       setCancelling(false);
     }
@@ -82,7 +84,7 @@ export default function ActiveRideScreen({ route, navigation }) {
       <ScrollView contentContainerStyle={styles.endedContainer}>
         <RideStatusBadge status={ride.status} />
         {ride.status === RIDE_STATUS.CANCELLED && ride.cancellationReason ? (
-          <Text style={styles.reason}>Reason: {ride.cancellationReason}</Text>
+          <Text style={styles.reason}>{t('rideDetail.reason', { reason: ride.cancellationReason })}</Text>
         ) : null}
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
         {ride.status === RIDE_STATUS.COMPLETED ? (
@@ -91,15 +93,15 @@ export default function ActiveRideScreen({ route, navigation }) {
             <RatingPrompt ride={ride} viewerRole={ROLE.CLIENT} onSubmit={handleRate} />
           </>
         ) : null}
-        <PrimaryButton title="Back home" onPress={() => navigation.replace('ClientHome')} />
+        <PrimaryButton title={t('common.backHome')} onPress={() => navigation.replace('ClientHome')} />
       </ScrollView>
     );
   }
 
   const markers = [
-    { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: 'Pickup' },
-    { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: 'Destination' },
-    ...(driverLocation ? [{ id: 'driver', latitude: driverLocation.latitude, longitude: driverLocation.longitude, label: 'Driver' }] : []),
+    { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: t('map.pickup') },
+    { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: t('map.destination') },
+    ...(driverLocation ? [{ id: 'driver', latitude: driverLocation.latitude, longitude: driverLocation.longitude, label: t('map.driver') }] : []),
   ];
 
   return (
@@ -114,7 +116,7 @@ export default function ActiveRideScreen({ route, navigation }) {
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
-        <PrimaryButton title="Cancel ride" variant="danger" onPress={handleCancel} loading={cancelling} />
+        <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={cancelling} />
       </View>
     </View>
   );

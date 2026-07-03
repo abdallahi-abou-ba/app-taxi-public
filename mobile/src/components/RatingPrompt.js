@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import TextField from './TextField';
 import PrimaryButton from './PrimaryButton';
 import ErrorBanner from './ErrorBanner';
 import { ROLE } from '../config/constants';
 
 export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
+  const { t } = useTranslation();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const alreadyRated = viewerRole === ROLE.CLIENT ? ride.driverRating != null : ride.clientRating != null;
-  const counterpartLabel = viewerRole === ROLE.CLIENT ? 'driver' : 'client';
+  const isClient = viewerRole === ROLE.CLIENT;
+  const alreadyRated = isClient ? ride.driverRating != null : ride.clientRating != null;
 
   if (alreadyRated) {
     return (
       <View style={styles.container}>
-        <Text style={styles.thanks}>Thanks for rating your {counterpartLabel}!</Text>
+        <Text style={styles.thanks}>{t(isClient ? 'rating.thanksDriver' : 'rating.thanksClient')}</Text>
       </View>
     );
   }
@@ -28,7 +30,7 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
     try {
       await onSubmit(rating, comment.trim() || undefined);
     } catch (err) {
-      setError(err.message || 'Could not submit rating');
+      setError(err.message || t('rating.submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -36,7 +38,7 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Rate your {counterpartLabel}</Text>
+      <Text style={styles.title}>{t(isClient ? 'rating.rateDriver' : 'rating.rateClient')}</Text>
       <ErrorBanner message={error} />
       <View style={styles.stars}>
         {[1, 2, 3, 4, 5].map((value) => (
@@ -45,8 +47,14 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
           </Pressable>
         ))}
       </View>
-      <TextField label="Comment (optional)" value={comment} onChangeText={setComment} placeholder="How was your trip?" multiline />
-      <PrimaryButton title="Submit rating" onPress={handleSubmit} disabled={rating === 0} loading={submitting} />
+      <TextField
+        label={t('rating.commentOptional')}
+        value={comment}
+        onChangeText={setComment}
+        placeholder={t('rating.commentPlaceholder')}
+        multiline
+      />
+      <PrimaryButton title={t('rating.submit')} onPress={handleSubmit} disabled={rating === 0} loading={submitting} />
     </View>
   );
 }

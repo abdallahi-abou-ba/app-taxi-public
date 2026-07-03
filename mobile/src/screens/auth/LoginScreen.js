@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -7,6 +8,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import { isValidEmail } from '../../utils/validators';
 
 export default function LoginScreen({ navigation }) {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +24,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await login({ email: email.trim(), password });
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -31,25 +33,31 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.title}>{t('auth.welcomeBack')}</Text>
 
         <ErrorBanner message={error} />
 
         <TextField
-          label="Email"
+          label={t('auth.emailLabel')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
         />
-        {emailInvalid ? <Text style={styles.fieldError}>Enter a valid email address</Text> : null}
-        <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
+        {emailInvalid ? <Text style={styles.fieldError}>{t('auth.emailInvalid')}</Text> : null}
+        <TextField
+          label={t('auth.passwordLabel')}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder={t('auth.passwordPlaceholder')}
+        />
 
-        <PrimaryButton title="Log in" onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
+        <PrimaryButton title={t('auth.login')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
 
         <PrimaryButton
-          title="Create an account"
+          title={t('auth.createAccount')}
           variant="secondary"
           onPress={() => navigation.navigate('Register')}
           style={styles.secondaryButton}

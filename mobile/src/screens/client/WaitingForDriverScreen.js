@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
 import { getRide, cancelRide } from '../../api/rideApi';
 import RideSummaryCard from '../../components/RideSummaryCard';
@@ -8,6 +9,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
 
 export default function WaitingForDriverScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
   const [ride, setRide] = useState(route.params.ride);
@@ -61,7 +63,7 @@ export default function WaitingForDriverScreen({ route, navigation }) {
       await cancelRide(rideId);
       navigation.replace('ClientHome');
     } catch (err) {
-      setError(err.message || 'Could not cancel the ride');
+      setError(err.message || t('client.cancelError'));
       setCancelling(false);
     }
   };
@@ -69,10 +71,10 @@ export default function WaitingForDriverScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" />
-      <Text style={styles.title}>Looking for a nearby driver...</Text>
+      <Text style={styles.title}>{t('client.searchingNearby')}</Text>
       <ErrorBanner message={error} />
       {ride ? <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} /> : null}
-      <PrimaryButton title="Cancel ride" variant="danger" onPress={handleCancel} loading={cancelling} />
+      <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={cancelling} />
     </View>
   );
 }

@@ -1,0 +1,170 @@
+{
+  "common": {
+    "logout": "تسجيل الخروج",
+    "profile": "الملف الشخصي",
+    "history": "السجل",
+    "stats": "الإحصائيات",
+    "backHome": "العودة إلى الرئيسية",
+    "cancelRide": "إلغاء الرحلة",
+    "client": "عميل",
+    "driver": "سائق"
+  },
+  "nav": {
+    "ride": "رحلة",
+    "findingDriver": "البحث عن سائق",
+    "yourRide": "رحلتك",
+    "history": "السجل",
+    "rideDetails": "تفاصيل الرحلة",
+    "editProfile": "تعديل الملف الشخصي",
+    "dashboard": "لوحة التحكم",
+    "drive": "القيادة",
+    "currentRide": "الرحلة الحالية"
+  },
+  "splash": {
+    "loading": "جارٍ التحميل..."
+  },
+  "auth": {
+    "welcomeBack": "مرحبًا بعودتك",
+    "login": "تسجيل الدخول",
+    "createAccount": "إنشاء حساب",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "you@example.com",
+    "emailInvalid": "أدخل بريدًا إلكترونيًا صالحًا",
+    "passwordLabel": "كلمة المرور",
+    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholderMin": "6 أحرف على الأقل",
+    "passwordInvalid": "يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل",
+    "fullNameLabel": "الاسم الكامل",
+    "fullNamePlaceholder": "محمد أحمد",
+    "phoneLabel": "رقم الهاتف",
+    "phoneOptionalLabel": "رقم الهاتف (اختياري)",
+    "phonePlaceholder": "0600000000",
+    "imRider": "أنا راكب",
+    "imDriver": "أنا سائق",
+    "loginFailed": "فشل تسجيل الدخول",
+    "registrationFailed": "فشل إنشاء الحساب"
+  },
+  "rideStatus": {
+    "REQUESTED": "البحث عن سائق",
+    "ACCEPTED": "السائق في الطريق",
+    "ARRIVED": "وصل السائق",
+    "IN_PROGRESS": "الرحلة جارية",
+    "COMPLETED": "انتهت الرحلة",
+    "CANCELLED": "أُلغيت الرحلة"
+  },
+  "payment": {
+    "cash": "نقدًا",
+    "card": "بطاقة",
+    "payWith": "الدفع باستخدام:",
+    "paid": "تم الدفع ✓",
+    "pending": "الدفع معلق",
+    "markAsPaid": "وضع علامة كمدفوع ({{method}})",
+    "label": "طريقة الدفع: {{method}}",
+    "markPaidError": "تعذّر وضع علامة على هذه الرحلة كمدفوعة"
+  },
+  "map": {
+    "pickup": "الانطلاق",
+    "destination": "الوجهة",
+    "driver": "السائق",
+    "you": "أنت"
+  },
+  "client": {
+    "gettingLocation": "جارٍ تحديد موقعك...",
+    "locationError": "تعذّر تحديد موقعك ({{error}}) - اضغط على الخريطة لتحديد نقطة الانطلاق.",
+    "tapDestination": "اضغط على الخريطة لتحديد وجهتك",
+    "dragToFineTune": "اسحب العلامات للضبط، ثم اطلب رحلة",
+    "requestRide": "طلب رحلة",
+    "requestError": "تعذّر طلب الرحلة",
+    "cancelError": "تعذّر إلغاء الرحلة",
+    "searchingNearby": "جارٍ البحث عن سائق قريب...",
+    "locationPermissionDenied": "تم رفض إذن الوصول إلى الموقع",
+    "locationFetchError": "تعذّر تحديد الموقع",
+    "activeRideLoadError": "تعذّر تحميل رحلتك الحالية"
+  },
+  "driver": {
+    "online": "أنت متصل الآن",
+    "offline": "أنت غير متصل",
+    "goOnline": "الاتصال",
+    "goOffline": "قطع الاتصال",
+    "waitingForLocation": "بانتظار تحديد موقعك قبل الاتصال",
+    "toggleError": "تعذّر تحديث حالة التوفر",
+    "acceptError": "هذه الرحلة لم تعد متاحة",
+    "advanceError": "تعذّر تحديث الرحلة",
+    "cancelError": "تعذّر إلغاء الرحلة",
+    "arrived": "لقد وصلت",
+    "startTrip": "بدء الرحلة",
+    "completeTrip": "إنهاء الرحلة"
+  },
+  "incomingRide": {
+    "title": "طلب رحلة جديد",
+    "decline": "رفض",
+    "accept": "قبول"
+  },
+  "rating": {
+    "rateDriver": "قيّم سائقك",
+    "rateClient": "قيّم راكبك",
+    "thanksDriver": "شكرًا لتقييمك سائقك!",
+    "thanksClient": "شكرًا لتقييمك راكبك!",
+    "commentOptional": "تعليق (اختياري)",
+    "commentPlaceholder": "كيف كانت رحلتك؟",
+    "submit": "إرسال التقييم",
+    "submitError": "تعذّر إرسال التقييم"
+  },
+  "history": {
+    "empty": "لا توجد رحلات بعد",
+    "unpaid": "غير مدفوع",
+    "removeTitle": "إزالة من السجل",
+    "removeMessage": "سيتم إزالتها من سجلك الخاص فقط.",
+    "removeConfirm": "إزالة",
+    "removeCancel": "إلغاء",
+    "removeError": "تعذّر إزالة هذه الرحلة",
+    "loadError": "تعذّر تحميل السجل"
+  },
+  "rideSummary": {
+    "from": "الانطلاق: {{address}}",
+    "to": "الوجهة: {{address}}"
+  },
+  "rideDetail": {
+    "requested": "تاريخ الطلب: {{date}}",
+    "completed": "تاريخ الانتهاء: {{date}}",
+    "cancelled": "تاريخ الإلغاء: {{date}}",
+    "reason": "السبب: {{reason}}"
+  },
+  "dashboard": {
+    "rides": "الرحلات",
+    "earned": "الأرباح",
+    "spent": "المصروف",
+    "thisMonth": "هذا الشهر"
+  },
+  "editProfile": {
+    "fullNameLabel": "الاسم الكامل",
+    "phoneLabel": "رقم الهاتف",
+    "emailLabel": "البريد الإلكتروني",
+    "saveChanges": "حفظ التغييرات",
+    "saved": "تم تحديث الملف الشخصي",
+    "saveError": "تعذّر حفظ ملفك الشخصي",
+    "nameError": "يجب أن يحتوي الاسم على حرفين على الأقل"
+  },
+  "language": {
+    "sectionTitle": "اللغة",
+    "french": "Français",
+    "arabic": "العربية",
+    "restartTitle": "إعادة التشغيل مطلوبة",
+    "restartMessage": "يجب إعادة تشغيل التطبيق لتطبيق تغيير اللغة.",
+    "restartNow": "إعادة التشغيل الآن"
+  },
+  "deleteAccount": {
+    "sectionTitle": "منطقة الخطر",
+    "warning": "حذف حسابك نهائي. سيتم مسح اسمك وبياناتك الشخصية.",
+    "button": "حذف حسابي",
+    "dialogTitle": "هل تريد حذف حسابك؟",
+    "dialogMessage": "أدخل كلمة المرور للتأكيد. هذا الإجراء لا يمكن التراجع عنه.",
+    "passwordPlaceholder": "كلمة المرور",
+    "confirm": "حذف نهائيًا",
+    "cancel": "إلغاء",
+    "wrongPassword": "كلمة المرور غير صحيحة",
+    "activeRideError": "لا يمكنك حذف حسابك أثناء وجود رحلة نشطة",
+    "genericError": "تعذّر حذف الحساب"
+  }
+}

@@ -16,4 +16,8 @@ const updatePushTokenSchema = z.object({
   pushToken: z.string().min(1).nullable(),
 });
 
-module.exports = { updateProfileSchema, updateAvailabilitySchema, updatePushTokenSchema };
+const deleteAccountSchema = z.object({
+  password: z.string().min(1),
+});
+
+module.exports = { updateProfileSchema, updateAvailabilitySchema, updatePushTokenSchema, deleteAccountSchema };

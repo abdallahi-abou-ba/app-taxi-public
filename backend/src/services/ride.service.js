@@ -328,4 +328,5 @@ module.exports = {
   markRidePaid,
   hideRideFromHistory,
   getStats,
+  ACTIVE_STATUSES,
 };

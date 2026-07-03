@@ -22,4 +22,9 @@ const updatePushToken = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: user });
 });
 
-module.exports = { getMe, updateMe, updateAvailability, updatePushToken };
+const deleteMe = asyncHandler(async (req, res) => {
+  await userService.deleteAccount(req.user.id, req.body.password);
+  sendSuccess(res, { data: null });
+});
+
+module.exports = { getMe, updateMe, updateAvailability, updatePushToken, deleteMe };

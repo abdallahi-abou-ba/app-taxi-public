@@ -1,0 +1,170 @@
+{
+  "common": {
+    "logout": "Se déconnecter",
+    "profile": "Profil",
+    "history": "Historique",
+    "stats": "Statistiques",
+    "backHome": "Retour à l'accueil",
+    "cancelRide": "Annuler la course",
+    "client": "Client",
+    "driver": "Chauffeur"
+  },
+  "nav": {
+    "ride": "Course",
+    "findingDriver": "Recherche d'un chauffeur",
+    "yourRide": "Votre course",
+    "history": "Historique",
+    "rideDetails": "Détails de la course",
+    "editProfile": "Modifier le profil",
+    "dashboard": "Tableau de bord",
+    "drive": "Conduire",
+    "currentRide": "Course en cours"
+  },
+  "splash": {
+    "loading": "Chargement..."
+  },
+  "auth": {
+    "welcomeBack": "Bon retour",
+    "login": "Se connecter",
+    "createAccount": "Créer un compte",
+    "backToLogin": "Retour à la connexion",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "emailInvalid": "Entrez une adresse e-mail valide",
+    "passwordLabel": "Mot de passe",
+    "passwordPlaceholder": "••••••••",
+    "passwordPlaceholderMin": "Au moins 6 caractères",
+    "passwordInvalid": "Le mot de passe doit contenir au moins 6 caractères",
+    "fullNameLabel": "Nom complet",
+    "fullNamePlaceholder": "Jeanne Dupont",
+    "phoneLabel": "Téléphone",
+    "phoneOptionalLabel": "Téléphone (optionnel)",
+    "phonePlaceholder": "0600000000",
+    "imRider": "Je suis passager",
+    "imDriver": "Je suis chauffeur",
+    "loginFailed": "Échec de la connexion",
+    "registrationFailed": "Échec de l'inscription"
+  },
+  "rideStatus": {
+    "REQUESTED": "Recherche d'un chauffeur",
+    "ACCEPTED": "Le chauffeur arrive",
+    "ARRIVED": "Le chauffeur est arrivé",
+    "IN_PROGRESS": "Course en cours",
+    "COMPLETED": "Course terminée",
+    "CANCELLED": "Course annulée"
+  },
+  "payment": {
+    "cash": "Espèces",
+    "card": "Carte",
+    "payWith": "Payer avec :",
+    "paid": "Payé ✓",
+    "pending": "Paiement en attente",
+    "markAsPaid": "Marquer comme payé ({{method}})",
+    "label": "Paiement : {{method}}",
+    "markPaidError": "Impossible de marquer cette course comme payée"
+  },
+  "map": {
+    "pickup": "Départ",
+    "destination": "Destination",
+    "driver": "Chauffeur",
+    "you": "Vous"
+  },
+  "client": {
+    "gettingLocation": "Récupération de votre position...",
+    "locationError": "Impossible d'obtenir votre position ({{error}}) - touchez la carte pour définir votre point de départ.",
+    "tapDestination": "Touchez la carte pour indiquer votre destination",
+    "dragToFineTune": "Ajustez les repères, puis demandez une course",
+    "requestRide": "Demander une course",
+    "requestError": "Impossible de demander une course",
+    "cancelError": "Impossible d'annuler la course",
+    "searchingNearby": "Recherche d'un chauffeur à proximité...",
+    "locationPermissionDenied": "Autorisation de localisation refusée",
+    "locationFetchError": "Impossible d'obtenir la position",
+    "activeRideLoadError": "Impossible de charger votre course en cours"
+  },
+  "driver": {
+    "online": "Vous êtes en ligne",
+    "offline": "Vous êtes hors ligne",
+    "goOnline": "Passer en ligne",
+    "goOffline": "Passer hors ligne",
+    "waitingForLocation": "En attente de votre position avant de passer en ligne",
+    "toggleError": "Impossible de mettre à jour votre disponibilité",
+    "acceptError": "Cette course n'est plus disponible",
+    "advanceError": "Impossible de mettre à jour la course",
+    "cancelError": "Impossible d'annuler la course",
+    "arrived": "Je suis arrivé",
+    "startTrip": "Démarrer la course",
+    "completeTrip": "Terminer la course"
+  },
+  "incomingRide": {
+    "title": "Nouvelle demande de course",
+    "decline": "Refuser",
+    "accept": "Accepter"
+  },
+  "rating": {
+    "rateDriver": "Notez votre chauffeur",
+    "rateClient": "Notez votre passager",
+    "thanksDriver": "Merci d'avoir noté votre chauffeur !",
+    "thanksClient": "Merci d'avoir noté votre passager !",
+    "commentOptional": "Commentaire (optionnel)",
+    "commentPlaceholder": "Comment s'est passée votre course ?",
+    "submit": "Envoyer la note",
+    "submitError": "Impossible d'envoyer la note"
+  },
+  "history": {
+    "empty": "Aucune course pour le moment",
+    "unpaid": "Non payé",
+    "removeTitle": "Retirer de l'historique",
+    "removeMessage": "Ceci ne le retire que de votre propre historique.",
+    "removeConfirm": "Retirer",
+    "removeCancel": "Annuler",
+    "removeError": "Impossible de retirer cette course",
+    "loadError": "Impossible de charger l'historique"
+  },
+  "rideSummary": {
+    "from": "Départ : {{address}}",
+    "to": "Destination : {{address}}"
+  },
+  "rideDetail": {
+    "requested": "Demandée : {{date}}",
+    "completed": "Terminée : {{date}}",
+    "cancelled": "Annulée : {{date}}",
+    "reason": "Motif : {{reason}}"
+  },
+  "dashboard": {
+    "rides": "Courses",
+    "earned": "Gagné",
+    "spent": "Dépensé",
+    "thisMonth": "Ce mois-ci"
+  },
+  "editProfile": {
+    "fullNameLabel": "Nom complet",
+    "phoneLabel": "Téléphone",
+    "emailLabel": "E-mail",
+    "saveChanges": "Enregistrer",
+    "saved": "Profil mis à jour",
+    "saveError": "Impossible d'enregistrer votre profil",
+    "nameError": "Le nom doit contenir au moins 2 caractères"
+  },
+  "language": {
+    "sectionTitle": "Langue",
+    "french": "Français",
+    "arabic": "العربية",
+    "restartTitle": "Redémarrage nécessaire",
+    "restartMessage": "L'application doit redémarrer pour appliquer ce changement de langue.",
+    "restartNow": "Redémarrer maintenant"
+  },
+  "deleteAccount": {
+    "sectionTitle": "Zone dangereuse",
+    "warning": "La suppression de votre compte est définitive. Votre nom et vos coordonnées seront effacés.",
+    "button": "Supprimer mon compte",
+    "dialogTitle": "Supprimer votre compte ?",
+    "dialogMessage": "Entrez votre mot de passe pour confirmer. Cette action est irréversible.",
+    "passwordPlaceholder": "Mot de passe",
+    "confirm": "Supprimer définitivement",
+    "cancel": "Annuler",
+    "wrongPassword": "Mot de passe incorrect",
+    "activeRideError": "Vous ne pouvez pas supprimer votre compte pendant une course active",
+    "genericError": "Impossible de supprimer le compte"
+  }
+}

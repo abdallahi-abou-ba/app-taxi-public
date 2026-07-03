@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { listRides, hideRideFromHistory } from '../../api/rideApi';
 import { useAuth } from '../../context/AuthContext';
 import RideStatusBadge from '../../components/RideStatusBadge';
@@ -9,6 +10,7 @@ import { formatDateTime, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, ACTIVE_RIDE_STATUSES, TERMINAL_RIDE_STATUSES, ROLE } from '../../config/constants';
 
 export default function RideHistoryScreen({ navigation }) {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [rides, setRides] = useState(null);
   const [error, setError] = useState(null);
@@ -20,8 +22,8 @@ export default function RideHistoryScreen({ navigation }) {
         setRides(data);
         setError(null);
       })
-      .catch((err) => setError(err.message || 'Could not load ride history'));
-  }, []);
+      .catch((err) => setError(err.message || t('history.loadError')));
+  }, [t]);
 
   useEffect(() => {
     load();
@@ -43,24 +45,24 @@ export default function RideHistoryScreen({ navigation }) {
   };
 
   const handleDelete = (ride) => {
-    Alert.alert('Remove from history', 'This only removes it from your own history.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('history.removeTitle'), t('history.removeMessage'), [
+      { text: t('history.removeCancel'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('history.removeConfirm'),
         style: 'destructive',
         onPress: async () => {
           try {
             await hideRideFromHistory(ride.id);
             setRides((current) => current.filter((r) => r.id !== ride.id));
           } catch (err) {
-            setError(err.message || 'Could not remove this ride');
+            setError(err.message || t('history.removeError'));
           }
         },
       },
     ]);
   };
 
-  if (!rides && !error) return <LoadingOverlay message="Loading history..." />;
+  if (!rides && !error) return <LoadingOverlay message={t('splash.loading')} />;
 
   return (
     <View style={styles.container}>
@@ -70,7 +72,7 @@ export default function RideHistoryScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>No rides yet</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('history.empty')}</Text>}
         renderItem={({ item }) => {
           const counterpart = user.role === ROLE.DRIVER ? item.client : item.driver;
           return (
@@ -87,10 +89,10 @@ export default function RideHistoryScreen({ navigation }) {
                 </View>
               </View>
               {user.role === ROLE.DRIVER && item.status === RIDE_STATUS.COMPLETED && !item.isPaid ? (
-                <Text style={styles.unpaid}>Unpaid</Text>
+                <Text style={styles.unpaid}>{t('history.unpaid')}</Text>
               ) : null}
               {counterpart ? <Text style={styles.counterpart}>{counterpart.fullName}</Text> : null}
-              <Text style={styles.date}>{formatDateTime(item.requestedAt)}</Text>
+              <Text style={styles.date}>{formatDateTime(item.requestedAt, i18n.language)}</Text>
             </Pressable>
           );
         }}

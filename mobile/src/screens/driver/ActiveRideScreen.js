@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
 import { useDriverLocationStatus } from '../../context/DriverLocationContext';
 import { getRide, arriveRide, startRide, completeRide, cancelRide, rateRide, markRidePaid } from '../../api/rideApi';
@@ -13,12 +14,13 @@ import ErrorBanner from '../../components/ErrorBanner';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
 
 const NEXT_ACTION = {
-  [RIDE_STATUS.ACCEPTED]: { label: "I've arrived", action: arriveRide },
-  [RIDE_STATUS.ARRIVED]: { label: 'Start trip', action: startRide },
-  [RIDE_STATUS.IN_PROGRESS]: { label: 'Complete trip', action: completeRide },
+  [RIDE_STATUS.ACCEPTED]: { labelKey: 'driver.arrived', action: arriveRide },
+  [RIDE_STATUS.ARRIVED]: { labelKey: 'driver.startTrip', action: startRide },
+  [RIDE_STATUS.IN_PROGRESS]: { labelKey: 'driver.completeTrip', action: completeRide },
 };
 
 export default function DriverActiveRideScreen({ route, navigation }) {
+  const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
   const { setHasActiveRide } = useDriverLocationStatus();
@@ -67,7 +69,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
       const updated = await step.action(rideId);
       setRide(updated);
     } catch (err) {
-      setError(err.message || 'Could not update the ride');
+      setError(err.message || t('driver.advanceError'));
     } finally {
       setBusy(false);
     }
@@ -80,7 +82,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
       const updated = await cancelRide(rideId);
       setRide(updated);
     } catch (err) {
-      setError(err.message || 'Could not cancel the ride');
+      setError(err.message || t('driver.cancelError'));
     } finally {
       setBusy(false);
     }
@@ -109,14 +111,14 @@ export default function DriverActiveRideScreen({ route, navigation }) {
             <RatingPrompt ride={ride} viewerRole={ROLE.DRIVER} onSubmit={handleRate} />
           </>
         ) : null}
-        <PrimaryButton title="Back home" onPress={() => navigation.replace('DriverHome')} />
+        <PrimaryButton title={t('common.backHome')} onPress={() => navigation.replace('DriverHome')} />
       </ScrollView>
     );
   }
 
   const markers = [
-    { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: 'Pickup' },
-    { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: 'Destination' },
+    { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: t('map.pickup') },
+    { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: t('map.destination') },
   ];
 
   const step = NEXT_ACTION[ride.status];
@@ -133,8 +135,8 @@ export default function DriverActiveRideScreen({ route, navigation }) {
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
-        {step ? <PrimaryButton title={step.label} onPress={handleAdvance} loading={busy} /> : null}
-        <PrimaryButton title="Cancel ride" variant="danger" onPress={handleCancel} loading={busy} />
+        {step ? <PrimaryButton title={t(step.labelKey)} onPress={handleAdvance} loading={busy} /> : null}
+        <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={busy} />
       </View>
     </View>
   );

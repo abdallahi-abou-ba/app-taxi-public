@@ -15,7 +15,7 @@ const requireAuth = asyncHandler(async (req, res, next) => {
   const payload = verifyToken(token);
 
   const user = await prisma.user.findUnique({ where: { id: payload.sub } });
-  if (!user) {
+  if (!user || user.deletedAt) {
     throw new AppError('User no longer exists', 401, 'UNAUTHORIZED');
   }
 

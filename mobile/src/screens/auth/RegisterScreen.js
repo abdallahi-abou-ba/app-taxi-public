@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { ROLE } from '../../config/constants';
 import TextField from '../../components/TextField';
@@ -8,6 +9,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import { isValidEmail } from '../../utils/validators';
 
 export default function RegisterScreen({ navigation }) {
+  const { t } = useTranslation();
   const { register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -33,7 +35,7 @@ export default function RegisterScreen({ navigation }) {
         role,
       });
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || t('auth.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -42,32 +44,49 @@ export default function RegisterScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create an account</Text>
+        <Text style={styles.title}>{t('auth.createAccount')}</Text>
 
         <ErrorBanner message={error} />
 
         <View style={styles.roleRow}>
-          <RolePill label="I'm a rider" active={role === ROLE.CLIENT} onPress={() => setRole(ROLE.CLIENT)} />
-          <RolePill label="I'm a driver" active={role === ROLE.DRIVER} onPress={() => setRole(ROLE.DRIVER)} />
+          <RolePill label={t('auth.imRider')} active={role === ROLE.CLIENT} onPress={() => setRole(ROLE.CLIENT)} />
+          <RolePill label={t('auth.imDriver')} active={role === ROLE.DRIVER} onPress={() => setRole(ROLE.DRIVER)} />
         </View>
 
-        <TextField label="Full name" value={fullName} onChangeText={setFullName} placeholder="Jane Doe" />
+        <TextField label={t('auth.fullNameLabel')} value={fullName} onChangeText={setFullName} placeholder={t('auth.fullNamePlaceholder')} />
         <TextField
-          label="Email"
+          label={t('auth.emailLabel')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
         />
-        {emailInvalid ? <Text style={styles.fieldError}>Enter a valid email address</Text> : null}
-        <TextField label="Phone (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="0600000000" />
-        <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 6 characters" />
-        {passwordInvalid ? <Text style={styles.fieldError}>Password must be at least 6 characters</Text> : null}
+        {emailInvalid ? <Text style={styles.fieldError}>{t('auth.emailInvalid')}</Text> : null}
+        <TextField
+          label={t('auth.phoneOptionalLabel')}
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          placeholder={t('auth.phonePlaceholder')}
+        />
+        <TextField
+          label={t('auth.passwordLabel')}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder={t('auth.passwordPlaceholderMin')}
+        />
+        {passwordInvalid ? <Text style={styles.fieldError}>{t('auth.passwordInvalid')}</Text> : null}
 
-        <PrimaryButton title="Create account" onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
+        <PrimaryButton title={t('auth.createAccount')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
 
-        <PrimaryButton title="Back to login" variant="secondary" onPress={() => navigation.navigate('Login')} style={styles.secondaryButton} />
+        <PrimaryButton
+          title={t('auth.backToLogin')}
+          variant="secondary"
+          onPress={() => navigation.navigate('Login')}
+          style={styles.secondaryButton}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

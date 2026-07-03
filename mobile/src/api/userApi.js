@@ -15,3 +15,7 @@ export function updateAvailability(payload) {
 export function updatePushToken(pushToken) {
   return api.patch('/api/users/me/push-token', { pushToken });
 }
+
+export function deleteAccount(password) {
+  return api.delete('/api/users/me', { password });
+}

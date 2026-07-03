@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { requestRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
@@ -8,9 +9,11 @@ import OsmMapView from '../../components/OsmMapView';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
+import { formatPaymentMethod } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD } from '../../config/constants';
 
 export default function ClientHomeScreen({ navigation }) {
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const { activeRide, loading: activeRideLoading, error: activeRideError } = useActiveRide();
   const { location, error: locationError, loading: locationLoading } = useCurrentLocation();
@@ -56,20 +59,20 @@ export default function ClientHomeScreen({ navigation }) {
       });
       navigation.replace('WaitingForDriver', { rideId: ride.id, ride });
     } catch (err) {
-      setError(err.message || 'Could not request a ride');
+      setError(err.message || t('client.requestError'));
       setRequesting(false);
     }
   };
 
   if (activeRideLoading) {
-    return <LoadingOverlay message="Loading..." />;
+    return <LoadingOverlay message={t('splash.loading')} />;
   }
 
   const initialRegion = pickup ? { ...pickup, zoom: 15 } : MAP_DEFAULTS;
   const markers = [
-    ...(pickup ? [{ id: 'pickup', latitude: pickup.latitude, longitude: pickup.longitude, label: 'Pickup', draggable: true }] : []),
+    ...(pickup ? [{ id: 'pickup', latitude: pickup.latitude, longitude: pickup.longitude, label: t('map.pickup'), draggable: true }] : []),
     ...(destination
-      ? [{ id: 'destination', latitude: destination.latitude, longitude: destination.longitude, label: 'Destination', draggable: true }]
+      ? [{ id: 'destination', latitude: destination.latitude, longitude: destination.longitude, label: t('map.destination'), draggable: true }]
       : []),
   ];
 
@@ -96,13 +99,13 @@ export default function ClientHomeScreen({ navigation }) {
 
       <View style={styles.panel}>
         <ErrorBanner message={error || activeRideError} />
-        {locationLoading && !pickup ? <Text style={styles.hint}>Getting your location...</Text> : null}
-        {locationError && !pickup ? <Text style={styles.hint}>Couldn't get your location ({locationError}) - tap the map to set your pickup point.</Text> : null}
-        {pickup && !destination ? <Text style={styles.hint}>Tap the map to drop your destination</Text> : null}
-        {pickup && destination ? <Text style={styles.hint}>Drag the pins to fine-tune, then request</Text> : null}
+        {locationLoading && !pickup ? <Text style={styles.hint}>{t('client.gettingLocation')}</Text> : null}
+        {locationError && !pickup ? <Text style={styles.hint}>{t('client.locationError', { error: locationError })}</Text> : null}
+        {pickup && !destination ? <Text style={styles.hint}>{t('client.tapDestination')}</Text> : null}
+        {pickup && destination ? <Text style={styles.hint}>{t('client.dragToFineTune')}</Text> : null}
         {pickup && destination ? (
           <View style={styles.paymentRow}>
-            <Text style={styles.paymentLabel}>Pay with:</Text>
+            <Text style={styles.paymentLabel}>{t('payment.payWith')}</Text>
             {[PAYMENT_METHOD.CASH, PAYMENT_METHOD.CARD].map((method) => (
               <Pressable
                 key={method}
@@ -110,19 +113,34 @@ export default function ClientHomeScreen({ navigation }) {
                 style={[styles.paymentOption, paymentMethod === method && styles.paymentOptionActive]}
               >
                 <Text style={[styles.paymentOptionText, paymentMethod === method && styles.paymentOptionTextActive]}>
-                  {method === PAYMENT_METHOD.CARD ? 'Card' : 'Cash'}
+                  {formatPaymentMethod(method, t)}
                 </Text>
               </Pressable>
             ))}
           </View>
         ) : null}
         <View style={styles.actions}>
-          <PrimaryButton title="Log out" variant="secondary" onPress={logout} style={styles.smallButton} />
-          <PrimaryButton title="Profile" variant="secondary" onPress={() => navigation.navigate('EditProfile')} style={styles.smallButton} />
-          <PrimaryButton title="History" variant="secondary" onPress={() => navigation.navigate('RideHistory')} style={styles.smallButton} />
-          <PrimaryButton title="Stats" variant="secondary" onPress={() => navigation.navigate('Dashboard')} style={styles.smallButton} />
+          <PrimaryButton title={t('common.logout')} variant="secondary" onPress={logout} style={styles.smallButton} />
+          <PrimaryButton
+            title={t('common.profile')}
+            variant="secondary"
+            onPress={() => navigation.navigate('EditProfile')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.history')}
+            variant="secondary"
+            onPress={() => navigation.navigate('RideHistory')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.stats')}
+            variant="secondary"
+            onPress={() => navigation.navigate('Dashboard')}
+            style={styles.smallButton}
+          />
         </View>
-        <PrimaryButton title="Request ride" onPress={handleRequestRide} disabled={!pickup || !destination} loading={requesting} />
+        <PrimaryButton title={t('client.requestRide')} onPress={handleRequestRide} disabled={!pickup || !destination} loading={requesting} />
       </View>
     </View>
   );

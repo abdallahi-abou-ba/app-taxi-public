@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useDriverLocationStatus } from '../../context/DriverLocationContext';
@@ -15,6 +16,7 @@ import IncomingRideModal from '../../components/IncomingRideModal';
 import { MAP_DEFAULTS } from '../../config/constants';
 
 export default function DriverHomeScreen({ navigation }) {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const socket = useSocket();
   const { isAvailable, setIsAvailable, setHasActiveRide } = useDriverLocationStatus();
@@ -61,7 +63,7 @@ export default function DriverHomeScreen({ navigation }) {
 
   const handleToggle = async () => {
     if (!location) {
-      setError('Waiting for your location before going online');
+      setError(t('driver.waitingForLocation'));
       return;
     }
     setError(null);
@@ -71,7 +73,7 @@ export default function DriverHomeScreen({ navigation }) {
       await updateAvailability({ isAvailable: next, currentLat: location.latitude, currentLng: location.longitude });
       setIsAvailable(next);
     } catch (err) {
-      setError(err.message || 'Could not update availability');
+      setError(err.message || t('driver.toggleError'));
     } finally {
       setToggling(false);
     }
@@ -86,7 +88,7 @@ export default function DriverHomeScreen({ navigation }) {
       setHasActiveRide(true);
       navigation.replace('ActiveRide', { rideId: ride.id, ride });
     } catch (err) {
-      setError(err.message || 'This ride is no longer available');
+      setError(err.message || t('driver.acceptError'));
       setIncomingRide(null);
     } finally {
       setAccepting(false);
@@ -94,11 +96,11 @@ export default function DriverHomeScreen({ navigation }) {
   };
 
   if (activeRideLoading) {
-    return <LoadingOverlay message="Loading..." />;
+    return <LoadingOverlay message={t('splash.loading')} />;
   }
 
   const initialRegion = location ? { ...location, zoom: 14 } : MAP_DEFAULTS;
-  const markers = location ? [{ id: 'me', latitude: location.latitude, longitude: location.longitude, label: 'You' }] : [];
+  const markers = location ? [{ id: 'me', latitude: location.latitude, longitude: location.longitude, label: t('map.you') }] : [];
 
   return (
     <View style={styles.container}>
@@ -107,17 +109,32 @@ export default function DriverHomeScreen({ navigation }) {
       <View style={styles.panel}>
         <ErrorBanner message={error} />
         <Text style={styles.status}>
-          {isAvailable ? 'You are online' : 'You are offline'}
+          {isAvailable ? t('driver.online') : t('driver.offline')}
           {user.ratingCount > 0 ? `  ·  ★ ${user.ratingAverage.toFixed(1)} (${user.ratingCount})` : ''}
         </Text>
         <View style={styles.actions}>
-          <PrimaryButton title="Log out" variant="secondary" onPress={logout} style={styles.smallButton} />
-          <PrimaryButton title="Profile" variant="secondary" onPress={() => navigation.navigate('EditProfile')} style={styles.smallButton} />
-          <PrimaryButton title="History" variant="secondary" onPress={() => navigation.navigate('RideHistory')} style={styles.smallButton} />
-          <PrimaryButton title="Stats" variant="secondary" onPress={() => navigation.navigate('Dashboard')} style={styles.smallButton} />
+          <PrimaryButton title={t('common.logout')} variant="secondary" onPress={logout} style={styles.smallButton} />
+          <PrimaryButton
+            title={t('common.profile')}
+            variant="secondary"
+            onPress={() => navigation.navigate('EditProfile')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.history')}
+            variant="secondary"
+            onPress={() => navigation.navigate('RideHistory')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.stats')}
+            variant="secondary"
+            onPress={() => navigation.navigate('Dashboard')}
+            style={styles.smallButton}
+          />
         </View>
         <PrimaryButton
-          title={isAvailable ? 'Go offline' : 'Go online'}
+          title={isAvailable ? t('driver.goOffline') : t('driver.goOnline')}
           variant={isAvailable ? 'danger' : 'primary'}
           onPress={handleToggle}
           loading={toggling}

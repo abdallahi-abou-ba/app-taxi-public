@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { getRideStats } from '../api/rideApi';
 import { formatFare } from '../utils/formatters';
 import { ROLE } from '../config/constants';
 
 export default function DashboardStats({ role }) {
+  const { t } = useTranslation();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -25,15 +27,15 @@ export default function DashboardStats({ role }) {
     <View style={styles.container}>
       <View style={styles.stat}>
         <Text style={styles.value}>{stats.completedRides}</Text>
-        <Text style={styles.label}>Rides</Text>
+        <Text style={styles.label}>{t('dashboard.rides')}</Text>
       </View>
       <View style={styles.stat}>
         <Text style={styles.value}>{formatFare(stats.totalAmount)}</Text>
-        <Text style={styles.label}>{role === ROLE.DRIVER ? 'Earned' : 'Spent'}</Text>
+        <Text style={styles.label}>{t(role === ROLE.DRIVER ? 'dashboard.earned' : 'dashboard.spent')}</Text>
       </View>
       <View style={styles.stat}>
         <Text style={styles.value}>{stats.ridesThisMonth}</Text>
-        <Text style={styles.label}>This month</Text>
+        <Text style={styles.label}>{t('dashboard.thisMonth')}</Text>
       </View>
     </View>
   );

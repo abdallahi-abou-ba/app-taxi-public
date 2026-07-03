@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { DriverLocationProvider, useDriverLocationStatus } from '../context/DriverLocationContext';
 import useDriverLocationTracking from '../hooks/useDriverLocationTracking';
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
@@ -19,16 +20,22 @@ function DriverLocationTracker() {
 }
 
 export default function DriverNavigator() {
+  const { t } = useTranslation();
+
   return (
     <DriverLocationProvider>
       <DriverLocationTracker />
       <Stack.Navigator>
-        <Stack.Screen name="DriverHome" component={DriverHomeScreen} options={{ title: 'Drive' }} />
-        <Stack.Screen name="ActiveRide" component={DriverActiveRideScreen} options={{ title: 'Current ride', headerBackVisible: false }} />
-        <Stack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: 'History' }} />
-        <Stack.Screen name="RideDetail" component={RideDetailScreen} options={{ title: 'Ride details' }} />
-        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Edit profile' }} />
-        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Dashboard' }} />
+        <Stack.Screen name="DriverHome" component={DriverHomeScreen} options={{ title: t('nav.drive') }} />
+        <Stack.Screen
+          name="ActiveRide"
+          component={DriverActiveRideScreen}
+          options={{ title: t('nav.currentRide'), headerBackVisible: false }}
+        />
+        <Stack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: t('nav.history') }} />
+        <Stack.Screen name="RideDetail" component={RideDetailScreen} options={{ title: t('nav.rideDetails') }} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('nav.editProfile') }} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
       </Stack.Navigator>
     </DriverLocationProvider>
   );

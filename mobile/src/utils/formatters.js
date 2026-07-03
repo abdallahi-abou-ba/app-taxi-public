@@ -13,12 +13,14 @@ export function formatFare(estimatedFare) {
   return `${estimatedFare.toFixed(2)}`;
 }
 
-export function formatDateTime(isoString) {
+export function formatDateTime(isoString, locale) {
   if (!isoString) return '-';
   const date = new Date(isoString);
-  return date.toLocaleString();
+  return date.toLocaleString(locale);
 }
 
-export function formatPaymentMethod(paymentMethod) {
-  return paymentMethod === 'CARD' ? 'Card' : 'Cash';
+// t = the i18next `t` function from useTranslation(), so the label follows
+// whichever language is currently active.
+export function formatPaymentMethod(paymentMethod, t) {
+  return t(paymentMethod === 'CARD' ? 'payment.card' : 'payment.cash');
 }
