@@ -10,7 +10,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "REPLACE_WITH_DEPLOYED_BACKEND_URL"
+        "EXPO_PUBLIC_API_URL": "https://backend-production-1b1b.up.railway.app"
       }
     }
   }

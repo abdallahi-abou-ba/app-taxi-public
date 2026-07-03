@@ -10,6 +10,11 @@ const errorMiddleware = require('./middleware/error.middleware');
 
 const app = express();
 
+// Railway (and most PaaS) put exactly one reverse proxy in front of this app -
+// trust that one hop so req.ip / express-rate-limit read the real client IP
+// from X-Forwarded-For instead of rejecting the header as unexpected.
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
