@@ -6,6 +6,8 @@
     "stats": "Statistiques",
     "backHome": "Retour à l'accueil",
     "cancelRide": "Annuler la course",
+    "cancel": "Annuler",
+    "reservations": "Réservations",
     "client": "Client",
     "driver": "Chauffeur"
   },
@@ -18,7 +20,8 @@
     "editProfile": "Modifier le profil",
     "dashboard": "Tableau de bord",
     "drive": "Conduire",
-    "currentRide": "Course en cours"
+    "currentRide": "Course en cours",
+    "scheduledRides": "Mes réservations"
   },
   "splash": {
     "loading": "Chargement..."
@@ -46,6 +49,7 @@
     "registrationFailed": "Échec de l'inscription"
   },
   "rideStatus": {
+    "SCHEDULED": "Réservation à venir",
     "REQUESTED": "Recherche d'un chauffeur",
     "ACCEPTED": "Le chauffeur arrive",
     "ARRIVED": "Le chauffeur est arrivé",
@@ -80,7 +84,13 @@
     "searchingNearby": "Recherche d'un chauffeur à proximité...",
     "locationPermissionDenied": "Autorisation de localisation refusée",
     "locationFetchError": "Impossible d'obtenir la position",
-    "activeRideLoadError": "Impossible de charger votre course en cours"
+    "activeRideLoadError": "Impossible de charger votre course en cours",
+    "bookNow": "Maintenant",
+    "bookLater": "Plus tard",
+    "chooseDateTime": "Choisir la date et l'heure",
+    "scheduledFor": "Réservée pour le {{date}}",
+    "scheduleRide": "Réserver",
+    "scheduleError": "Impossible de réserver cette course"
   },
   "driver": {
     "online": "Vous êtes en ligne",
@@ -120,6 +130,16 @@
     "removeCancel": "Annuler",
     "removeError": "Impossible de retirer cette course",
     "loadError": "Impossible de charger l'historique"
+  },
+  "scheduledRides": {
+    "empty": "Aucune réservation à venir",
+    "loadError": "Impossible de charger vos réservations",
+    "for": "Réservée pour le {{date}}",
+    "cancelTitle": "Annuler la réservation",
+    "cancelMessage": "Voulez-vous vraiment annuler cette réservation ?",
+    "cancelConfirm": "Annuler la réservation",
+    "cancelKeep": "Garder",
+    "cancelError": "Impossible d'annuler la réservation"
   },
   "rideSummary": {
     "from": "Départ : {{address}}",

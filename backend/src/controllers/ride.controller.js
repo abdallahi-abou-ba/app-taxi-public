@@ -7,6 +7,16 @@ const requestRide = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: ride, status: 201 });
 });
 
+const scheduleRide = asyncHandler(async (req, res) => {
+  const ride = await rideService.scheduleRide(req.user.id, req.body);
+  sendSuccess(res, { data: ride, status: 201 });
+});
+
+const listScheduledRides = asyncHandler(async (req, res) => {
+  const rides = await rideService.listScheduledRides(req.user.id);
+  sendSuccess(res, { data: rides });
+});
+
 const getRide = asyncHandler(async (req, res) => {
   const ride = await rideService.getRideById(req.user.id, req.params.id);
   sendSuccess(res, { data: ride });
@@ -69,6 +79,8 @@ const getStats = asyncHandler(async (req, res) => {
 
 module.exports = {
   requestRide,
+  scheduleRide,
+  listScheduledRides,
   getRide,
   listRides,
   getActiveRide,

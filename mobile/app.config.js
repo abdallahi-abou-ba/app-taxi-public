@@ -25,6 +25,7 @@ module.exports = ({ config }) => ({
     plugins: [
       'expo-secure-store',
       'expo-notifications',
+      '@react-native-community/datetimepicker',
       [
         'expo-location',
         {

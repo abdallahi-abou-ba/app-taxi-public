@@ -4,6 +4,14 @@ export function requestRide(payload) {
   return api.post('/api/rides', payload);
 }
 
+export function scheduleRide(payload) {
+  return api.post('/api/rides/scheduled', payload);
+}
+
+export function getScheduledRides() {
+  return api.get('/api/rides/scheduled');
+}
+
 export function listRides() {
   return api.get('/api/rides');
 }

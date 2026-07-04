@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const rideController = require('../controllers/ride.controller');
 const validate = require('../middleware/validate.middleware');
-const { requestRideSchema, cancelRideSchema, rateRideSchema, rideIdParamSchema } = require('../validators/ride.validators');
+const { requestRideSchema, scheduleRideSchema, cancelRideSchema, rateRideSchema, rideIdParamSchema } = require('../validators/ride.validators');
 const { requireAuth, requireRole } = require('../middleware/auth.middleware');
 
 const router = Router();
@@ -12,6 +12,8 @@ router.post('/', requireRole('CLIENT'), validate(requestRideSchema), rideControl
 router.get('/', rideController.listRides);
 router.get('/active', rideController.getActiveRide);
 router.get('/stats', rideController.getStats);
+router.post('/scheduled', requireRole('CLIENT'), validate(scheduleRideSchema), rideController.scheduleRide);
+router.get('/scheduled', rideController.listScheduledRides);
 router.get('/:id', validate(rideIdParamSchema, 'params'), rideController.getRide);
 router.patch('/:id/accept', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.acceptRide);
 router.patch('/:id/arrive', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.arriveRide);

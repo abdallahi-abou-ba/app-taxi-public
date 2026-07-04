@@ -4,6 +4,7 @@ export const ROLE = {
 };
 
 export const RIDE_STATUS = {
+  SCHEDULED: 'SCHEDULED',
   REQUESTED: 'REQUESTED',
   ACCEPTED: 'ACCEPTED',
   ARRIVED: 'ARRIVED',
@@ -11,6 +12,12 @@ export const RIDE_STATUS = {
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
 };
+
+// Mirrors the backend's default SCHEDULED_RIDE_MIN_LEAD_MIN - just a sane
+// client-side floor for the date/time picker; the backend is the real source
+// of truth and still validates this itself.
+export const MIN_SCHEDULE_LEAD_MIN = 30;
+export const MAX_SCHEDULE_LEAD_DAYS = 7;
 
 export const ACTIVE_RIDE_STATUSES = [
   RIDE_STATUS.REQUESTED,

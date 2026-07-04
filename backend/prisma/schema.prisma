@@ -14,6 +14,7 @@ enum Role {
 }
 
 enum RideStatus {
+  SCHEDULED
   REQUESTED
   ACCEPTED
   ARRIVED
@@ -104,6 +105,13 @@ model Ride {
   // the actual path on the map. Null if OSRM was unreachable when the ride
   // was requested (distance/duration then fall back to a straight-line estimate).
   routeGeometry Json?
+
+  // Set only for a booked-ahead ride (status starts at SCHEDULED). Null for
+  // an immediate request. The scheduling job (src/jobs/scheduling.job.js)
+  // flips SCHEDULED -> REQUESTED (and resets requestedAt to that moment) once
+  // within SCHEDULED_RIDE_ACTIVATION_LEAD_MIN of this time, at which point it
+  // behaves exactly like a normal ride request.
+  scheduledFor DateTime?
 
   requestedAt DateTime  @default(now())
   acceptedAt  DateTime?

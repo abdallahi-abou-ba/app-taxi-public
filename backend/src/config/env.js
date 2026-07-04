@@ -25,6 +25,10 @@ const envSchema = z.object({
   REMINDER_CHECK_INTERVAL_MIN: z.coerce.number().positive().default(5),
   SEARCH_REMINDER_AFTER_MIN: z.coerce.number().positive().default(5),
   RATING_REMINDER_AFTER_HOURS: z.coerce.number().positive().default(2),
+  // Scheduled ride booking (src/jobs/scheduling.job.js) tuning.
+  SCHEDULING_CHECK_INTERVAL_MIN: z.coerce.number().positive().default(1),
+  SCHEDULED_RIDE_ACTIVATION_LEAD_MIN: z.coerce.number().positive().default(15),
+  SCHEDULED_RIDE_MIN_LEAD_MIN: z.coerce.number().positive().default(30),
 });
 
 const parsed = envSchema.safeParse(process.env);

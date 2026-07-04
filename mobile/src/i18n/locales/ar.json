@@ -6,6 +6,8 @@
     "stats": "الإحصائيات",
     "backHome": "العودة إلى الرئيسية",
     "cancelRide": "إلغاء الرحلة",
+    "cancel": "إلغاء",
+    "reservations": "الحجوزات",
     "client": "عميل",
     "driver": "سائق"
   },
@@ -18,7 +20,8 @@
     "editProfile": "تعديل الملف الشخصي",
     "dashboard": "لوحة التحكم",
     "drive": "القيادة",
-    "currentRide": "الرحلة الحالية"
+    "currentRide": "الرحلة الحالية",
+    "scheduledRides": "حجوزاتي"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -46,6 +49,7 @@
     "registrationFailed": "فشل إنشاء الحساب"
   },
   "rideStatus": {
+    "SCHEDULED": "حجز قادم",
     "REQUESTED": "البحث عن سائق",
     "ACCEPTED": "السائق في الطريق",
     "ARRIVED": "وصل السائق",
@@ -80,7 +84,13 @@
     "searchingNearby": "جارٍ البحث عن سائق قريب...",
     "locationPermissionDenied": "تم رفض إذن الوصول إلى الموقع",
     "locationFetchError": "تعذّر تحديد الموقع",
-    "activeRideLoadError": "تعذّر تحميل رحلتك الحالية"
+    "activeRideLoadError": "تعذّر تحميل رحلتك الحالية",
+    "bookNow": "الآن",
+    "bookLater": "لاحقًا",
+    "chooseDateTime": "اختر التاريخ والوقت",
+    "scheduledFor": "محجوزة ليوم {{date}}",
+    "scheduleRide": "احجز",
+    "scheduleError": "تعذّر حجز هذه الرحلة"
   },
   "driver": {
     "online": "أنت متصل الآن",
@@ -120,6 +130,16 @@
     "removeCancel": "إلغاء",
     "removeError": "تعذّر إزالة هذه الرحلة",
     "loadError": "تعذّر تحميل السجل"
+  },
+  "scheduledRides": {
+    "empty": "لا توجد حجوزات قادمة",
+    "loadError": "تعذّر تحميل حجوزاتك",
+    "for": "محجوزة ليوم {{date}}",
+    "cancelTitle": "إلغاء الحجز",
+    "cancelMessage": "هل تريد فعلاً إلغاء هذا الحجز؟",
+    "cancelConfirm": "إلغاء الحجز",
+    "cancelKeep": "الاحتفاظ به",
+    "cancelError": "تعذّر إلغاء الحجز"
   },
   "rideSummary": {
     "from": "الانطلاق: {{address}}",

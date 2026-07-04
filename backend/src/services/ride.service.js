@@ -52,32 +52,95 @@ async function findNearbyAvailableDrivers(pickupLat, pickupLng) {
     .slice(0, MAX_MATCHED_DRIVERS);
 }
 
-async function requestRide(clientId, input) {
-  const existingActive = await prisma.ride.findFirst({ where: { clientId, status: { in: ACTIVE_STATUSES } } });
-  if (existingActive) {
-    throw new AppError('You already have an active ride', 409, 'CONFLICT');
-  }
+// Booking (immediate or scheduled) is one-at-a-time: a client with a pending
+// SCHEDULED ride can't also start an immediate one, and vice versa.
+const BOOKED_STATUSES = [...ACTIVE_STATUSES, 'SCHEDULED'];
 
-  const { pickupLat, pickupLng, destinationLat, destinationLng } = input;
+async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng) {
   const route = await getRoute(pickupLat, pickupLng, destinationLat, destinationLng);
   const distanceKm = route ? route.distanceKm : haversineDistanceKm(pickupLat, pickupLng, destinationLat, destinationLng);
   const durationMin = route ? route.durationMin : (distanceKm / AVG_SPEED_KMH) * 60;
   const estimatedFare = estimateFare(distanceKm, durationMin);
+  return { distanceKm, durationMin, estimatedFare, routeGeometry: route ? route.geometry : undefined };
+}
 
-  const ride = await prisma.ride.create({
-    data: { clientId, ...input, distanceKm, durationMin, estimatedFare, routeGeometry: route ? route.geometry : undefined },
-    include: RIDE_INCLUDE,
-  });
-
-  const nearbyDrivers = await findNearbyAvailableDrivers(pickupLat, pickupLng);
+async function broadcastToNearbyDrivers(ride) {
+  const nearbyDrivers = await findNearbyAvailableDrivers(ride.pickupLat, ride.pickupLng);
   for (const { driver } of nearbyDrivers) {
     emitToUser(driver.id, 'ride:new', ride);
     // Fire-and-forget: never awaited, so a slow/failed push to one driver
     // can't delay the response or block notifying the rest.
     sendPushToUser(driver.id, { title: 'New ride request', body: `${ride.client.fullName} needs a pickup nearby`, data: { rideId: ride.id, type: 'ride:new' } });
   }
+}
 
+async function requestRide(clientId, input) {
+  const existingActive = await prisma.ride.findFirst({ where: { clientId, status: { in: BOOKED_STATUSES } } });
+  if (existingActive) {
+    throw new AppError('You already have an active ride', 409, 'CONFLICT');
+  }
+
+  const { pickupLat, pickupLng, destinationLat, destinationLng } = input;
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng);
+
+  const ride = await prisma.ride.create({
+    data: { clientId, ...input, ...routeData },
+    include: RIDE_INCLUDE,
+  });
+
+  await broadcastToNearbyDrivers(ride);
   return ride;
+}
+
+async function scheduleRide(clientId, input) {
+  const existingActive = await prisma.ride.findFirst({ where: { clientId, status: { in: BOOKED_STATUSES } } });
+  if (existingActive) {
+    throw new AppError('You already have an active ride', 409, 'CONFLICT');
+  }
+
+  const { pickupLat, pickupLng, destinationLat, destinationLng, scheduledFor } = input;
+  const scheduledDate = new Date(scheduledFor);
+  const minLeadMs = env.SCHEDULED_RIDE_MIN_LEAD_MIN * 60 * 1000;
+  if (scheduledDate.getTime() < Date.now() + minLeadMs) {
+    throw new AppError(`Scheduled rides must be booked at least ${env.SCHEDULED_RIDE_MIN_LEAD_MIN} minutes in advance`, 422, 'VALIDATION_ERROR');
+  }
+
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng);
+
+  return prisma.ride.create({
+    data: { clientId, ...input, scheduledFor: scheduledDate, status: 'SCHEDULED', ...routeData },
+    include: RIDE_INCLUDE,
+  });
+}
+
+async function listScheduledRides(clientId) {
+  return prisma.ride.findMany({
+    where: { clientId, status: 'SCHEDULED' },
+    orderBy: { scheduledFor: 'asc' },
+    include: RIDE_INCLUDE,
+  });
+}
+
+// Flips a booked-ahead ride to REQUESTED once it's within the activation
+// window, resets requestedAt to that moment (so "still searching" timing is
+// relative to activation, not the original booking), then broadcasts exactly
+// like a fresh immediate request. Run periodically - see jobs/scheduling.job.js.
+async function activateScheduledRides() {
+  const cutoff = new Date(Date.now() + env.SCHEDULED_RIDE_ACTIVATION_LEAD_MIN * 60 * 1000);
+  const dueRides = await prisma.ride.findMany({
+    where: { status: 'SCHEDULED', scheduledFor: { lte: cutoff } },
+  });
+
+  for (const ride of dueRides) {
+    const { count } = await prisma.ride.updateMany({
+      where: { id: ride.id, status: 'SCHEDULED' },
+      data: { status: 'REQUESTED', requestedAt: new Date() },
+    });
+    if (count === 0) continue;
+
+    const activated = await prisma.ride.findUnique({ where: { id: ride.id }, include: RIDE_INCLUDE });
+    await broadcastToNearbyDrivers(activated);
+  }
 }
 
 function assertParticipant(ride, userId) {
@@ -98,6 +161,9 @@ async function getRideById(userId, rideId) {
 async function listRides(userId) {
   return prisma.ride.findMany({
     where: {
+      // SCHEDULED rides live in their own "upcoming reservations" list
+      // (listScheduledRides) until they activate or get cancelled.
+      status: { not: 'SCHEDULED' },
       OR: [
         { clientId: userId, hiddenByClient: false },
         { driverId: userId, hiddenByDriver: false },
@@ -176,7 +242,7 @@ async function cancelRide(userId, role, rideId, reason) {
   assertParticipant(ride, userId);
 
   const { count } = await prisma.ride.updateMany({
-    where: { id: rideId, status: { in: ACTIVE_STATUSES } },
+    where: { id: rideId, status: { in: BOOKED_STATUSES } },
     data: { status: 'CANCELLED', cancelledAt: new Date(), cancelledBy: role, cancellationReason: reason },
   });
 
@@ -316,6 +382,9 @@ async function getStats(userId, role) {
 
 module.exports = {
   requestRide,
+  scheduleRide,
+  listScheduledRides,
+  activateScheduledRides,
   getRideById,
   listRides,
   getActiveRide,
