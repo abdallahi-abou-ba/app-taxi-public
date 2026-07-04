@@ -27,4 +27,9 @@ const deleteMe = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: null });
 });
 
-module.exports = { getMe, updateMe, updateAvailability, updatePushToken, deleteMe };
+const getReferralInfo = asyncHandler(async (req, res) => {
+  const info = await userService.getReferralInfo(req.user.id);
+  sendSuccess(res, { data: info });
+});
+
+module.exports = { getMe, updateMe, updateAvailability, updatePushToken, deleteMe, getReferralInfo };

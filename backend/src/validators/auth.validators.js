@@ -6,6 +6,7 @@ const registerSchema = z.object({
   fullName: z.string().trim().min(2, 'Full name must be at least 2 characters'),
   phone: z.string().trim().min(6).optional(),
   role: z.enum(['CLIENT', 'DRIVER']),
+  referralCode: z.string().trim().min(1).optional(),
 });
 
 const loginSchema = z.object({

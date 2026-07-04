@@ -8,6 +8,7 @@
     "cancelRide": "Annuler la course",
     "cancel": "Annuler",
     "reservations": "Réservations",
+    "referral": "Parrainage",
     "client": "Client",
     "driver": "Chauffeur"
   },
@@ -21,7 +22,8 @@
     "dashboard": "Tableau de bord",
     "drive": "Conduire",
     "currentRide": "Course en cours",
-    "scheduledRides": "Mes réservations"
+    "scheduledRides": "Mes réservations",
+    "referral": "Parrainage"
   },
   "splash": {
     "loading": "Chargement..."
@@ -45,6 +47,8 @@
     "phonePlaceholder": "0600000000",
     "imRider": "Je suis passager",
     "imDriver": "Je suis chauffeur",
+    "referralCodeLabel": "Code de parrainage (optionnel)",
+    "referralCodePlaceholder": "Ex : AB12CD3",
     "loginFailed": "Échec de la connexion",
     "registrationFailed": "Échec de l'inscription"
   },
@@ -65,7 +69,8 @@
     "pending": "Paiement en attente",
     "markAsPaid": "Marquer comme payé ({{method}})",
     "label": "Paiement : {{method}}",
-    "markPaidError": "Impossible de marquer cette course comme payée"
+    "markPaidError": "Impossible de marquer cette course comme payée",
+    "creditApplied": "Crédit appliqué : -{{amount}}"
   },
   "map": {
     "pickup": "Départ",
@@ -140,6 +145,15 @@
     "cancelConfirm": "Annuler la réservation",
     "cancelKeep": "Garder",
     "cancelError": "Impossible d'annuler la réservation"
+  },
+  "referral": {
+    "yourCode": "Votre code de parrainage",
+    "share": "Partager",
+    "shareMessage": "Utilise mon code de parrainage {{code}} pour t'inscrire sur l'appli - on gagne chacun un crédit dès ta première course !",
+    "creditBalance": "Crédit disponible",
+    "referralCount": "Amis parrainés",
+    "howItWorks": "Ton ami gagne un crédit après sa première course terminée, et toi aussi.",
+    "loadError": "Impossible de charger vos informations de parrainage"
   },
   "rideSummary": {
     "from": "Départ : {{address}}",

@@ -206,6 +206,54 @@ async function acceptRide(driverId, rideId) {
   return ride;
 }
 
+// On ride completion: first spend any existing credit balance toward this
+// ride's cash payment (Ride.creditApplied), then - if this is the client's
+// first-ever completed ride and they were referred - grant a one-time
+// referral reward to both sides, available starting from their *next* ride.
+async function applyCreditAndReferralReward(ride) {
+  const client = await prisma.user.findUnique({ where: { id: ride.clientId } });
+  if (!client) return ride;
+
+  let updatedRide = ride;
+
+  if (client.creditBalance > 0 && ride.estimatedFare) {
+    const creditApplied = Math.min(client.creditBalance, ride.estimatedFare);
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: client.id }, data: { creditBalance: { decrement: creditApplied } } }),
+      prisma.ride.update({ where: { id: ride.id }, data: { creditApplied } }),
+    ]);
+    updatedRide = await prisma.ride.findUnique({ where: { id: ride.id }, include: RIDE_INCLUDE });
+  }
+
+  if (client.referredById && !client.referralRewardGrantedAt) {
+    const completedCount = await prisma.ride.count({ where: { clientId: client.id, status: 'COMPLETED' } });
+    if (completedCount === 1) {
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: client.id },
+          data: { creditBalance: { increment: env.REFERRAL_REWARD_AMOUNT }, referralRewardGrantedAt: new Date() },
+        }),
+        prisma.user.update({
+          where: { id: client.referredById },
+          data: { creditBalance: { increment: env.REFERRAL_REWARD_AMOUNT } },
+        }),
+      ]);
+      sendPushToUser(client.id, {
+        title: 'Referral bonus!',
+        body: `You've earned ${env.REFERRAL_REWARD_AMOUNT} credit toward your next ride`,
+        data: { type: 'referral:reward' },
+      });
+      sendPushToUser(client.referredById, {
+        title: 'Referral bonus!',
+        body: `Your friend took their first ride - you've earned ${env.REFERRAL_REWARD_AMOUNT} credit`,
+        data: { type: 'referral:reward' },
+      });
+    }
+  }
+
+  return updatedRide;
+}
+
 async function transitionRide(driverId, rideId, action) {
   const { from, to, timestampField } = TRANSITIONS[action];
 
@@ -218,9 +266,10 @@ async function transitionRide(driverId, rideId, action) {
     throw new AppError(`Ride cannot be moved to ${to} from its current state`, 409, 'CONFLICT');
   }
 
-  const ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
+  let ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
   if (to === 'COMPLETED') {
     rideTracker.clearActiveRide(driverId);
+    ride = await applyCreditAndReferralReward(ride);
   }
 
   emitRideStatus(ride);

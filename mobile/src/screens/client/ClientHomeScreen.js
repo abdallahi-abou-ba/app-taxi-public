@@ -212,10 +212,18 @@ export default function ClientHomeScreen({ navigation }) {
             onPress={() => navigation.navigate('Dashboard')}
             style={styles.smallButton}
           />
+        </View>
+        <View style={styles.actions}>
           <PrimaryButton
             title={t('common.reservations')}
             variant="secondary"
             onPress={() => navigation.navigate('ScheduledRides')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.referral')}
+            variant="secondary"
+            onPress={() => navigation.navigate('Referral')}
             style={styles.smallButton}
           />
         </View>

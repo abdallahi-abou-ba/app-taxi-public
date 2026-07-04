@@ -1,7 +1,7 @@
 import { api } from './client';
 
-export function register({ email, password, fullName, phone, role }) {
-  return api.post('/api/auth/register', { email, password, fullName, phone, role }, { skipAuth: true });
+export function register({ email, password, fullName, phone, role, referralCode }) {
+  return api.post('/api/auth/register', { email, password, fullName, phone, role, referralCode }, { skipAuth: true });
 }
 
 export function login({ email, password }) {

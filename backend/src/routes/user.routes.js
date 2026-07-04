@@ -13,5 +13,6 @@ router.patch('/me', validate(updateProfileSchema), userController.updateMe);
 router.delete('/me', validate(deleteAccountSchema), userController.deleteMe);
 router.patch('/me/availability', validate(updateAvailabilitySchema), userController.updateAvailability);
 router.patch('/me/push-token', validate(updatePushTokenSchema), userController.updatePushToken);
+router.get('/me/referrals', userController.getReferralInfo);
 
 module.exports = router;

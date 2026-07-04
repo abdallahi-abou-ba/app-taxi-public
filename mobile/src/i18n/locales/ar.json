@@ -8,6 +8,7 @@
     "cancelRide": "إلغاء الرحلة",
     "cancel": "إلغاء",
     "reservations": "الحجوزات",
+    "referral": "الإحالة",
     "client": "عميل",
     "driver": "سائق"
   },
@@ -21,7 +22,8 @@
     "dashboard": "لوحة التحكم",
     "drive": "القيادة",
     "currentRide": "الرحلة الحالية",
-    "scheduledRides": "حجوزاتي"
+    "scheduledRides": "حجوزاتي",
+    "referral": "الإحالة"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -45,6 +47,8 @@
     "phonePlaceholder": "0600000000",
     "imRider": "أنا راكب",
     "imDriver": "أنا سائق",
+    "referralCodeLabel": "رمز الإحالة (اختياري)",
+    "referralCodePlaceholder": "مثال: AB12CD3",
     "loginFailed": "فشل تسجيل الدخول",
     "registrationFailed": "فشل إنشاء الحساب"
   },
@@ -65,7 +69,8 @@
     "pending": "الدفع معلق",
     "markAsPaid": "وضع علامة كمدفوع ({{method}})",
     "label": "طريقة الدفع: {{method}}",
-    "markPaidError": "تعذّر وضع علامة على هذه الرحلة كمدفوعة"
+    "markPaidError": "تعذّر وضع علامة على هذه الرحلة كمدفوعة",
+    "creditApplied": "تم تطبيق رصيد: -{{amount}}"
   },
   "map": {
     "pickup": "الانطلاق",
@@ -140,6 +145,15 @@
     "cancelConfirm": "إلغاء الحجز",
     "cancelKeep": "الاحتفاظ به",
     "cancelError": "تعذّر إلغاء الحجز"
+  },
+  "referral": {
+    "yourCode": "رمز الإحالة الخاص بك",
+    "share": "مشاركة",
+    "shareMessage": "استخدم رمز الإحالة {{code}} للتسجيل في التطبيق - سيحصل كل منا على رصيد بعد رحلتك الأولى!",
+    "creditBalance": "الرصيد المتاح",
+    "referralCount": "الأصدقاء المُحالون",
+    "howItWorks": "يحصل صديقك على رصيد بعد إتمام رحلته الأولى، وأنت أيضًا.",
+    "loadError": "تعذّر تحميل معلومات الإحالة"
   },
   "rideSummary": {
     "from": "الانطلاق: {{address}}",

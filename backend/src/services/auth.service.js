@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const env = require('../config/env');
 const AppError = require('../utils/appError');
+const { generateUniqueReferralCode } = require('../utils/referral.util');
 
 const SALT_ROUNDS = 10;
 const REFRESH_TOKEN_BYTES = 48;
@@ -43,13 +44,23 @@ async function issueTokens(user) {
   return { accessToken, refreshToken };
 }
 
-async function register({ email, password, fullName, phone, role }) {
+async function register({ email, password, fullName, phone, role, referralCode }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AppError('An account with this email already exists', 409, 'CONFLICT');
   }
 
+  let referredById = null;
+  if (referralCode) {
+    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCode.trim().toUpperCase() } });
+    if (!referrer) {
+      throw new AppError('Referral code not found', 422, 'VALIDATION_ERROR');
+    }
+    referredById = referrer.id;
+  }
+
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const myReferralCode = await generateUniqueReferralCode();
 
   const user = await prisma.user.create({
     data: {
@@ -59,6 +70,8 @@ async function register({ email, password, fullName, phone, role }) {
       phone,
       role,
       isAvailable: role === 'DRIVER' ? false : null,
+      referralCode: myReferralCode,
+      referredById,
     },
   });
 

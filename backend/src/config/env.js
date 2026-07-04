@@ -29,6 +29,9 @@ const envSchema = z.object({
   SCHEDULING_CHECK_INTERVAL_MIN: z.coerce.number().positive().default(1),
   SCHEDULED_RIDE_ACTIVATION_LEAD_MIN: z.coerce.number().positive().default(15),
   SCHEDULED_RIDE_MIN_LEAD_MIN: z.coerce.number().positive().default(30),
+  // Referral program: credit granted to both the referrer and the referred
+  // friend once the friend completes their first ride.
+  REFERRAL_REWARD_AMOUNT: z.coerce.number().nonnegative().default(20),
 });
 
 const parsed = envSchema.safeParse(process.env);

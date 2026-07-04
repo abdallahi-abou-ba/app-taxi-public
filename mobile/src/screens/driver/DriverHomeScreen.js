@@ -120,6 +120,8 @@ export default function DriverHomeScreen({ navigation }) {
             onPress={() => navigation.navigate('EditProfile')}
             style={styles.smallButton}
           />
+        </View>
+        <View style={styles.actions}>
           <PrimaryButton
             title={t('common.history')}
             variant="secondary"
@@ -130,6 +132,12 @@ export default function DriverHomeScreen({ navigation }) {
             title={t('common.stats')}
             variant="secondary"
             onPress={() => navigation.navigate('Dashboard')}
+            style={styles.smallButton}
+          />
+          <PrimaryButton
+            title={t('common.referral')}
+            variant="secondary"
+            onPress={() => navigation.navigate('Referral')}
             style={styles.smallButton}
           />
         </View>

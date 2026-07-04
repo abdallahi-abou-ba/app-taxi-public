@@ -8,6 +8,7 @@ import RideDetailScreen from '../screens/common/RideDetailScreen';
 import EditProfileScreen from '../screens/common/EditProfileScreen';
 import DashboardScreen from '../screens/common/DashboardScreen';
 import ScheduledRidesScreen from '../screens/client/ScheduledRidesScreen';
+import ReferralScreen from '../screens/common/ReferralScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function ClientNavigator() {
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('nav.editProfile') }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
       <Stack.Screen name="ScheduledRides" component={ScheduledRidesScreen} options={{ title: t('nav.scheduledRides') }} />
+      <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
     </Stack.Navigator>
   );
 }

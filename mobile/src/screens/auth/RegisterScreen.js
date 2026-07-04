@@ -15,6 +15,7 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [role, setRole] = useState(ROLE.CLIENT);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ export default function RegisterScreen({ navigation }) {
         phone: phone.trim() || undefined,
         password,
         role,
+        referralCode: referralCode.trim() || undefined,
       });
     } catch (err) {
       setError(err.message || t('auth.registrationFailed'));
@@ -78,6 +80,13 @@ export default function RegisterScreen({ navigation }) {
           placeholder={t('auth.passwordPlaceholderMin')}
         />
         {passwordInvalid ? <Text style={styles.fieldError}>{t('auth.passwordInvalid')}</Text> : null}
+        <TextField
+          label={t('auth.referralCodeLabel')}
+          value={referralCode}
+          onChangeText={setReferralCode}
+          autoCapitalize="characters"
+          placeholder={t('auth.referralCodePlaceholder')}
+        />
 
         <PrimaryButton title={t('auth.createAccount')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
 

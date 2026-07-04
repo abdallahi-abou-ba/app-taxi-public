@@ -7,6 +7,8 @@ export default function RideSummaryCard({ ride, viewerRole }) {
   const { t } = useTranslation();
   const counterpart = viewerRole === ROLE.DRIVER ? ride.client : ride.driver;
   const counterpartLabel = t(viewerRole === ROLE.DRIVER ? 'common.client' : 'common.driver');
+  const hasCredit = ride.creditApplied > 0;
+  const amountDue = hasCredit ? (ride.estimatedFare || 0) - ride.creditApplied : ride.estimatedFare;
 
   return (
     <View style={styles.card}>
@@ -28,8 +30,9 @@ export default function RideSummaryCard({ ride, viewerRole }) {
       <View style={styles.row}>
         <Text style={styles.metric}>{formatDistance(ride.distanceKm)}</Text>
         <Text style={styles.metric}>{formatDuration(ride.durationMin)}</Text>
-        <Text style={styles.metric}>{formatFare(ride.estimatedFare)}</Text>
+        <Text style={styles.metric}>{formatFare(amountDue)}</Text>
       </View>
+      {hasCredit ? <Text style={styles.credit}>{t('payment.creditApplied', { amount: formatFare(ride.creditApplied) })}</Text> : null}
       <Text style={styles.address}>{t('payment.label', { method: formatPaymentMethod(ride.paymentMethod, t) })}</Text>
     </View>
   );
@@ -61,5 +64,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#1a73e8',
+  },
+  credit: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1a8b53',
   },
 });

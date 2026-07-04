@@ -61,6 +61,22 @@ model User {
   // user grants notification permission, and it's cleared on logout.
   pushToken String?
 
+  // Referral program. This user's own shareable code (assigned at
+  // registration; nullable rather than a NOT NULL migration since existing
+  // rows are backfilled by a one-off script instead). referredById is set at
+  // registration if they signed up with someone else's code.
+  referralCode String? @unique
+  referredById String?
+  referredBy   User?   @relation("Referrals", fields: [referredById], references: [id])
+  referrals    User[]  @relation("Referrals")
+
+  // Cash-equivalent balance, auto-applied to a future ride's cash payment
+  // (see Ride.creditApplied). Funded by referral rewards.
+  creditBalance Float @default(0)
+  // Set once this user's own "referred friend's first ride" reward has been
+  // granted, so it's never granted twice even across many later rides.
+  referralRewardGrantedAt DateTime?
+
   ridesAsClient Ride[] @relation("ClientRides")
   ridesAsDriver Ride[] @relation("DriverRides")
   refreshTokens RefreshToken[]
@@ -131,6 +147,11 @@ model Ride {
   // in person. No amount/transaction to record - just the one flag.
   isPaid Boolean   @default(false)
   paidAt DateTime?
+
+  // How much of the client's referral credit balance was auto-deducted
+  // toward this ride at completion - the driver should only collect
+  // (estimatedFare - creditApplied) in cash, not the full estimate.
+  creditApplied Float @default(0)
 
   // Per-user "trash": hiding a ride only removes it from that user's own
   // history list, the other participant and the ride record are unaffected.

@@ -75,4 +75,13 @@ async function deleteAccount(userId, password) {
   ]);
 }
 
-module.exports = { updateProfile, updateAvailability, updatePushToken, deleteAccount };
+async function getReferralInfo(userId) {
+  const [user, referralCount] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { referralCode: true, creditBalance: true } }),
+    prisma.user.count({ where: { referredById: userId } }),
+  ]);
+
+  return { referralCode: user.referralCode, creditBalance: user.creditBalance, referralCount };
+}
+
+module.exports = { updateProfile, updateAvailability, updatePushToken, deleteAccount, getReferralInfo };

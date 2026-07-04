@@ -19,3 +19,7 @@ export function updatePushToken(pushToken) {
 export function deleteAccount(password) {
   return api.delete('/api/users/me', { password });
 }
+
+export function getReferralInfo() {
+  return api.get('/api/users/me/referrals');
+}
