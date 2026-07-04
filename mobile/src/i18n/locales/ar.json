@@ -72,7 +72,10 @@
     "markAsPaid": "وضع علامة كمدفوع ({{method}})",
     "label": "طريقة الدفع: {{method}}",
     "markPaidError": "تعذّر وضع علامة على هذه الرحلة كمدفوعة",
-    "creditApplied": "تم تطبيق رصيد: -{{amount}}"
+    "creditApplied": "تم تطبيق رصيد: -{{amount}}",
+    "payNow": "ادفع الآن",
+    "payError": "تعذّر بدء عملية الدفع",
+    "waitingOnlinePayment": "في انتظار الدفع الإلكتروني من طرف الزبون"
   },
   "map": {
     "pickup": "الانطلاق",

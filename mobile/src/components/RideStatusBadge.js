@@ -1,36 +1,43 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { RIDE_STATUS } from '../config/constants';
+import { STATUS_COLORS, radius } from '../theme/theme';
 
-const COLORS = {
-  [RIDE_STATUS.REQUESTED]: '#e8a33d',
-  [RIDE_STATUS.ACCEPTED]: '#1a73e8',
-  [RIDE_STATUS.ARRIVED]: '#1a73e8',
-  [RIDE_STATUS.IN_PROGRESS]: '#1a8b53',
-  [RIDE_STATUS.COMPLETED]: '#444',
-  [RIDE_STATUS.CANCELLED]: '#d93025',
+const ICONS = {
+  [RIDE_STATUS.SCHEDULED]: 'calendar',
+  [RIDE_STATUS.REQUESTED]: 'time',
+  [RIDE_STATUS.ACCEPTED]: 'navigate',
+  [RIDE_STATUS.ARRIVED]: 'location',
+  [RIDE_STATUS.IN_PROGRESS]: 'car-sport',
+  [RIDE_STATUS.COMPLETED]: 'checkmark-circle',
+  [RIDE_STATUS.CANCELLED]: 'close-circle',
 };
 
 export default function RideStatusBadge({ status }) {
   const { t } = useTranslation();
+  const palette = STATUS_COLORS[status] || STATUS_COLORS.COMPLETED;
 
   return (
-    <View style={[styles.badge, { backgroundColor: COLORS[status] || '#444' }]}>
-      <Text style={styles.text}>{t(`rideStatus.${status}`, status)}</Text>
+    <View style={[styles.badge, { backgroundColor: palette.bg }]}>
+      <Ionicons name={ICONS[status] || 'ellipse'} size={14} color={palette.fg} />
+      <Text style={[styles.text, { color: palette.fg }]}>{t(`rideStatus.${status}`, status)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     alignSelf: 'flex-start',
-    borderRadius: 999,
-    paddingVertical: 6,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
     paddingHorizontal: 14,
   },
   text: {
-    color: '#fff',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 13,
   },
 });

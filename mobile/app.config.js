@@ -8,6 +8,10 @@ module.exports = ({ config }) => ({
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
+    // Used by expo-linking to build the redirect URL Stripe Checkout sends
+    // the browser back to (see api/rideApi.js) - only takes effect in a
+    // standalone/EAS build; Expo Go uses its own exp:// scheme regardless.
+    scheme: 'taxiapp',
     ios: {
       supportsTablet: true,
     },
@@ -25,6 +29,7 @@ module.exports = ({ config }) => ({
     plugins: [
       'expo-secure-store',
       'expo-notifications',
+      'expo-web-browser',
       '@react-native-community/datetimepicker',
       [
         'expo-location',

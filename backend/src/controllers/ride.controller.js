@@ -67,6 +67,11 @@ const markRidePaid = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: ride });
 });
 
+const createCheckoutSession = asyncHandler(async (req, res) => {
+  const url = await rideService.createCardCheckoutSession(req.user.id, req.params.id, req.body);
+  sendSuccess(res, { data: { url } });
+});
+
 const hideFromHistory = asyncHandler(async (req, res) => {
   const result = await rideService.hideRideFromHistory(req.user.id, req.user.role, req.params.id);
   sendSuccess(res, { data: result });
@@ -91,6 +96,7 @@ module.exports = {
   cancelRide,
   rateRide,
   markRidePaid,
+  createCheckoutSession,
   hideFromHistory,
   getStats,
 };

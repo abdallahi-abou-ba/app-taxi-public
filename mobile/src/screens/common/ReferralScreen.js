@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Share } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { getReferralInfo } from '../../api/userApi';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import PrimaryButton from '../../components/PrimaryButton';
 import { formatFare } from '../../utils/formatters';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function ReferralScreen() {
   const { t } = useTranslation();
@@ -31,6 +33,9 @@ export default function ReferralScreen() {
       {info ? (
         <>
           <View style={styles.codeCard}>
+            <View style={styles.giftIcon}>
+              <Ionicons name="gift" size={22} color={colors.onPrimary} />
+            </View>
             <Text style={styles.codeLabel}>{t('referral.yourCode')}</Text>
             <Text style={styles.code}>{info.referralCode}</Text>
           </View>
@@ -56,24 +61,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
-    gap: 20,
+    gap: spacing.xl,
+    backgroundColor: colors.background,
   },
   codeCard: {
-    backgroundColor: '#f5f7fa',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: colors.charcoal,
+    borderRadius: radius.xl,
+    padding: spacing.xxl,
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    ...shadow.raised,
+  },
+  giftIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   codeLabel: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textOnDarkMuted,
+    fontWeight: '600',
   },
   code: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1a73e8',
-    letterSpacing: 2,
+    fontSize: 30,
+    fontWeight: '800',
+    color: colors.primary,
+    letterSpacing: 3,
   },
   statsRow: {
     flexDirection: 'row',
@@ -84,17 +101,18 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginTop: 2,
+    fontWeight: '500',
   },
   howItWorks: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });

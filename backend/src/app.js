@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const env = require('./config/env');
 const logger = require('./config/logger');
 const routes = require('./routes');
+const paymentController = require('./controllers/payment.controller');
 const notFoundMiddleware = require('./middleware/notFound.middleware');
 const errorMiddleware = require('./middleware/error.middleware');
 
@@ -17,6 +18,12 @@ app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
+
+// Stripe needs the exact raw request body to verify the webhook signature,
+// so this is registered before the global express.json() below (which would
+// otherwise parse-and-reserialize it, breaking the signature check).
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), paymentController.handleStripeWebhook);
+
 app.use(express.json());
 app.use(
   morgan(env.NODE_ENV === 'development' ? 'dev' : 'combined', {

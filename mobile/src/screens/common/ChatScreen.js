@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, FlatList, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
 import { useAuth } from '../../context/AuthContext';
 import { listMessages, sendMessage } from '../../api/messageApi';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
+import { colors, radius, spacing } from '../../theme/theme';
 
 export default function ChatScreen({ route }) {
   const { t, i18n } = useTranslation();
@@ -90,7 +92,7 @@ export default function ChatScreen({ route }) {
           value={draft}
           onChangeText={setDraft}
           placeholder={t('chat.placeholder')}
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textMuted}
           multiline
         />
         <Pressable
@@ -98,7 +100,7 @@ export default function ChatScreen({ route }) {
           disabled={!draft.trim() || sending}
           style={[styles.sendButton, (!draft.trim() || sending) && styles.sendButtonDisabled]}
         >
-          <Text style={styles.sendButtonText}>{t('chat.send')}</Text>
+          <Ionicons name="send" size={18} color={colors.onPrimary} />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -108,46 +110,50 @@ export default function ChatScreen({ route }) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   list: {
-    padding: 16,
+    padding: spacing.lg,
     gap: 8,
     flexGrow: 1,
   },
   empty: {
     textAlign: 'center',
-    color: '#777',
+    color: colors.textMuted,
     marginTop: 40,
+    fontWeight: '500',
   },
   bubble: {
     maxWidth: '80%',
-    borderRadius: 14,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: radius.lg,
+    paddingVertical: 9,
+    paddingHorizontal: 13,
   },
   bubbleMine: {
     alignSelf: 'flex-end',
-    backgroundColor: '#1a73e8',
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: 4,
   },
   bubbleTheirs: {
     alignSelf: 'flex-start',
-    backgroundColor: '#eee',
+    backgroundColor: colors.surface,
+    borderBottomLeftRadius: 4,
   },
   bubbleText: {
     fontSize: 15,
-    color: '#222',
+    color: colors.textPrimary,
   },
   bubbleTextMine: {
-    color: '#fff',
+    color: colors.onPrimary,
   },
   bubbleTime: {
     fontSize: 10,
-    color: '#666',
+    color: colors.textMuted,
     marginTop: 4,
     alignSelf: 'flex-end',
   },
   bubbleTimeMine: {
-    color: 'rgba(255,255,255,0.75)',
+    color: 'rgba(28,28,30,0.55)',
   },
   inputRow: {
     flexDirection: 'row',
@@ -155,30 +161,30 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    borderTopColor: colors.divider,
+    backgroundColor: colors.surface,
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
-    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: radius.xl,
+    paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
     maxHeight: 100,
+    backgroundColor: colors.surfaceAlt,
+    color: colors.textPrimary,
   },
   sendButton: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  sendButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    opacity: 0.45,
   },
 });

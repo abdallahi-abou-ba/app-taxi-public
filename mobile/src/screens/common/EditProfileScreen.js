@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { updateMe, deleteAccount } from '../../api/userApi';
@@ -7,6 +8,7 @@ import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { LANGUAGES, setLanguage, restartApp } from '../../i18n/languageManager';
+import { colors, radius, spacing } from '../../theme/theme';
 
 export default function EditProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -65,8 +67,17 @@ export default function EditProfileScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{user.fullName?.trim()?.[0]?.toUpperCase() || '?'}</Text>
+        </View>
+
         <ErrorBanner message={error} />
-        {saved ? <Text style={styles.saved}>{t('editProfile.saved')}</Text> : null}
+        {saved ? (
+          <View style={styles.savedRow}>
+            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+            <Text style={styles.saved}>{t('editProfile.saved')}</Text>
+          </View>
+        ) : null}
 
         <TextField label={t('editProfile.fullNameLabel')} value={fullName} onChangeText={setFullName} placeholder={t('auth.fullNamePlaceholder')} />
         {nameInvalid ? <Text style={styles.fieldError}>{t('editProfile.nameError')}</Text> : null}
@@ -148,34 +159,58 @@ export default function EditProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
     padding: 24,
   },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.charcoal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: spacing.xl,
+  },
+  avatarText: {
+    color: colors.primary,
+    fontSize: 28,
+    fontWeight: '800',
+  },
   fieldError: {
-    color: '#a52714',
+    color: colors.danger,
     fontSize: 12,
     marginTop: -10,
     marginBottom: 14,
+    fontWeight: '600',
+  },
+  savedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 14,
   },
   saved: {
-    color: '#1a7a3c',
+    color: colors.success,
     fontSize: 14,
-    marginBottom: 14,
+    fontWeight: '600',
   },
   readOnly: {
     marginBottom: 20,
   },
   readOnlyLabel: {
     fontSize: 13,
-    color: '#444',
+    color: colors.textSecondary,
     marginBottom: 4,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   readOnlyValue: {
     fontSize: 16,
-    color: '#666',
+    color: colors.textPrimary,
+    fontWeight: '500',
   },
   section: {
     marginTop: 32,
@@ -183,8 +218,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#222',
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   languageRow: {
     flexDirection: 'row',
@@ -193,39 +228,37 @@ const styles = StyleSheet.create({
   languageOption: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
   },
   languageOptionActive: {
-    backgroundColor: '#1a73e8',
-    borderColor: '#1a73e8',
+    backgroundColor: colors.primary,
   },
   languageOptionText: {
-    color: '#333',
-    fontWeight: '500',
+    color: colors.textSecondary,
+    fontWeight: '700',
   },
   languageOptionTextActive: {
-    color: '#fff',
+    color: colors.onPrimary,
   },
   dangerSection: {
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: colors.divider,
     paddingTop: 20,
   },
   dangerTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#a52714',
+    fontWeight: '800',
+    color: colors.danger,
   },
   dangerWarning: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
   },
   dangerMessage: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
   },
   deleteForm: {
     gap: 10,

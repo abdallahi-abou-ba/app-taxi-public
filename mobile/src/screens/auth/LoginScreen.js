@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { isValidEmail } from '../../utils/validators';
+import { colors, spacing } from '../../theme/theme';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
@@ -32,7 +35,11 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.logoMark}>
+          <Ionicons name="car-sport" size={28} color={colors.charcoal} />
+        </View>
         <Text style={styles.title}>{t('auth.welcomeBack')}</Text>
 
         <ErrorBanner message={error} />
@@ -54,14 +61,11 @@ export default function LoginScreen({ navigation }) {
           placeholder={t('auth.passwordPlaceholder')}
         />
 
-        <PrimaryButton title={t('auth.login')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
+        <PrimaryButton title={t('auth.login')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} style={styles.submitButton} />
 
-        <PrimaryButton
-          title={t('auth.createAccount')}
-          variant="secondary"
-          onPress={() => navigation.navigate('Register')}
-          style={styles.secondaryButton}
-        />
+        <Pressable onPress={() => navigation.navigate('Register')} style={styles.linkButton} hitSlop={8}>
+          <Text style={styles.linkText}>{t('auth.createAccount')}</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -70,25 +74,47 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   container: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: 28,
+  },
+  logoMark: {
+    alignSelf: 'center',
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 24,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    marginBottom: spacing.xxl,
     textAlign: 'center',
   },
-  secondaryButton: {
-    marginTop: 12,
+  submitButton: {
+    marginTop: spacing.sm,
+  },
+  linkButton: {
+    marginTop: spacing.lg,
+    alignSelf: 'center',
+  },
+  linkText: {
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontSize: 14.5,
   },
   fieldError: {
-    color: '#a52714',
+    color: colors.danger,
     fontSize: 12,
     marginTop: -10,
     marginBottom: 14,
+    fontWeight: '600',
   },
 });

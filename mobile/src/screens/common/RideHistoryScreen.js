@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { listRides, hideRideFromHistory } from '../../api/rideApi';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +9,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import { formatDateTime, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, ACTIVE_RIDE_STATUSES, TERMINAL_RIDE_STATUSES, ROLE } from '../../config/constants';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function RideHistoryScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -71,8 +73,13 @@ export default function RideHistoryScreen({ navigation }) {
         data={rides || []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>{t('history.empty')}</Text>}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Ionicons name="receipt-outline" size={40} color={colors.textMuted} />
+            <Text style={styles.empty}>{t('history.empty')}</Text>
+          </View>
+        }
         renderItem={({ item }) => {
           const counterpart = user.role === ROLE.DRIVER ? item.client : item.driver;
           return (
@@ -83,13 +90,15 @@ export default function RideHistoryScreen({ navigation }) {
                   <Text style={styles.fare}>{formatFare(item.estimatedFare)}</Text>
                   {TERMINAL_RIDE_STATUSES.includes(item.status) ? (
                     <Pressable onPress={() => handleDelete(item)} hitSlop={8}>
-                      <Text style={styles.deleteIcon}>🗑</Text>
+                      <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
                     </Pressable>
                   ) : null}
                 </View>
               </View>
               {user.role === ROLE.DRIVER && item.status === RIDE_STATUS.COMPLETED && !item.isPaid ? (
-                <Text style={styles.unpaid}>{t('history.unpaid')}</Text>
+                <View style={styles.unpaidPill}>
+                  <Text style={styles.unpaid}>{t('history.unpaid')}</Text>
+                </View>
               ) : null}
               {counterpart ? <Text style={styles.counterpart}>{counterpart.fullName}</Text> : null}
               <Text style={styles.date}>{formatDateTime(item.requestedAt, i18n.language)}</Text>
@@ -104,17 +113,19 @@ export default function RideHistoryScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   list: {
-    padding: 16,
-    gap: 10,
+    padding: spacing.lg,
+    gap: spacing.md,
     flexGrow: 1,
   },
   row: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
     gap: 6,
+    ...shadow.card,
   },
   rowHeader: {
     flexDirection: 'row',
@@ -127,28 +138,38 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fare: {
-    fontWeight: '600',
-    color: '#1a73e8',
-  },
-  deleteIcon: {
-    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
   },
   counterpart: {
     fontSize: 13,
-    color: '#333',
+    color: colors.textPrimary,
+    fontWeight: '600',
+  },
+  unpaidPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.dangerSoft,
+    borderRadius: radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
   },
   unpaid: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#a52714',
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: colors.danger,
   },
   date: {
-    fontSize: 13,
-    color: '#777',
+    fontSize: 12.5,
+    color: colors.textMuted,
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 60,
   },
   empty: {
     textAlign: 'center',
-    color: '#777',
-    marginTop: 40,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
 });

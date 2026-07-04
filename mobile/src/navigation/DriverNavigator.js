@@ -10,6 +10,7 @@ import EditProfileScreen from '../screens/common/EditProfileScreen';
 import DashboardScreen from '../screens/common/DashboardScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
 import ChatScreen from '../screens/common/ChatScreen';
+import { colors } from '../theme/theme';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,7 +28,14 @@ export default function DriverNavigator() {
   return (
     <DriverLocationProvider>
       <DriverLocationTracker />
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.charcoal },
+          headerTintColor: colors.textOnDark,
+          headerTitleStyle: { fontWeight: '700' },
+          headerShadowVisible: false,
+        }}
+      >
         <Stack.Screen name="DriverHome" component={DriverHomeScreen} options={{ title: t('nav.drive') }} />
         <Stack.Screen
           name="ActiveRide"

@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { Text, ScrollView, View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
 import RatingPrompt from '../../components/RatingPrompt';
 import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
-import { rateRide, markRidePaid } from '../../api/rideApi';
+import { rateRide, markRidePaid, getRide, createCheckoutSession } from '../../api/rideApi';
 import { formatDateTime } from '../../utils/formatters';
 import { RIDE_STATUS } from '../../config/constants';
+import { colors, spacing } from '../../theme/theme';
 
 export default function RideDetailScreen({ route, navigation }) {
   const { t, i18n } = useTranslation();
@@ -23,6 +26,22 @@ export default function RideDetailScreen({ route, navigation }) {
 
   const handleMarkPaid = async () => {
     const updated = await markRidePaid(ride.id);
+    setRide(updated);
+  };
+
+  // Same short-retry pattern as ActiveRideScreen - there's no polling here to
+  // pick up the webhook's result otherwise, since this screen only fetches
+  // the ride once (via route.params).
+  const handlePay = async () => {
+    const returnUrl = Linking.createURL('payment-result', { queryParams: { rideId: ride.id } });
+    const { url } = await createCheckoutSession(ride.id, { successUrl: returnUrl, cancelUrl: returnUrl });
+    await WebBrowser.openAuthSessionAsync(url, returnUrl);
+
+    let updated = await getRide(ride.id);
+    if (!updated.isPaid) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      updated = await getRide(ride.id);
+    }
     setRide(updated);
   };
 
@@ -43,7 +62,7 @@ export default function RideDetailScreen({ route, navigation }) {
       </View>
       {ride.status === RIDE_STATUS.COMPLETED ? (
         <>
-          <PaymentStatus ride={ride} viewerRole={user.role} onMarkPaid={handleMarkPaid} />
+          <PaymentStatus ride={ride} viewerRole={user.role} onMarkPaid={handleMarkPaid} onPay={handlePay} />
           <RatingPrompt ride={ride} viewerRole={user.role} onSubmit={handleRate} />
         </>
       ) : null}
@@ -54,14 +73,16 @@ export default function RideDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 16,
-    gap: 14,
+    padding: spacing.lg,
+    gap: spacing.lg,
+    backgroundColor: colors.background,
   },
   timestamps: {
     gap: 4,
   },
   label: {
     fontSize: 13,
-    color: '#555',
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
 });

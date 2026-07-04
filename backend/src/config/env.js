@@ -32,6 +32,16 @@ const envSchema = z.object({
   // Referral program: credit granted to both the referrer and the referred
   // friend once the friend completes their first ride.
   REFERRAL_REWARD_AMOUNT: z.coerce.number().nonnegative().default(20),
+
+  // Stripe (test mode) online card payment. Both optional so the app still
+  // boots without them configured - the checkout-session endpoint then
+  // returns a clear 503 instead of attempting a payment.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  // Stripe doesn't support MRU (Mauritanian Ouguiya) - a real production
+  // deployment would need a local payment provider instead (see
+  // RESUME_PROJET.md roadmap). Fine as a Stripe-supported currency for now.
+  STRIPE_CURRENCY: z.string().default('usd'),
 });
 
 const parsed = envSchema.safeParse(process.env);

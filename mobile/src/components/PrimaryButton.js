@@ -1,7 +1,9 @@
 import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { colors, radius } from '../theme/theme';
 
 export default function PrimaryButton({ title, onPress, disabled, loading, variant = 'primary', style }) {
   const isDisabled = disabled || loading;
+  const spinnerColor = variant === 'primary' ? colors.charcoal : variant === 'danger' ? colors.surface : colors.textPrimary;
 
   return (
     <Pressable
@@ -17,9 +19,11 @@ export default function PrimaryButton({ title, onPress, disabled, loading, varia
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? '#333' : '#fff'} />
+        <ActivityIndicator color={spinnerColor} />
       ) : (
-        <Text style={[styles.text, variant === 'secondary' && styles.textSecondary]}>{title}</Text>
+        <Text style={[styles.text, variant === 'secondary' && styles.textSecondary, variant === 'danger' && styles.textDanger]}>
+          {title}
+        </Text>
       )}
     </Pressable>
   );
@@ -27,30 +31,45 @@ export default function PrimaryButton({ title, onPress, disabled, loading, varia
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 8,
-    paddingVertical: 14,
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   secondary: {
-    backgroundColor: '#eee',
+    backgroundColor: colors.surfaceAlt,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   danger: {
-    backgroundColor: '#d93025',
+    backgroundColor: colors.danger,
+    shadowColor: colors.danger,
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.88,
+    transform: [{ scale: 0.99 }],
   },
   text: {
-    color: '#fff',
+    color: colors.charcoal,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   textSecondary: {
-    color: '#222',
+    color: colors.textPrimary,
+  },
+  textDanger: {
+    color: colors.surface,
   },
 });

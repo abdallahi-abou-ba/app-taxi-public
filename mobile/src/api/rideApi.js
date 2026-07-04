@@ -52,6 +52,10 @@ export function markRidePaid(id) {
   return api.patch(`/api/rides/${id}/mark-paid`);
 }
 
+export function createCheckoutSession(id, { successUrl, cancelUrl }) {
+  return api.post(`/api/rides/${id}/checkout-session`, { successUrl, cancelUrl });
+}
+
 export function hideRideFromHistory(id) {
   return api.delete(`/api/rides/${id}/history`);
 }

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
@@ -10,8 +11,10 @@ import OsmMapView from '../../components/OsmMapView';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
+import QuickActionsGrid from '../../components/QuickActionsGrid';
 import { formatPaymentMethod, formatDateTime } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 const BOOKING_MODE = { NOW: 'now', LATER: 'later' };
 
@@ -35,6 +38,16 @@ export default function ClientHomeScreen({ navigation }) {
 
   const minDate = new Date(Date.now() + MIN_SCHEDULE_LEAD_MIN * 60 * 1000);
   const maxDate = new Date(Date.now() + MAX_SCHEDULE_LEAD_DAYS * 24 * 60 * 60 * 1000);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={logout} hitSlop={10} style={styles.headerButton}>
+          <Ionicons name="log-out-outline" size={22} color={colors.textOnDark} />
+        </Pressable>
+      ),
+    });
+  }, [navigation, logout]);
 
   // The map's initial center is baked in at mount time (see OsmMapView), so if
   // the GPS fix arrives after that first render, the view stays wherever the
@@ -125,6 +138,14 @@ export default function ClientHomeScreen({ navigation }) {
 
   const canSubmit = pickup && destination && (bookingMode === BOOKING_MODE.NOW || scheduledDate);
 
+  const quickActions = [
+    { key: 'profile', icon: 'person-outline', label: t('common.profile'), onPress: () => navigation.navigate('EditProfile') },
+    { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
+    { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
+    { key: 'reservations', icon: 'calendar-outline', label: t('common.reservations'), onPress: () => navigation.navigate('ScheduledRides') },
+    { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+  ];
+
   return (
     <View style={styles.container}>
       <OsmMapView
@@ -147,6 +168,7 @@ export default function ClientHomeScreen({ navigation }) {
       />
 
       <View style={styles.panel}>
+        <View style={styles.handle} />
         <ErrorBanner message={error || activeRideError} />
         {locationLoading && !pickup ? <Text style={styles.hint}>{t('client.gettingLocation')}</Text> : null}
         {locationError && !pickup ? <Text style={styles.hint}>{t('client.locationError', { error: locationError })}</Text> : null}
@@ -154,14 +176,14 @@ export default function ClientHomeScreen({ navigation }) {
         {pickup && destination ? <Text style={styles.hint}>{t('client.dragToFineTune')}</Text> : null}
         {pickup && destination ? (
           <>
-            <View style={styles.paymentRow}>
+            <View style={styles.segmentRow}>
               {[BOOKING_MODE.NOW, BOOKING_MODE.LATER].map((mode) => (
                 <Pressable
                   key={mode}
                   onPress={() => setBookingMode(mode)}
-                  style={[styles.paymentOption, bookingMode === mode && styles.paymentOptionActive]}
+                  style={[styles.segment, bookingMode === mode && styles.segmentActive]}
                 >
-                  <Text style={[styles.paymentOptionText, bookingMode === mode && styles.paymentOptionTextActive]}>
+                  <Text style={[styles.segmentText, bookingMode === mode && styles.segmentTextActive]}>
                     {t(mode === BOOKING_MODE.NOW ? 'client.bookNow' : 'client.bookLater')}
                   </Text>
                 </Pressable>
@@ -176,57 +198,30 @@ export default function ClientHomeScreen({ navigation }) {
             ) : null}
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>{t('payment.payWith')}</Text>
-              {[PAYMENT_METHOD.CASH, PAYMENT_METHOD.CARD].map((method) => (
-                <Pressable
-                  key={method}
-                  onPress={() => setPaymentMethod(method)}
-                  style={[styles.paymentOption, paymentMethod === method && styles.paymentOptionActive]}
-                >
-                  <Text style={[styles.paymentOptionText, paymentMethod === method && styles.paymentOptionTextActive]}>
-                    {formatPaymentMethod(method, t)}
-                  </Text>
-                </Pressable>
-              ))}
+              <View style={styles.paymentOptions}>
+                {[PAYMENT_METHOD.CASH, PAYMENT_METHOD.CARD].map((method) => (
+                  <Pressable
+                    key={method}
+                    onPress={() => setPaymentMethod(method)}
+                    style={[styles.paymentOption, paymentMethod === method && styles.paymentOptionActive]}
+                  >
+                    <Ionicons
+                      name={method === PAYMENT_METHOD.CASH ? 'cash-outline' : 'card-outline'}
+                      size={14}
+                      color={paymentMethod === method ? colors.onPrimary : colors.textSecondary}
+                    />
+                    <Text style={[styles.paymentOptionText, paymentMethod === method && styles.paymentOptionTextActive]}>
+                      {formatPaymentMethod(method, t)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
           </>
         ) : null}
-        <View style={styles.actions}>
-          <PrimaryButton title={t('common.logout')} variant="secondary" onPress={logout} style={styles.smallButton} />
-          <PrimaryButton
-            title={t('common.profile')}
-            variant="secondary"
-            onPress={() => navigation.navigate('EditProfile')}
-            style={styles.smallButton}
-          />
-        </View>
-        <View style={styles.actions}>
-          <PrimaryButton
-            title={t('common.history')}
-            variant="secondary"
-            onPress={() => navigation.navigate('RideHistory')}
-            style={styles.smallButton}
-          />
-          <PrimaryButton
-            title={t('common.stats')}
-            variant="secondary"
-            onPress={() => navigation.navigate('Dashboard')}
-            style={styles.smallButton}
-          />
-        </View>
-        <View style={styles.actions}>
-          <PrimaryButton
-            title={t('common.reservations')}
-            variant="secondary"
-            onPress={() => navigation.navigate('ScheduledRides')}
-            style={styles.smallButton}
-          />
-          <PrimaryButton
-            title={t('common.referral')}
-            variant="secondary"
-            onPress={() => navigation.navigate('Referral')}
-            style={styles.smallButton}
-          />
-        </View>
+
+        <QuickActionsGrid items={quickActions} />
+
         <PrimaryButton
           title={bookingMode === BOOKING_MODE.NOW ? t('client.requestRide') : t('client.scheduleRide')}
           onPress={bookingMode === BOOKING_MODE.NOW ? handleRequestRide : handleScheduleRide}
@@ -246,47 +241,86 @@ export default function ClientHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerButton: {
+    paddingHorizontal: 4,
   },
   panel: {
-    padding: 16,
-    gap: 10,
-    backgroundColor: '#fff',
+    padding: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    ...shadow.raised,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: 2,
   },
   hint: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    padding: 4,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+  },
+  segmentActive: {
+    backgroundColor: colors.charcoal,
+  },
+  segmentText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  segmentTextActive: {
+    color: colors.textOnDark,
   },
   paymentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   paymentLabel: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  paymentOptions: {
+    flexDirection: 'row',
+    gap: 8,
   },
   paymentOption: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#eee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
   },
   paymentOptionActive: {
-    backgroundColor: '#1a73e8',
+    backgroundColor: colors.primary,
   },
   paymentOptionText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#222',
+    color: colors.textSecondary,
   },
   paymentOptionTextActive: {
-    color: '#fff',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  smallButton: {
-    flex: 1,
+    color: colors.onPrimary,
   },
 });

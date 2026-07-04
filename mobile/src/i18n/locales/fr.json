@@ -72,7 +72,10 @@
     "markAsPaid": "Marquer comme payé ({{method}})",
     "label": "Paiement : {{method}}",
     "markPaidError": "Impossible de marquer cette course comme payée",
-    "creditApplied": "Crédit appliqué : -{{amount}}"
+    "creditApplied": "Crédit appliqué : -{{amount}}",
+    "payNow": "Payer maintenant",
+    "payError": "Impossible de lancer le paiement",
+    "waitingOnlinePayment": "En attente du paiement en ligne par le client"
   },
   "map": {
     "pickup": "Départ",

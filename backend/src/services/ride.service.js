@@ -7,6 +7,7 @@ const { estimateFare } = require('../utils/fare.util');
 const { getIO } = require('../lib/socket');
 const rideTracker = require('../sockets/rideTracker');
 const { sendPushToUser } = require('../utils/push.util');
+const paymentService = require('./payment.service');
 
 // Real road-network distance/duration come from OSRM when reachable (see
 // utils/osrm.util.js). This flat speed assumption is only the fallback for
@@ -377,6 +378,49 @@ async function markRidePaid(driverId, rideId) {
   return updated;
 }
 
+// CARD-only: starts a Stripe Checkout Session for the client to pay online.
+// Unlike markRidePaid (CASH), the driver has nothing to confirm here - the
+// webhook (markRidePaidFromStripe) is the only thing that ever flips isPaid.
+async function createCardCheckoutSession(clientId, rideId, { successUrl, cancelUrl }) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+  if (!ride) {
+    throw new AppError('Ride not found', 404, 'NOT_FOUND');
+  }
+  if (ride.clientId !== clientId) {
+    throw new AppError('Only the client can pay for this ride', 403, 'FORBIDDEN');
+  }
+  if (ride.paymentMethod !== 'CARD') {
+    throw new AppError('This ride is not set up for card payment', 409, 'CONFLICT');
+  }
+  if (ride.status !== 'COMPLETED') {
+    throw new AppError('A ride can only be paid once it is completed', 409, 'CONFLICT');
+  }
+  if (ride.isPaid) {
+    throw new AppError('This ride is already paid', 409, 'CONFLICT');
+  }
+
+  const session = await paymentService.createCheckoutSession(ride, { successUrl, cancelUrl });
+  await prisma.ride.update({ where: { id: rideId }, data: { stripeCheckoutSessionId: session.id } });
+  return session.url;
+}
+
+// Idempotent - Stripe may redeliver the same webhook event more than once, so
+// a ride that's already paid (or no longer exists) is silently a no-op.
+async function markRidePaidFromStripe(rideId, paymentIntentId) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+  if (!ride || ride.isPaid) return;
+
+  const updated = await prisma.ride.update({
+    where: { id: rideId },
+    data: { isPaid: true, paidAt: new Date(), stripePaymentIntentId: paymentIntentId },
+    include: RIDE_INCLUDE,
+  });
+
+  // So both sides' screens reflect it live, reusing the same event every
+  // other status change already broadcasts on.
+  emitRideStatus(updated);
+}
+
 const HIDE_FIELD = { CLIENT: 'hiddenByClient', DRIVER: 'hiddenByDriver' };
 
 // Per-user "trash": only flips the caller's own hidden flag, so the ride
@@ -444,6 +488,8 @@ module.exports = {
   cancelRide,
   rateRide,
   markRidePaid,
+  createCardCheckoutSession,
+  markRidePaidFromStripe,
   hideRideFromHistory,
   getStats,
   ACTIVE_STATUSES,

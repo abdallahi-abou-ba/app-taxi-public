@@ -10,6 +10,7 @@ import DashboardScreen from '../screens/common/DashboardScreen';
 import ScheduledRidesScreen from '../screens/client/ScheduledRidesScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
 import ChatScreen from '../screens/common/ChatScreen';
+import { colors } from '../theme/theme';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +18,14 @@ export default function ClientNavigator() {
   const { t } = useTranslation();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.charcoal },
+        headerTintColor: colors.textOnDark,
+        headerTitleStyle: { fontWeight: '700' },
+        headerShadowVisible: false,
+      }}
+    >
       <Stack.Screen name="ClientHome" component={ClientHomeScreen} options={{ title: t('nav.ride') }} />
       <Stack.Screen
         name="WaitingForDriver"

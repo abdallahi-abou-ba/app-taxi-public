@@ -34,4 +34,19 @@ const rideIdParamSchema = z.object({
   id: z.string().uuid('Invalid ride id'),
 });
 
-module.exports = { requestRideSchema, scheduleRideSchema, cancelRideSchema, rateRideSchema, rideIdParamSchema };
+// successUrl/cancelUrl come from the mobile client (see rideApi.js) since only
+// it knows the right redirect for its current environment (Expo Go dev vs a
+// standalone build).
+const createCheckoutSessionSchema = z.object({
+  successUrl: z.string().url(),
+  cancelUrl: z.string().url(),
+});
+
+module.exports = {
+  requestRideSchema,
+  scheduleRideSchema,
+  cancelRideSchema,
+  rateRideSchema,
+  rideIdParamSchema,
+  createCheckoutSessionSchema,
+};

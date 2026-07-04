@@ -33,6 +33,16 @@ function buildHtml(initialRegion) {
       post({ type: 'mapPress', lat: e.latlng.lat, lng: e.latlng.lng });
     });
 
+    function iconForMarker(id) {
+      var color = id === 'destination' ? '#FFC629' : (id === 'driver' || id === 'me') ? '#3478F6' : '#1C1C1E';
+      return L.divIcon({
+        className: '',
+        html: '<div style="width:16px;height:16px;border-radius:8px;background:' + color + ';border:3px solid #ffffff;box-shadow:0 1px 5px rgba(0,0,0,0.4);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+    }
+
     window.setMarkers = function (markers) {
       var incomingIds = {};
       markers.forEach(function (m) {
@@ -41,7 +51,7 @@ function buildHtml(initialRegion) {
         if (existing) {
           existing.setLatLng([m.latitude, m.longitude]);
         } else {
-          var marker = L.marker([m.latitude, m.longitude], { draggable: !!m.draggable }).addTo(map);
+          var marker = L.marker([m.latitude, m.longitude], { draggable: !!m.draggable, icon: iconForMarker(m.id) }).addTo(map);
           if (m.label) marker.bindTooltip(m.label, { permanent: false });
           marker.on('dragend', (function (id) {
             return function (e) {
@@ -66,7 +76,7 @@ function buildHtml(initialRegion) {
         polylineLayer = null;
       }
       if (points && points.length > 1) {
-        polylineLayer = L.polyline(points, { color: '#1a73e8', weight: 4 }).addTo(map);
+        polylineLayer = L.polyline(points, { color: '#1C1C1E', weight: 4, opacity: 0.85 }).addTo(map);
       }
     };
 

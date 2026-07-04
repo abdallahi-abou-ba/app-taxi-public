@@ -12,6 +12,7 @@ import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 const NEXT_ACTION = {
   [RIDE_STATUS.ACCEPTED]: { labelKey: 'driver.arrived', action: arriveRide },
@@ -132,6 +133,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
       />
 
       <View style={styles.panel}>
+        <View style={styles.handle} />
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
@@ -146,16 +148,30 @@ export default function DriverActiveRideScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   panel: {
-    padding: 16,
-    gap: 10,
-    backgroundColor: '#fff',
+    padding: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    ...shadow.raised,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: 2,
   },
   endedContainer: {
     flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
-    gap: 16,
+    gap: spacing.lg,
+    backgroundColor: colors.background,
   },
 });

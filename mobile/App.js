@@ -55,7 +55,7 @@ export default function App() {
           </NavigationContainer>
         </SocketProvider>
       </AuthProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }

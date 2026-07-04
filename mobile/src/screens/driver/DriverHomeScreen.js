@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
@@ -13,7 +14,9 @@ import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import IncomingRideModal from '../../components/IncomingRideModal';
+import QuickActionsGrid from '../../components/QuickActionsGrid';
 import { MAP_DEFAULTS } from '../../config/constants';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useTranslation();
@@ -28,6 +31,16 @@ export default function DriverHomeScreen({ navigation }) {
   const [incomingRide, setIncomingRide] = useState(null);
   const [accepting, setAccepting] = useState(false);
   const mapRef = useRef(null);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable onPress={logout} hitSlop={10} style={styles.headerButton}>
+          <Ionicons name="log-out-outline" size={22} color={colors.textOnDark} />
+        </Pressable>
+      ),
+    });
+  }, [navigation, logout]);
 
   // The map's initial center is baked in at mount time (see OsmMapView), so if
   // the GPS fix arrives after that first render, the view stays wherever the
@@ -102,45 +115,35 @@ export default function DriverHomeScreen({ navigation }) {
   const initialRegion = location ? { ...location, zoom: 14 } : MAP_DEFAULTS;
   const markers = location ? [{ id: 'me', latitude: location.latitude, longitude: location.longitude, label: t('map.you') }] : [];
 
+  const quickActions = [
+    { key: 'profile', icon: 'person-outline', label: t('common.profile'), onPress: () => navigation.navigate('EditProfile') },
+    { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
+    { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
+    { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+  ];
+
   return (
     <View style={styles.container}>
       <OsmMapView ref={mapRef} initialRegion={initialRegion} markers={markers} />
 
       <View style={styles.panel}>
+        <View style={styles.handle} />
         <ErrorBanner message={error} />
-        <Text style={styles.status}>
-          {isAvailable ? t('driver.online') : t('driver.offline')}
-          {user.ratingCount > 0 ? `  ·  ★ ${user.ratingAverage.toFixed(1)} (${user.ratingCount})` : ''}
-        </Text>
-        <View style={styles.actions}>
-          <PrimaryButton title={t('common.logout')} variant="secondary" onPress={logout} style={styles.smallButton} />
-          <PrimaryButton
-            title={t('common.profile')}
-            variant="secondary"
-            onPress={() => navigation.navigate('EditProfile')}
-            style={styles.smallButton}
-          />
+        <View style={styles.statusRow}>
+          <View style={[styles.statusDot, { backgroundColor: isAvailable ? colors.success : colors.textMuted }]} />
+          <Text style={styles.status}>{isAvailable ? t('driver.online') : t('driver.offline')}</Text>
+          {user.ratingCount > 0 ? (
+            <View style={styles.ratingChip}>
+              <Ionicons name="star" size={12} color={colors.primaryDark} />
+              <Text style={styles.ratingText}>
+                {user.ratingAverage.toFixed(1)} ({user.ratingCount})
+              </Text>
+            </View>
+          ) : null}
         </View>
-        <View style={styles.actions}>
-          <PrimaryButton
-            title={t('common.history')}
-            variant="secondary"
-            onPress={() => navigation.navigate('RideHistory')}
-            style={styles.smallButton}
-          />
-          <PrimaryButton
-            title={t('common.stats')}
-            variant="secondary"
-            onPress={() => navigation.navigate('Dashboard')}
-            style={styles.smallButton}
-          />
-          <PrimaryButton
-            title={t('common.referral')}
-            variant="secondary"
-            onPress={() => navigation.navigate('Referral')}
-            style={styles.smallButton}
-          />
-        </View>
+
+        <QuickActionsGrid items={quickActions} />
+
         <PrimaryButton
           title={isAvailable ? t('driver.goOffline') : t('driver.goOnline')}
           variant={isAvailable ? 'danger' : 'primary'}
@@ -157,21 +160,56 @@ export default function DriverHomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerButton: {
+    paddingHorizontal: 4,
   },
   panel: {
-    padding: 16,
-    gap: 10,
-    backgroundColor: '#fff',
+    padding: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    ...shadow.raised,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: 2,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
   },
   status: {
     fontSize: 15,
-    fontWeight: '600',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  smallButton: {
+    fontWeight: '700',
+    color: colors.textPrimary,
     flex: 1,
+  },
+  ratingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.pill,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primaryDark,
   },
 });

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import TextField from './TextField';
 import PrimaryButton from './PrimaryButton';
 import ErrorBanner from './ErrorBanner';
 import { ROLE } from '../config/constants';
+import { colors, radius, shadow, spacing } from '../theme/theme';
 
 export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
   const { t } = useTranslation();
@@ -19,7 +21,10 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
   if (alreadyRated) {
     return (
       <View style={styles.container}>
-        <Text style={styles.thanks}>{t(isClient ? 'rating.thanksDriver' : 'rating.thanksClient')}</Text>
+        <View style={styles.thanksRow}>
+          <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+          <Text style={styles.thanks}>{t(isClient ? 'rating.thanksDriver' : 'rating.thanksClient')}</Text>
+        </View>
       </View>
     );
   }
@@ -43,7 +48,11 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
       <View style={styles.stars}>
         {[1, 2, 3, 4, 5].map((value) => (
           <Pressable key={value} onPress={() => setRating(value)} hitSlop={8}>
-            <Text style={[styles.star, value <= rating && styles.starFilled]}>★</Text>
+            <Ionicons
+              name={value <= rating ? 'star' : 'star-outline'}
+              size={32}
+              color={value <= rating ? colors.primary : colors.border}
+            />
           </Pressable>
         ))}
       </View>
@@ -61,29 +70,29 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 14,
-    gap: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    ...shadow.card,
   },
   title: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 15.5,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   stars: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
-  star: {
-    fontSize: 32,
-    color: '#ccc',
-  },
-  starFilled: {
-    color: '#f5b301',
+  thanksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   thanks: {
     fontSize: 14,
-    color: '#1a8b53',
-    fontWeight: '600',
+    color: colors.success,
+    fontWeight: '700',
   },
 });

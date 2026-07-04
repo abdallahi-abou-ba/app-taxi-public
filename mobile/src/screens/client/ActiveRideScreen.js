@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { useSocket } from '../../context/SocketContext';
-import { getRide, cancelRide, rateRide } from '../../api/rideApi';
+import { getRide, cancelRide, rateRide, createCheckoutSession } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
@@ -11,6 +13,7 @@ import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
+import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 const TERMINAL_STATUSES = [RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCELLED];
 
@@ -77,6 +80,22 @@ export default function ActiveRideScreen({ route, navigation }) {
     setRide(updated);
   };
 
+  // The ride is COMPLETED by the time this can be called, so polling has
+  // already stopped (see the useEffect above) - refetch once to pick up the
+  // webhook's result, with one short retry in case it hasn't landed yet.
+  const handlePay = async () => {
+    const returnUrl = Linking.createURL('payment-result', { queryParams: { rideId } });
+    const { url } = await createCheckoutSession(rideId, { successUrl: returnUrl, cancelUrl: returnUrl });
+    await WebBrowser.openAuthSessionAsync(url, returnUrl);
+
+    let updated = await getRide(rideId);
+    if (!updated.isPaid) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      updated = await getRide(rideId);
+    }
+    setRide(updated);
+  };
+
   if (!ride) return null;
 
   if (ride.status === RIDE_STATUS.COMPLETED || ride.status === RIDE_STATUS.CANCELLED) {
@@ -89,7 +108,7 @@ export default function ActiveRideScreen({ route, navigation }) {
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
         {ride.status === RIDE_STATUS.COMPLETED ? (
           <>
-            <PaymentStatus ride={ride} viewerRole={ROLE.CLIENT} />
+            <PaymentStatus ride={ride} viewerRole={ROLE.CLIENT} onPay={handlePay} />
             <RatingPrompt ride={ride} viewerRole={ROLE.CLIENT} onSubmit={handleRate} />
           </>
         ) : null}
@@ -113,6 +132,7 @@ export default function ActiveRideScreen({ route, navigation }) {
       />
 
       <View style={styles.panel}>
+        <View style={styles.handle} />
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
@@ -126,20 +146,34 @@ export default function ActiveRideScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   panel: {
-    padding: 16,
-    gap: 10,
-    backgroundColor: '#fff',
+    padding: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    ...shadow.raised,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: 'center',
+    marginBottom: 2,
   },
   endedContainer: {
     flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
-    gap: 16,
+    gap: spacing.lg,
+    backgroundColor: colors.background,
   },
   reason: {
     fontSize: 14,
-    color: '#555',
+    color: colors.textSecondary,
   },
 });

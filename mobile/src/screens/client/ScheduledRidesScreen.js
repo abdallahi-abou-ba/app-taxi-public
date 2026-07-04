@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { getScheduledRides, cancelRide } from '../../api/rideApi';
 import { useAuth } from '../../context/AuthContext';
@@ -9,6 +10,7 @@ import RideSummaryCard from '../../components/RideSummaryCard';
 import PrimaryButton from '../../components/PrimaryButton';
 import { formatDateTime } from '../../utils/formatters';
 import { ROLE } from '../../config/constants';
+import { colors, spacing } from '../../theme/theme';
 
 export default function ScheduledRidesScreen() {
   const { t, i18n } = useTranslation();
@@ -67,11 +69,19 @@ export default function ScheduledRidesScreen() {
         data={rides || []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>{t('scheduledRides.empty')}</Text>}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Ionicons name="calendar-outline" size={40} color={colors.textMuted} />
+            <Text style={styles.empty}>{t('scheduledRides.empty')}</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable style={styles.row}>
-            <Text style={styles.scheduledFor}>{t('scheduledRides.for', { date: formatDateTime(item.scheduledFor, i18n.language) })}</Text>
+            <View style={styles.scheduledForRow}>
+              <Ionicons name="time" size={15} color={colors.primaryDark} />
+              <Text style={styles.scheduledFor}>{t('scheduledRides.for', { date: formatDateTime(item.scheduledFor, i18n.language) })}</Text>
+            </View>
             <RideSummaryCard ride={item} viewerRole={user.role === ROLE.DRIVER ? ROLE.DRIVER : ROLE.CLIENT} />
             <PrimaryButton
               title={t('common.cancelRide')}
@@ -89,23 +99,34 @@ export default function ScheduledRidesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   list: {
-    padding: 16,
-    gap: 14,
+    padding: spacing.lg,
+    gap: spacing.xl,
     flexGrow: 1,
   },
   row: {
-    gap: 10,
+    gap: spacing.md,
+  },
+  scheduledForRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   scheduledFor: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#222',
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 60,
   },
   empty: {
     textAlign: 'center',
-    color: '#777',
-    marginTop: 40,
+    color: colors.textMuted,
+    fontWeight: '500',
   },
 });

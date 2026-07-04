@@ -145,9 +145,16 @@ model Ride {
   paymentMethod PaymentMethod @default(CASH)
 
   // The driver marks a completed ride as paid once they've collected payment
-  // in person. No amount/transaction to record - just the one flag.
+  // in person (CASH rides). For CARD rides, isPaid/paidAt are instead set by
+  // the Stripe webhook once the client completes an online Checkout Session.
   isPaid Boolean   @default(false)
   paidAt DateTime?
+
+  // Set once the client starts (session id) / completes (payment intent id) a
+  // Stripe Checkout Session for this ride. Null for CASH rides and for CARD
+  // rides where payment hasn't been attempted yet.
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
 
   // How much of the client's referral credit balance was auto-deducted
   // toward this ride at completion - the driver should only collect
