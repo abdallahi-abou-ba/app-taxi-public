@@ -17,6 +17,8 @@ function navigate(data, role) {
     // Still REQUESTED, not yet a participant-visible "active" ride in the
     // ActiveRide sense - same waiting screen the client landed on originally.
     navigationRef.navigate('WaitingForDriver', { rideId: data.rideId });
+  } else if (data.type === 'chat:message') {
+    navigationRef.navigate('Chat', { rideId: data.rideId });
   } else if (data.rideId) {
     navigationRef.navigate('ActiveRide', { rideId: data.rideId });
   }

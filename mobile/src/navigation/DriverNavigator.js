@@ -9,6 +9,7 @@ import RideDetailScreen from '../screens/common/RideDetailScreen';
 import EditProfileScreen from '../screens/common/EditProfileScreen';
 import DashboardScreen from '../screens/common/DashboardScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
+import ChatScreen from '../screens/common/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +39,7 @@ export default function DriverNavigator() {
         <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('nav.editProfile') }} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
         <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ title: t('nav.chat') }} />
       </Stack.Navigator>
     </DriverLocationProvider>
   );

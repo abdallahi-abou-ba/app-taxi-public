@@ -80,6 +80,7 @@ model User {
   ridesAsClient Ride[] @relation("ClientRides")
   ridesAsDriver Ride[] @relation("DriverRides")
   refreshTokens RefreshToken[]
+  messages      Message[]
 
   @@index([role, isAvailable])
   @@map("users")
@@ -174,8 +175,27 @@ model Ride {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  messages Message[]
+
   @@index([status])
   @@index([clientId])
   @@index([driverId])
   @@map("rides")
+}
+
+// In-ride chat. Scoped to a single ride rather than a standalone DM system -
+// either participant can message any ride they're part of, regardless of its
+// current status (a completed ride can still get a follow-up message).
+model Message {
+  id       String @id @default(uuid())
+  rideId   String
+  ride     Ride   @relation(fields: [rideId], references: [id])
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+  body     String
+
+  createdAt DateTime @default(now())
+
+  @@index([rideId])
+  @@map("messages")
 }

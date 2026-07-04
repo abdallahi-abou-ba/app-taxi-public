@@ -5,12 +5,13 @@ import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
 import RatingPrompt from '../../components/RatingPrompt';
 import PaymentStatus from '../../components/PaymentStatus';
+import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { rateRide, markRidePaid } from '../../api/rideApi';
 import { formatDateTime } from '../../utils/formatters';
 import { RIDE_STATUS } from '../../config/constants';
 
-export default function RideDetailScreen({ route }) {
+export default function RideDetailScreen({ route, navigation }) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [ride, setRide] = useState(route.params.ride);
@@ -29,6 +30,7 @@ export default function RideDetailScreen({ route }) {
     <ScrollView contentContainerStyle={styles.container}>
       <RideStatusBadge status={ride.status} />
       <RideSummaryCard ride={ride} viewerRole={user.role} />
+      <PrimaryButton title={t('common.chat')} variant="secondary" onPress={() => navigation.navigate('Chat', { rideId: ride.id })} />
       <View style={styles.timestamps}>
         <Text style={styles.label}>{t('rideDetail.requested', { date: formatDateTime(ride.requestedAt, i18n.language) })}</Text>
         {ride.completedAt ? (

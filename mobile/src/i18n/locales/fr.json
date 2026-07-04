@@ -9,6 +9,7 @@
     "cancel": "Annuler",
     "reservations": "Réservations",
     "referral": "Parrainage",
+    "chat": "Discussion",
     "client": "Client",
     "driver": "Chauffeur"
   },
@@ -23,7 +24,8 @@
     "drive": "Conduire",
     "currentRide": "Course en cours",
     "scheduledRides": "Mes réservations",
-    "referral": "Parrainage"
+    "referral": "Parrainage",
+    "chat": "Discussion"
   },
   "splash": {
     "loading": "Chargement..."
@@ -145,6 +147,13 @@
     "cancelConfirm": "Annuler la réservation",
     "cancelKeep": "Garder",
     "cancelError": "Impossible d'annuler la réservation"
+  },
+  "chat": {
+    "empty": "Aucun message pour le moment",
+    "placeholder": "Écrivez un message...",
+    "send": "Envoyer",
+    "loadError": "Impossible de charger la conversation",
+    "sendError": "Impossible d'envoyer le message"
   },
   "referral": {
     "yourCode": "Votre code de parrainage",

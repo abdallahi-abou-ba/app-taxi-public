@@ -135,6 +135,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
+        <PrimaryButton title={t('common.chat')} variant="secondary" onPress={() => navigation.navigate('Chat', { rideId })} />
         {step ? <PrimaryButton title={t(step.labelKey)} onPress={handleAdvance} loading={busy} /> : null}
         <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={busy} />
       </View>

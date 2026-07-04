@@ -9,6 +9,7 @@
     "cancel": "إلغاء",
     "reservations": "الحجوزات",
     "referral": "الإحالة",
+    "chat": "المحادثة",
     "client": "عميل",
     "driver": "سائق"
   },
@@ -23,7 +24,8 @@
     "drive": "القيادة",
     "currentRide": "الرحلة الحالية",
     "scheduledRides": "حجوزاتي",
-    "referral": "الإحالة"
+    "referral": "الإحالة",
+    "chat": "المحادثة"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -145,6 +147,13 @@
     "cancelConfirm": "إلغاء الحجز",
     "cancelKeep": "الاحتفاظ به",
     "cancelError": "تعذّر إلغاء الحجز"
+  },
+  "chat": {
+    "empty": "لا توجد رسائل بعد",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "loadError": "تعذّر تحميل المحادثة",
+    "sendError": "تعذّر إرسال الرسالة"
   },
   "referral": {
     "yourCode": "رمز الإحالة الخاص بك",
