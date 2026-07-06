@@ -20,12 +20,20 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [role, setRole] = useState(ROLE.CLIENT);
+  const [vehiclePlate, setVehiclePlate] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const emailInvalid = email.trim().length > 0 && !isValidEmail(email);
   const passwordInvalid = password.length > 0 && password.length < 6;
-  const canSubmit = fullName.trim().length >= 2 && isValidEmail(email) && password.length >= 6 && !loading;
+  const isDriver = role === ROLE.DRIVER;
+  const canSubmit =
+    fullName.trim().length >= 2 &&
+    isValidEmail(email) &&
+    password.length >= 6 &&
+    (!isDriver || vehiclePlate.trim().length > 0) &&
+    !loading;
 
   const handleSubmit = async () => {
     setError(null);
@@ -38,6 +46,8 @@ export default function RegisterScreen({ navigation }) {
         password,
         role,
         referralCode: referralCode.trim() || undefined,
+        vehiclePlate: isDriver ? vehiclePlate.trim() : undefined,
+        vehicleModel: isDriver ? vehicleModel.trim() || undefined : undefined,
       });
     } catch (err) {
       setError(err.message || t('auth.registrationFailed'));
@@ -58,6 +68,24 @@ export default function RegisterScreen({ navigation }) {
           <RolePill icon="person" label={t('auth.imRider')} active={role === ROLE.CLIENT} onPress={() => setRole(ROLE.CLIENT)} />
           <RolePill icon="car-sport" label={t('auth.imDriver')} active={role === ROLE.DRIVER} onPress={() => setRole(ROLE.DRIVER)} />
         </View>
+
+        {isDriver ? (
+          <>
+            <TextField
+              label={t('auth.vehiclePlateLabel')}
+              value={vehiclePlate}
+              onChangeText={setVehiclePlate}
+              autoCapitalize="characters"
+              placeholder={t('auth.vehiclePlatePlaceholder')}
+            />
+            <TextField
+              label={t('auth.vehicleModelOptionalLabel')}
+              value={vehicleModel}
+              onChangeText={setVehicleModel}
+              placeholder={t('auth.vehicleModelPlaceholder')}
+            />
+          </>
+        ) : null}
 
         <TextField label={t('auth.fullNameLabel')} value={fullName} onChangeText={setFullName} placeholder={t('auth.fullNamePlaceholder')} />
         <TextField

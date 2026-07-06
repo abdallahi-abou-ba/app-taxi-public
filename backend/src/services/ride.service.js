@@ -184,6 +184,13 @@ async function getActiveRide(userId) {
 }
 
 async function acceptRide(driverId, rideId) {
+  // Defense in depth: `updateAvailability` already stops an unapproved driver
+  // from ever going online, but this closes the gap for a direct API call.
+  const driver = await prisma.user.findUnique({ where: { id: driverId } });
+  if (driver.approvalStatus !== 'APPROVED') {
+    throw new AppError('Your driver account is not yet approved', 403, 'FORBIDDEN');
+  }
+
   const existingActive = await prisma.ride.findFirst({ where: { driverId, status: { in: ACTIVE_STATUSES } } });
   if (existingActive) {
     throw new AppError('You already have an active ride', 409, 'CONFLICT');
@@ -474,6 +481,7 @@ async function getStats(userId, role) {
 }
 
 module.exports = {
+  computeRouteAndFare,
   requestRide,
   scheduleRide,
   listScheduledRides,

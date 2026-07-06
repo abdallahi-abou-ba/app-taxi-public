@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
-import { requestRide, scheduleRide } from '../../api/rideApi';
+import { requestRide, scheduleRide, estimateRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
 import useCurrentLocation from '../../hooks/useCurrentLocation';
 import OsmMapView from '../../components/OsmMapView';
@@ -12,7 +12,7 @@ import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
-import { formatPaymentMethod, formatDateTime } from '../../utils/formatters';
+import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
@@ -34,6 +34,7 @@ export default function ClientHomeScreen({ navigation }) {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [error, setError] = useState(null);
+  const [estimate, setEstimate] = useState(null);
   const mapRef = useRef(null);
 
   const minDate = new Date(Date.now() + MIN_SCHEDULE_LEAD_MIN * 60 * 1000);
@@ -58,6 +59,30 @@ export default function ClientHomeScreen({ navigation }) {
       mapRef.current?.centerOn(location.latitude, location.longitude, 15);
     }
   }, [location, pickup]);
+
+  // Debounced so a marker drag (many rapid position updates) doesn't spam the
+  // estimate endpoint - only the position 500ms after the user stops matters.
+  useEffect(() => {
+    if (!pickup || !destination) {
+      setEstimate(null);
+      return undefined;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const result = await estimateRide({
+          pickupLat: pickup.latitude,
+          pickupLng: pickup.longitude,
+          destinationLat: destination.latitude,
+          destinationLng: destination.longitude,
+        });
+        setEstimate(result);
+      } catch (err) {
+        // Silent failure - this is just a preview, the server recomputes the
+        // authoritative figures when the ride is actually requested.
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [pickup, destination]);
 
   // Resume an in-flight ride if one exists (e.g. the app was restarted mid-ride).
   useEffect(() => {
@@ -176,6 +201,22 @@ export default function ClientHomeScreen({ navigation }) {
         {pickup && destination ? <Text style={styles.hint}>{t('client.dragToFineTune')}</Text> : null}
         {pickup && destination ? (
           <>
+            {estimate ? (
+              <View style={styles.estimateRow}>
+                <View style={styles.estimateChip}>
+                  <Ionicons name="trail-sign-outline" size={13} color={colors.textSecondary} />
+                  <Text style={styles.estimateText}>{formatDistance(estimate.distanceKm)}</Text>
+                </View>
+                <View style={styles.estimateChip}>
+                  <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+                  <Text style={styles.estimateText}>{formatDuration(estimate.durationMin)}</Text>
+                </View>
+                <View style={[styles.estimateChip, styles.estimateFareChip]}>
+                  <Ionicons name="pricetag" size={13} color={colors.onPrimary} />
+                  <Text style={styles.estimateFareText}>{formatFare(estimate.estimatedFare)}</Text>
+                </View>
+              </View>
+            ) : null}
             <View style={styles.segmentRow}>
               {[BOOKING_MODE.NOW, BOOKING_MODE.LATER].map((mode) => (
                 <Pressable
@@ -267,6 +308,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  estimateRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  estimateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+  },
+  estimateText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  estimateFareChip: {
+    backgroundColor: colors.primary,
+  },
+  estimateFareText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.onPrimary,
   },
   segmentRow: {
     flexDirection: 'row',

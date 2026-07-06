@@ -1,6 +1,5 @@
 const { Router } = require('express');
 const rideController = require('../controllers/ride.controller');
-const messageController = require('../controllers/message.controller');
 const validate = require('../middleware/validate.middleware');
 const {
   requestRideSchema,
@@ -9,8 +8,8 @@ const {
   rateRideSchema,
   rideIdParamSchema,
   createCheckoutSessionSchema,
+  estimateRideSchema,
 } = require('../validators/ride.validators');
-const { sendMessageSchema } = require('../validators/message.validators');
 const { requireAuth, requireRole } = require('../middleware/auth.middleware');
 
 const router = Router();
@@ -21,6 +20,7 @@ router.post('/', requireRole('CLIENT'), validate(requestRideSchema), rideControl
 router.get('/', rideController.listRides);
 router.get('/active', rideController.getActiveRide);
 router.get('/stats', rideController.getStats);
+router.get('/estimate', validate(estimateRideSchema, 'query'), rideController.estimateRide);
 router.post('/scheduled', requireRole('CLIENT'), validate(scheduleRideSchema), rideController.scheduleRide);
 router.get('/scheduled', rideController.listScheduledRides);
 router.get('/:id', validate(rideIdParamSchema, 'params'), rideController.getRide);
@@ -57,17 +57,6 @@ router.delete(
   '/:id/history',
   validate(rideIdParamSchema, 'params'),
   rideController.hideFromHistory
-);
-router.get(
-  '/:id/messages',
-  validate(rideIdParamSchema, 'params'),
-  messageController.listMessages
-);
-router.post(
-  '/:id/messages',
-  validate(rideIdParamSchema, 'params'),
-  validate(sendMessageSchema),
-  messageController.sendMessage
 );
 
 module.exports = router;

@@ -34,6 +34,15 @@ const rideIdParamSchema = z.object({
   id: z.string().uuid('Invalid ride id'),
 });
 
+// Query params always arrive as strings, so coerce to number before the
+// same lat/lng bounds used at request time.
+const estimateRideSchema = z.object({
+  pickupLat: z.coerce.number().min(-90).max(90),
+  pickupLng: z.coerce.number().min(-180).max(180),
+  destinationLat: z.coerce.number().min(-90).max(90),
+  destinationLng: z.coerce.number().min(-180).max(180),
+});
+
 // successUrl/cancelUrl come from the mobile client (see rideApi.js) since only
 // it knows the right redirect for its current environment (Expo Go dev vs a
 // standalone build).
@@ -49,4 +58,5 @@ module.exports = {
   rateRideSchema,
   rideIdParamSchema,
   createCheckoutSessionSchema,
+  estimateRideSchema,
 };

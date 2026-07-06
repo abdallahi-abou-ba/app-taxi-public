@@ -10,7 +10,7 @@ export function formatDuration(durationMin) {
 
 export function formatFare(estimatedFare) {
   if (estimatedFare == null) return '-';
-  return `${estimatedFare.toFixed(2)}`;
+  return `${estimatedFare.toFixed(2)} MRO`;
 }
 
 export function formatDateTime(isoString, locale) {

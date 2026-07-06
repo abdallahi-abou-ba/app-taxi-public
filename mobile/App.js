@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import { setAudioModeAsync } from 'expo-audio';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -39,6 +40,9 @@ export default function App() {
 
   useEffect(() => {
     loadStoredLanguage().finally(() => setLanguageReady(true));
+    // So the incoming-ride ring tone (useRideAlertSound) is still audible if
+    // the driver's phone is switched to silent - same expectation as a call.
+    setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' });
   }, []);
 
   if (!languageReady) {

@@ -12,9 +12,12 @@ async function updateProfile(userId, updates) {
   return toPublicUser(user);
 }
 
-async function updateAvailability(userId, role, { isAvailable, currentLat, currentLng }) {
-  if (role !== 'DRIVER') {
+async function updateAvailability(requester, { isAvailable, currentLat, currentLng }) {
+  if (requester.role !== 'DRIVER') {
     throw new AppError('Only drivers have an availability status', 403, 'FORBIDDEN');
+  }
+  if (isAvailable && requester.approvalStatus !== 'APPROVED') {
+    throw new AppError('Your driver account is not yet approved', 403, 'FORBIDDEN');
   }
 
   const data = { isAvailable };
@@ -24,7 +27,7 @@ async function updateAvailability(userId, role, { isAvailable, currentLat, curre
     data.lastLocationUpdatedAt = new Date();
   }
 
-  const user = await prisma.user.update({ where: { id: userId }, data });
+  const user = await prisma.user.update({ where: { id: requester.id }, data });
   return toPublicUser(user);
 }
 

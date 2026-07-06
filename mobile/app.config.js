@@ -30,6 +30,7 @@ module.exports = ({ config }) => ({
       'expo-secure-store',
       'expo-notifications',
       'expo-web-browser',
+      'expo-audio',
       '@react-native-community/datetimepicker',
       [
         'expo-location',

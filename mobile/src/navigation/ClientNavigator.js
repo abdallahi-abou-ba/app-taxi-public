@@ -9,7 +9,6 @@ import EditProfileScreen from '../screens/common/EditProfileScreen';
 import DashboardScreen from '../screens/common/DashboardScreen';
 import ScheduledRidesScreen from '../screens/client/ScheduledRidesScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
-import ChatScreen from '../screens/common/ChatScreen';
 import { colors } from '../theme/theme';
 
 const Stack = createNativeStackNavigator();
@@ -39,7 +38,6 @@ export default function ClientNavigator() {
       <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
       <Stack.Screen name="ScheduledRides" component={ScheduledRidesScreen} options={{ title: t('nav.scheduledRides') }} />
       <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: t('nav.chat') }} />
     </Stack.Navigator>
   );
 }

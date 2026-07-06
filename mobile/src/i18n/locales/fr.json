@@ -9,7 +9,7 @@
     "cancel": "Annuler",
     "reservations": "Réservations",
     "referral": "Parrainage",
-    "chat": "Discussion",
+    "call": "Appeler",
     "client": "Client",
     "driver": "Chauffeur"
   },
@@ -24,8 +24,7 @@
     "drive": "Conduire",
     "currentRide": "Course en cours",
     "scheduledRides": "Mes réservations",
-    "referral": "Parrainage",
-    "chat": "Discussion"
+    "referral": "Parrainage"
   },
   "splash": {
     "loading": "Chargement..."
@@ -51,6 +50,10 @@
     "imDriver": "Je suis chauffeur",
     "referralCodeLabel": "Code de parrainage (optionnel)",
     "referralCodePlaceholder": "Ex : AB12CD3",
+    "vehiclePlateLabel": "Matricule du véhicule",
+    "vehiclePlatePlaceholder": "Ex : 1234 AB 01",
+    "vehicleModelOptionalLabel": "Modèle du véhicule (optionnel)",
+    "vehicleModelPlaceholder": "Ex : Toyota Corolla",
     "loginFailed": "Échec de la connexion",
     "registrationFailed": "Échec de l'inscription"
   },
@@ -114,7 +117,9 @@
     "cancelError": "Impossible d'annuler la course",
     "arrived": "Je suis arrivé",
     "startTrip": "Démarrer la course",
-    "completeTrip": "Terminer la course"
+    "completeTrip": "Terminer la course",
+    "pendingApproval": "Votre compte est en attente de validation par l'administrateur. Vous pourrez passer en ligne une fois votre compte validé.",
+    "rejectedApproval": "Votre compte chauffeur n'a pas été validé. Contactez l'assistance pour plus d'informations."
   },
   "incomingRide": {
     "title": "Nouvelle demande de course",
@@ -150,13 +155,6 @@
     "cancelConfirm": "Annuler la réservation",
     "cancelKeep": "Garder",
     "cancelError": "Impossible d'annuler la réservation"
-  },
-  "chat": {
-    "empty": "Aucun message pour le moment",
-    "placeholder": "Écrivez un message...",
-    "send": "Envoyer",
-    "loadError": "Impossible de charger la conversation",
-    "sendError": "Impossible d'envoyer le message"
   },
   "referral": {
     "yourCode": "Votre code de parrainage",

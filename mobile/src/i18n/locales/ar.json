@@ -9,7 +9,7 @@
     "cancel": "إلغاء",
     "reservations": "الحجوزات",
     "referral": "الإحالة",
-    "chat": "المحادثة",
+    "call": "اتصال",
     "client": "عميل",
     "driver": "سائق"
   },
@@ -24,8 +24,7 @@
     "drive": "القيادة",
     "currentRide": "الرحلة الحالية",
     "scheduledRides": "حجوزاتي",
-    "referral": "الإحالة",
-    "chat": "المحادثة"
+    "referral": "الإحالة"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -51,6 +50,10 @@
     "imDriver": "أنا سائق",
     "referralCodeLabel": "رمز الإحالة (اختياري)",
     "referralCodePlaceholder": "مثال: AB12CD3",
+    "vehiclePlateLabel": "رقم لوحة السيارة",
+    "vehiclePlatePlaceholder": "مثال: 1234 AB 01",
+    "vehicleModelOptionalLabel": "طراز السيارة (اختياري)",
+    "vehicleModelPlaceholder": "مثال: Toyota Corolla",
     "loginFailed": "فشل تسجيل الدخول",
     "registrationFailed": "فشل إنشاء الحساب"
   },
@@ -114,7 +117,9 @@
     "cancelError": "تعذّر إلغاء الرحلة",
     "arrived": "لقد وصلت",
     "startTrip": "بدء الرحلة",
-    "completeTrip": "إنهاء الرحلة"
+    "completeTrip": "إنهاء الرحلة",
+    "pendingApproval": "حسابك قيد المراجعة من قبل الإدارة. يمكنك الاتصال بالإنترنت بمجرد تفعيل حسابك.",
+    "rejectedApproval": "لم يتم قبول حساب السائق الخاص بك. يرجى التواصل مع الدعم لمزيد من المعلومات."
   },
   "incomingRide": {
     "title": "طلب رحلة جديد",
@@ -150,13 +155,6 @@
     "cancelConfirm": "إلغاء الحجز",
     "cancelKeep": "الاحتفاظ به",
     "cancelError": "تعذّر إلغاء الحجز"
-  },
-  "chat": {
-    "empty": "لا توجد رسائل بعد",
-    "placeholder": "اكتب رسالة...",
-    "send": "إرسال",
-    "loadError": "تعذّر تحميل المحادثة",
-    "sendError": "تعذّر إرسال الرسالة"
   },
   "referral": {
     "yourCode": "رمز الإحالة الخاص بك",

@@ -82,6 +82,17 @@ const getStats = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: stats });
 });
 
+const estimateRide = asyncHandler(async (req, res) => {
+  const { pickupLat, pickupLng, destinationLat, destinationLng } = req.query;
+  const { distanceKm, durationMin, estimatedFare } = await rideService.computeRouteAndFare(
+    pickupLat,
+    pickupLng,
+    destinationLat,
+    destinationLng
+  );
+  sendSuccess(res, { data: { distanceKm, durationMin, estimatedFare } });
+});
+
 module.exports = {
   requestRide,
   scheduleRide,
@@ -99,4 +110,5 @@ module.exports = {
   createCheckoutSession,
   hideFromHistory,
   getStats,
+  estimateRide,
 };

@@ -44,7 +44,7 @@ async function issueTokens(user) {
   return { accessToken, refreshToken };
 }
 
-async function register({ email, password, fullName, phone, role, referralCode }) {
+async function register({ email, password, fullName, phone, role, referralCode, vehiclePlate, vehicleModel }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AppError('An account with this email already exists', 409, 'CONFLICT');
@@ -70,6 +70,9 @@ async function register({ email, password, fullName, phone, role, referralCode }
       phone,
       role,
       isAvailable: role === 'DRIVER' ? false : null,
+      vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
+      vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
+      approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
       referralCode: myReferralCode,
       referredById,
     },

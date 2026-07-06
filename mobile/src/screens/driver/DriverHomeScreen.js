@@ -9,6 +9,7 @@ import { updateAvailability } from '../../api/userApi';
 import { acceptRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
 import useCurrentLocation from '../../hooks/useCurrentLocation';
+import useRideAlertSound from '../../hooks/useRideAlertSound';
 import OsmMapView from '../../components/OsmMapView';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
@@ -31,6 +32,8 @@ export default function DriverHomeScreen({ navigation }) {
   const [incomingRide, setIncomingRide] = useState(null);
   const [accepting, setAccepting] = useState(false);
   const mapRef = useRef(null);
+
+  useRideAlertSound(!!incomingRide);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -112,6 +115,8 @@ export default function DriverHomeScreen({ navigation }) {
     return <LoadingOverlay message={t('splash.loading')} />;
   }
 
+  const isApproved = user.approvalStatus === 'APPROVED';
+
   const initialRegion = location ? { ...location, zoom: 14 } : MAP_DEFAULTS;
   const markers = location ? [{ id: 'me', latitude: location.latitude, longitude: location.longitude, label: t('map.you') }] : [];
 
@@ -142,6 +147,12 @@ export default function DriverHomeScreen({ navigation }) {
           ) : null}
         </View>
 
+        {!isApproved ? (
+          <Text style={styles.hint}>
+            {user.approvalStatus === 'REJECTED' ? t('driver.rejectedApproval') : t('driver.pendingApproval')}
+          </Text>
+        ) : null}
+
         <QuickActionsGrid items={quickActions} />
 
         <PrimaryButton
@@ -149,6 +160,7 @@ export default function DriverHomeScreen({ navigation }) {
           variant={isAvailable ? 'danger' : 'primary'}
           onPress={handleToggle}
           loading={toggling}
+          disabled={!isApproved}
         />
       </View>
 
@@ -197,6 +209,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     flex: 1,
+  },
+  hint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
   ratingChip: {
     flexDirection: 'row',

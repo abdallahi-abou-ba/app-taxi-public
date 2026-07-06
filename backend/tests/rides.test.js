@@ -155,4 +155,31 @@ describe('rides', () => {
       expect(afterCancel.body.data).toBeNull();
     });
   });
+
+  describe('GET /api/rides/estimate', () => {
+    it('returns a distance/duration/fare preview without creating a ride', async () => {
+      const client = await registerUser({ role: 'CLIENT' });
+      const res = await request(app)
+        .get('/api/rides/estimate')
+        .query(RIDE_PAYLOAD)
+        .set(authHeader(client.accessToken));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.distanceKm).toBeGreaterThan(0);
+      expect(res.body.data.estimatedFare).toBeGreaterThan(0);
+
+      const active = await request(app).get('/api/rides/active').set(authHeader(client.accessToken));
+      expect(active.body.data).toBeNull();
+    });
+
+    it('rejects an invalid payload', async () => {
+      const client = await registerUser({ role: 'CLIENT' });
+      const res = await request(app)
+        .get('/api/rides/estimate')
+        .query({ pickupLat: 999, pickupLng: -7.5898, destinationLat: 33.5931, destinationLng: -7.6098 })
+        .set(authHeader(client.accessToken));
+
+      expect(res.status).toBe(400);
+    });
+  });
 });

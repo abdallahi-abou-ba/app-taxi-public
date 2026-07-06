@@ -12,6 +12,7 @@ import RatingPrompt from '../../components/RatingPrompt';
 import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
+import { callPhone } from '../../utils/call.util';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
@@ -136,7 +137,12 @@ export default function ActiveRideScreen({ route, navigation }) {
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
-        <PrimaryButton title={t('common.chat')} variant="secondary" onPress={() => navigation.navigate('Chat', { rideId })} />
+        <PrimaryButton
+          title={t('common.call')}
+          variant="secondary"
+          onPress={() => callPhone(ride.driver?.phone)}
+          disabled={!ride.driver?.phone}
+        />
         <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={cancelling} />
       </View>
     </View>

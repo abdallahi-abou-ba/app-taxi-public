@@ -13,7 +13,7 @@ const updateMe = asyncHandler(async (req, res) => {
 });
 
 const updateAvailability = asyncHandler(async (req, res) => {
-  const user = await userService.updateAvailability(req.user.id, req.user.role, req.body);
+  const user = await userService.updateAvailability(req.user, req.body);
   sendSuccess(res, { data: user });
 });
 

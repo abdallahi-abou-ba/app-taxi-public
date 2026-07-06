@@ -5,6 +5,7 @@ const prisma = require('../lib/prisma');
 const authRoutes = require('./auth.routes');
 const userRoutes = require('./user.routes');
 const rideRoutes = require('./ride.routes');
+const adminRoutes = require('./admin.routes');
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.get(
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/rides', rideRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;

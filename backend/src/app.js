@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -16,7 +17,13 @@ const app = express();
 // from X-Forwarded-For instead of rejecting the header as unexpected.
 app.set('trust proxy', 1);
 
-app.use(helmet());
+// HSTS tells the browser to remember "always use HTTPS for this host" for a
+// year - correct in production (Railway terminates real TLS), but actively
+// breaks local dev: the plain-HTTP admin page at /admin would get silently
+// upgraded to a https:// URL that doesn't exist here on any visit after the
+// first, with every fetch() failing with no visible error. Only enable it
+// where the site is actually served over HTTPS.
+app.use(helmet({ hsts: env.NODE_ENV === 'production' }));
 app.use(cors({ origin: env.CORS_ORIGIN }));
 
 // Stripe needs the exact raw request body to verify the webhook signature,
@@ -32,6 +39,12 @@ app.use(
 );
 
 app.use('/api', routes);
+
+// Internal admin dashboard (static HTML/CSS/JS, no build step) - calls the
+// /api/admin/* endpoints below with a Bearer token, same origin so no CORS
+// setup is needed. All script/style lives in separate files, not inline, so
+// it works under helmet's default Content-Security-Policy unchanged.
+app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
