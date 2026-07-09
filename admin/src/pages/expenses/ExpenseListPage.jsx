@@ -57,10 +57,14 @@ export default function ExpenseListPage() {
       <div className="filters">
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">Toutes les catégories</option>
-          {CATEGORY_OPTIONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+          {Object.entries(EXPENSE_CATEGORY_GROUPS).map(([groupKey, group]) => (
+            <optgroup key={groupKey} label={group.label}>
+              {group.categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
       </div>
