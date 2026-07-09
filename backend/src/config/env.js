@@ -39,8 +39,12 @@ const envSchema = z.object({
   DEFAULT_COMMISSION_RATE: z.coerce.number().min(0).max(1).default(0.2),
 
   // Max size for a driver-uploaded verification document (photo/ID/license),
-  // stored as a Postgres bytea - see upload.middleware.js.
-  MAX_UPLOAD_DOC_SIZE_MB: z.coerce.number().positive().default(5),
+  // stored as a Postgres bytea - see upload.middleware.js. A real phone
+  // camera photo of a printed document (sharp text/edges compress worse than
+  // a portrait) commonly exceeds 5MB even at reduced JPEG quality - 15MB
+  // gives realistic headroom while still being sane for bytea storage at
+  // this app's driver volume.
+  MAX_UPLOAD_DOC_SIZE_MB: z.coerce.number().positive().default(15),
 
   // Stripe (test mode) online card payment. Both optional so the app still
   // boots without them configured - the checkout-session endpoint then

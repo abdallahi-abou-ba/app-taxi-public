@@ -134,8 +134,11 @@
     },
     "uploadedOn": "Envoyé le {{date}}",
     "notUploaded": "Aucun document envoyé",
+    "pendingSubmit": "Prêt à être envoyé",
     "chooseFromGallery": "Choisir depuis la galerie",
     "takePhoto": "Prendre une photo",
+    "submitDossier": "Envoyer le dossier",
+    "submitSuccess": "Dossier envoyé avec succès !",
     "uploadError": "Impossible d'envoyer le document",
     "loadError": "Impossible de charger vos documents",
     "permissionDenied": "Autorisation refusée"

@@ -134,8 +134,11 @@
     },
     "uploadedOn": "أُرسلت في {{date}}",
     "notUploaded": "لم يتم إرسال أي مستند",
+    "pendingSubmit": "جاهز للإرسال",
     "chooseFromGallery": "اختيار من المعرض",
     "takePhoto": "التقاط صورة",
+    "submitDossier": "إرسال الملف",
+    "submitSuccess": "تم إرسال الملف بنجاح!",
     "uploadError": "تعذّر إرسال المستند",
     "loadError": "تعذّر تحميل مستنداتك",
     "permissionDenied": "تم رفض الإذن"

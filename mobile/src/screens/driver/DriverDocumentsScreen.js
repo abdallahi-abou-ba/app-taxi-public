@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useTranslation } from 'react-i18next';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -12,10 +14,14 @@ const DOCUMENT_TYPES = ['PHOTO', 'ID_CARD', 'LICENSE'];
 export default function DriverDocumentsScreen() {
   const { t } = useTranslation();
   const [statusByType, setStatusByType] = useState({});
-  const [previewByType, setPreviewByType] = useState({});
-  const [uploadingType, setUploadingType] = useState(null);
+  // Picked but not yet uploaded - only sent to the server once "Envoyer le
+  // dossier" is pressed, so a driver can attach all 3 documents before
+  // committing to a single submit action.
+  const [pendingByType, setPendingByType] = useState({});
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,8 +44,9 @@ export default function DriverDocumentsScreen() {
     load();
   }, [load]);
 
-  async function pickAndUpload(type, fromCamera) {
+  async function pickDocument(type, fromCamera) {
     setError(null);
+    setSubmitted(false);
     const permission = fromCamera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -53,16 +60,46 @@ export default function DriverDocumentsScreen() {
       : await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
     if (result.canceled || !result.assets?.[0]) return;
 
-    const asset = result.assets[0];
-    setUploadingType(type);
-    setPreviewByType((prev) => ({ ...prev, [type]: asset.uri }));
-    try {
-      const document = await uploadDocument(type, asset);
-      setStatusByType((prev) => ({ ...prev, [type]: document }));
-    } catch (err) {
-      setError(err.message || t('driverDocuments.uploadError'));
-    } finally {
-      setUploadingType(null);
+    // A gallery pick can be in the device's native format (e.g. HEIC on
+    // iPhone) - re-encode to a fixed-size JPEG so the backend's mimetype
+    // filter always accepts it and the admin panel (a browser, which can't
+    // render HEIC) can always preview it.
+    const manipulated = await ImageManipulator.manipulateAsync(result.assets[0].uri, [{ resize: { width: 1600 } }], {
+      compress: 0.7,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+
+    setPendingByType((prev) => ({ ...prev, [type]: { uri: manipulated.uri, mimeType: 'image/jpeg' } }));
+  }
+
+  const pendingTypes = DOCUMENT_TYPES.filter((type) => pendingByType[type]);
+  const canSubmit = pendingTypes.length > 0 && !submitting;
+
+  async function handleSubmitDossier() {
+    setSubmitting(true);
+    setError(null);
+    setSubmitted(false);
+    const failures = [];
+
+    for (const type of pendingTypes) {
+      try {
+        const document = await uploadDocument(type, pendingByType[type]);
+        setStatusByType((prev) => ({ ...prev, [type]: document }));
+        setPendingByType((prev) => {
+          const next = { ...prev };
+          delete next[type];
+          return next;
+        });
+      } catch (err) {
+        failures.push(`${t(`driverDocuments.types.${type}`)} (${err.message})`);
+      }
+    }
+
+    setSubmitting(false);
+    if (failures.length > 0) {
+      setError(`${t('driverDocuments.uploadError')} : ${failures.join(', ')}`);
+    } else {
+      setSubmitted(true);
     }
   }
 
@@ -78,48 +115,58 @@ export default function DriverDocumentsScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.subtitle}>{t('driverDocuments.subtitle')}</Text>
       <ErrorBanner message={error} />
+      {submitted ? (
+        <View style={styles.successRow}>
+          <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+          <Text style={styles.successText}>{t('driverDocuments.submitSuccess')}</Text>
+        </View>
+      ) : null}
 
       {DOCUMENT_TYPES.map((type) => {
         const doc = statusByType[type];
-        const preview = previewByType[type];
-        const isUploading = uploadingType === type;
+        const pending = pendingByType[type];
 
         return (
           <View key={type} style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{t(`driverDocuments.types.${type}`)}</Text>
-              {isUploading ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Text style={[styles.cardStatus, doc && styles.cardStatusDone]}>
-                  {doc
+              <Text style={[styles.cardStatus, doc && !pending && styles.cardStatusDone, pending && styles.cardStatusPending]}>
+                {pending
+                  ? t('driverDocuments.pendingSubmit')
+                  : doc
                     ? t('driverDocuments.uploadedOn', { date: new Date(doc.uploadedAt).toLocaleDateString() })
                     : t('driverDocuments.notUploaded')}
-                </Text>
-              )}
+              </Text>
             </View>
 
-            {preview ? <Image source={{ uri: preview }} style={styles.preview} /> : null}
+            {pending ? <Image source={{ uri: pending.uri }} style={styles.preview} /> : null}
 
             <View style={styles.actions}>
               <PrimaryButton
                 title={t('driverDocuments.chooseFromGallery')}
                 variant="secondary"
-                onPress={() => pickAndUpload(type, false)}
-                disabled={isUploading}
+                onPress={() => pickDocument(type, false)}
+                disabled={submitting}
                 style={styles.actionButton}
               />
               <PrimaryButton
                 title={t('driverDocuments.takePhoto')}
                 variant="secondary"
-                onPress={() => pickAndUpload(type, true)}
-                disabled={isUploading}
+                onPress={() => pickDocument(type, true)}
+                disabled={submitting}
                 style={styles.actionButton}
               />
             </View>
           </View>
         );
       })}
+
+      <PrimaryButton
+        title={t('driverDocuments.submitDossier')}
+        onPress={handleSubmitDossier}
+        disabled={!canSubmit}
+        loading={submitting}
+      />
     </ScrollView>
   );
 }
@@ -140,6 +187,16 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.body,
     color: colors.textSecondary,
+  },
+  successRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  successText: {
+    color: colors.success,
+    fontSize: 14,
+    fontWeight: '600',
   },
   card: {
     backgroundColor: colors.surface,
@@ -162,6 +219,10 @@ const styles = StyleSheet.create({
   },
   cardStatusDone: {
     color: colors.success,
+    fontWeight: '700',
+  },
+  cardStatusPending: {
+    color: colors.warning,
     fontWeight: '700',
   },
   preview: {
