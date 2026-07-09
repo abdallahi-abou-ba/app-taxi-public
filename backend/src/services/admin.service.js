@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { hashPassword } = require('../utils/password.util');
 const { generateUniqueReferralCode } = require('../utils/referral.util');
+const { listDocumentStatus } = require('./driverDocument.service');
 const env = require('../config/env');
 
 const DRIVER_SELECT = {
@@ -21,9 +22,6 @@ const DRIVER_SELECT = {
   contractType: true,
   initialBalance: true,
   creditBalance: true,
-  photoUrl: true,
-  idDocumentUrl: true,
-  licenseDocumentUrl: true,
   commissionRate: true,
   createdAt: true,
   deletedAt: true,
@@ -56,7 +54,7 @@ async function listDrivers(status) {
 async function getDriverDetail(driverId) {
   await findDriverOrThrow(driverId);
 
-  const [driver, completedAgg, cancelledCount] = await Promise.all([
+  const [driver, completedAgg, cancelledCount, documents] = await Promise.all([
     prisma.user.findUnique({ where: { id: driverId }, select: DRIVER_SELECT }),
     prisma.ride.aggregate({
       where: { driverId, status: 'COMPLETED' },
@@ -64,6 +62,7 @@ async function getDriverDetail(driverId) {
       _sum: { estimatedFare: true, commissionAmount: true, driverNetAmount: true },
     }),
     prisma.ride.count({ where: { driverId, status: 'CANCELLED' } }),
+    listDocumentStatus(driverId),
   ]);
 
   return {
@@ -75,6 +74,7 @@ async function getDriverDetail(driverId) {
       totalCommission: completedAgg._sum.commissionAmount || 0,
       totalNetEarnings: completedAgg._sum.driverNetAmount || 0,
     },
+    documents,
   };
 }
 

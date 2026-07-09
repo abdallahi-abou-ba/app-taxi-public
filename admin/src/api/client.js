@@ -96,3 +96,21 @@ export async function downloadFile(path, { query, filename } = {}) {
   link.remove();
   URL.revokeObjectURL(url);
 }
+
+// Same raw-file bypass as downloadFile, but opens the blob in a new tab
+// instead of forcing a download - used to preview a driver document
+// (image/PDF) inline. The object URL is revoked after a delay long enough
+// for the new tab to have loaded it.
+export async function openFile(path) {
+  const res = await doFetch('GET', path);
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    const error = json?.error || {};
+    throw new ApiError(res.status, error.code || 'UNKNOWN_ERROR', error.message || 'Could not load file');
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}

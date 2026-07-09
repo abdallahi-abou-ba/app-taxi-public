@@ -1,6 +1,7 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const userService = require('../services/user.service');
+const driverDocumentService = require('../services/driverDocument.service');
 const { toPublicUser } = require('../services/auth.service');
 
 const getMe = asyncHandler(async (req, res) => {
@@ -32,4 +33,23 @@ const getReferralInfo = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: info });
 });
 
-module.exports = { getMe, updateMe, updateAvailability, updatePushToken, deleteMe, getReferralInfo };
+const getMyDocuments = asyncHandler(async (req, res) => {
+  const documents = await driverDocumentService.listDocumentStatus(req.user.id);
+  sendSuccess(res, { data: documents });
+});
+
+const uploadMyDocument = asyncHandler(async (req, res) => {
+  const document = await driverDocumentService.upsertDocument(req.user, req.params.type, req.file);
+  sendSuccess(res, { data: document });
+});
+
+module.exports = {
+  getMe,
+  updateMe,
+  updateAvailability,
+  updatePushToken,
+  deleteMe,
+  getReferralInfo,
+  getMyDocuments,
+  uploadMyDocument,
+};

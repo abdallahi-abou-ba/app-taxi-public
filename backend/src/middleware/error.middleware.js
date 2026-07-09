@@ -1,6 +1,7 @@
 const { ZodError } = require('zod');
 const { Prisma } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const AppError = require('../utils/appError');
 const { sendError } = require('../utils/apiResponse');
 const logger = require('../config/logger');
@@ -31,6 +32,11 @@ function errorMiddleware(err, req, res, next) { // eslint-disable-line no-unused
 
   if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
     return sendError(res, { message: 'Invalid or expired token', code: 'UNAUTHORIZED', status: 401 });
+  }
+
+  if (err instanceof multer.MulterError) {
+    const message = err.code === 'LIMIT_FILE_SIZE' ? 'File is too large' : 'Invalid file upload';
+    return sendError(res, { message, code: err.code, status: 400 });
   }
 
   logger.error('Unhandled error:', err);

@@ -38,9 +38,6 @@ const updateDriverSchema = z
     licenseNumber: z.string().trim(),
     licenseExpiryAt: z.coerce.date(),
     contractType: z.string().trim(),
-    photoUrl: z.string().trim().url(),
-    idDocumentUrl: z.string().trim().url(),
-    licenseDocumentUrl: z.string().trim().url(),
   })
   .partial();
 

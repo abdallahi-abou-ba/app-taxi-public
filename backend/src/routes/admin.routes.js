@@ -19,6 +19,7 @@ const {
   activityLogQuerySchema,
 } = require('../validators/admin.validators');
 const { rideIdParamSchema } = require('../validators/ride.validators');
+const { driverDocumentTypeParamSchema } = require('../validators/driverDocument.validators');
 const { requireAuth, requireRole, requirePermission } = require('../middleware/auth.middleware');
 
 const router = Router();
@@ -85,6 +86,12 @@ router.get(
   requirePermission('DRIVERS', 'REVENUE'),
   validate(driverIdParamSchema, 'params'),
   adminController.getCommissionHistory
+);
+router.get(
+  '/drivers/:id/documents/:type/file',
+  requirePermission('DRIVERS'),
+  validate(driverDocumentTypeParamSchema, 'params'),
+  adminController.getDriverDocumentFile
 );
 
 router.get('/clients', requirePermission('CLIENTS'), adminController.listClients);

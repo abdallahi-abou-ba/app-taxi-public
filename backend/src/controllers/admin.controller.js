@@ -4,6 +4,7 @@ const adminService = require('../services/admin.service');
 const rideService = require('../services/ride.service');
 const revenueService = require('../services/revenue.service');
 const activityLogService = require('../services/activityLog.service');
+const driverDocumentService = require('../services/driverDocument.service');
 
 const listDrivers = asyncHandler(async (req, res) => {
   const drivers = await adminService.listDrivers(req.query.status);
@@ -102,6 +103,15 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: history });
 });
 
+const getDriverDocumentFile = asyncHandler(async (req, res) => {
+  const doc = await driverDocumentService.getDocumentFile(req.params.id, req.params.type);
+  res.set('Content-Type', doc.mimeType);
+  // Prisma returns a Bytes column as a plain Uint8Array, not a real Node
+  // Buffer - res.send() only streams raw bytes for Buffer.isBuffer(), and
+  // silently JSON-serializes anything else (e.g. `{"0":137,"1":80,...}`).
+  res.send(Buffer.from(doc.data));
+});
+
 const listClients = asyncHandler(async (req, res) => {
   const clients = await adminService.listClients();
   sendSuccess(res, { data: clients });
@@ -151,6 +161,7 @@ module.exports = {
   archiveDriver,
   setCommissionRate,
   getCommissionHistory,
+  getDriverDocumentFile,
   listClients,
   getStats,
   listRides,

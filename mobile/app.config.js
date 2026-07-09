@@ -38,6 +38,13 @@ module.exports = ({ config }) => ({
           locationWhenInUsePermission: 'Allow this app to use your location to show your position and share it during a ride.',
         },
       ],
+      [
+        'expo-image-picker',
+        {
+          photosPermission: 'Allow this app to access your photos to upload your driver verification documents.',
+          cameraPermission: 'Allow this app to use your camera to photograph your driver verification documents.',
+        },
+      ],
     ],
     extra: {
       apiUrl: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.100.5:3000',

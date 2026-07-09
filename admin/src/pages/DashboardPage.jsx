@@ -25,7 +25,7 @@ export default function DashboardPage() {
             <div className="stats-grid">
               <StatCard label="Clients" value={stats.totalClients} />
               <StatCard label="Chauffeurs" value={stats.totalDrivers} />
-              <StatCard label="En attente" value={stats.driversPending} />
+              <StatCard label="En attente" value={stats.driversPending} to="/drivers?status=PENDING" />
               <StatCard label="Actifs" value={stats.driversApproved} />
               <StatCard label="Suspendus" value={stats.driversSuspended} />
               <StatCard label="Bloqués" value={stats.driversBlocked} />

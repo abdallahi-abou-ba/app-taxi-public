@@ -135,6 +135,7 @@ export default function DriverHomeScreen({ navigation }) {
     { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
     { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+    { key: 'documents', icon: 'document-attach-outline', label: t('common.documents'), onPress: () => navigation.navigate('DriverDocuments') },
   ];
 
   return (
@@ -158,9 +159,16 @@ export default function DriverHomeScreen({ navigation }) {
         </View>
 
         {!isApproved ? (
-          <Text style={styles.hint}>
-            {user.approvalStatus === 'REJECTED' ? t('driver.rejectedApproval') : t('driver.pendingApproval')}
-          </Text>
+          <>
+            <Text style={styles.hint}>
+              {user.approvalStatus === 'REJECTED' ? t('driver.rejectedApproval') : t('driver.pendingApproval')}
+            </Text>
+            <PrimaryButton
+              title={t('driver.uploadDocumentsCta')}
+              variant="secondary"
+              onPress={() => navigation.navigate('DriverDocuments')}
+            />
+          </>
         ) : null}
 
         <QuickActionsGrid items={quickActions} />

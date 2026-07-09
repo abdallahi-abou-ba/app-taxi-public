@@ -30,6 +30,16 @@ enum VehicleStatus {
   ARCHIVED
 }
 
+// Verification documents a DRIVER submits from the mobile app for an admin
+// to review before approval (spec: driver "CV"/dossier check). One row per
+// (driver, type) - see DriverDocument's @@unique - so a re-upload after a
+// REJECTED status replaces the previous file rather than accumulating rows.
+enum DriverDocumentType {
+  PHOTO
+  ID_CARD
+  LICENSE
+}
+
 // Sub-role for a User with role=ADMIN only (null for CLIENT/DRIVER). Granular
 // permissions (spec 11) are intentionally coarse - by back-office section,
 // not per-action - since the client's spec doesn't call for finer control.
@@ -179,24 +189,26 @@ model User {
   approvedAt     DateTime?
 
   // Extended driver profile (admin back office, Phase 1). All optional -
-  // existing rows get null until an admin fills them in. Document/photo
-  // fields are plain URLs for a future object-storage integration; no
-  // upload pipeline exists yet, this pass doesn't build one.
+  // existing rows get null until an admin fills them in.
   // Only set when different from `phone` (spec 4.1's "numéro WhatsApp si
   // différent") - null means "same as phone", not "no WhatsApp".
-  whatsapp           String?
-  address            String?
-  nationalId         String?
-  licenseNumber      String?
-  licenseExpiryAt    DateTime?
-  contractType       String?
+  whatsapp        String?
+  address         String?
+  nationalId      String?
+  licenseNumber   String?
+  licenseExpiryAt DateTime?
+  contractType    String?
   // Captured once at driver creation as a historical record of the starting
   // balance; not editable afterward. The live, spendable balance is the
   // existing `creditBalance` field below, which this seeds at creation time.
-  initialBalance     Float?    @default(0)
-  photoUrl           String?
-  idDocumentUrl      String?
-  licenseDocumentUrl String?
+  initialBalance  Float?    @default(0)
+
+  // Verification documents (photo/ID/license) uploaded from the mobile app -
+  // see DriverDocument. Deliberately NOT columns here: requireAuth
+  // (auth.middleware.js) loads a full, unselected User row on every
+  // authenticated request, so bytea blobs on this model would be pulled into
+  // memory on every single API call app-wide.
+  documents DriverDocument[]
 
   // Driver's current commission rate (fraction 0..1, e.g. 0.20 = 20%).
   // Null for non-drivers. The only way this changes is
@@ -255,6 +267,27 @@ model User {
 
   @@index([role, isAvailable])
   @@map("users")
+}
+
+// A single verification document (photo/ID/license) for a DRIVER, uploaded
+// from the mobile app and reviewed by an admin before approval. Stored as a
+// blob directly in Postgres (small MVP driver count, no object-storage
+// service to provision/manage) - kept off the User model itself, see the
+// comment on User.documents above. data/mimeType are never selected by any
+// list/detail endpoint that also returns other driver fields - only the
+// dedicated GET .../documents/:type/file route reads them, to avoid dragging
+// blobs into memory on unrelated requests.
+model DriverDocument {
+  id         String             @id @default(uuid())
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       DriverDocumentType
+  data       Bytes
+  mimeType   String
+  uploadedAt DateTime           @default(now())
+
+  @@unique([userId, type])
+  @@map("driver_documents")
 }
 
 // Audit trail of admin back-office actions (spec 13). Written by

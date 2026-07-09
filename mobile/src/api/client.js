@@ -32,7 +32,10 @@ async function parseResponse(res) {
 }
 
 async function doFetch(method, path, { body, skipAuth } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+  // A FormData body (document upload) must NOT get a manual Content-Type -
+  // fetch sets its own multipart boundary, and JSON.stringify would mangle it.
+  const isFormData = body instanceof FormData;
+  const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
   if (!skipAuth) {
     const token = getAccessToken();
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -41,7 +44,7 @@ async function doFetch(method, path, { body, skipAuth } = {}) {
   const res = await fetch(getApiBaseUrl() + path, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   });
 
   return { res, path, skipAuth };

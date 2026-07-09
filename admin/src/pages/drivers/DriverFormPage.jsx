@@ -19,9 +19,6 @@ const EMPTY = {
   licenseExpiryAt: '',
   contractType: '',
   initialBalance: '',
-  photoUrl: '',
-  idDocumentUrl: '',
-  licenseDocumentUrl: '',
 };
 
 function toDateInput(value) {
@@ -159,24 +156,6 @@ export default function DriverFormPage() {
             />
           </FormField>
         )}
-        {isEdit && (
-          <>
-            <FormField label="Photo (URL)">
-              <input type="url" value={form.photoUrl || ''} onChange={(e) => set('photoUrl', e.target.value)} />
-            </FormField>
-            <FormField label="Copie pièce d'identité (URL)">
-              <input type="url" value={form.idDocumentUrl || ''} onChange={(e) => set('idDocumentUrl', e.target.value)} />
-            </FormField>
-            <FormField label="Copie permis (URL)">
-              <input
-                type="url"
-                value={form.licenseDocumentUrl || ''}
-                onChange={(e) => set('licenseDocumentUrl', e.target.value)}
-              />
-            </FormField>
-          </>
-        )}
-
         <div style={{ gridColumn: '1 / -1' }}>
           <button className="btn btn-primary" type="submit" disabled={submitting}>
             {submitting ? 'Enregistrement…' : 'Enregistrer'}

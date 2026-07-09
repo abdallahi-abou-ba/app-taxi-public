@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
-import { archiveDriver, getCommissionHistory, getDriver, setCommissionRate, setDriverStatus } from '../../api/drivers';
+import {
+  archiveDriver,
+  getCommissionHistory,
+  getDriver,
+  setCommissionRate,
+  setDriverStatus,
+  viewDriverDocument,
+} from '../../api/drivers';
 import StatusBadge from '../../components/StatusBadge';
 import StatCard from '../../components/StatCard';
 
 const STATUS_OPTIONS = ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED', 'BLOCKED'];
+
+const DOCUMENT_TYPES = [
+  { type: 'PHOTO', label: 'Photo' },
+  { type: 'ID_CARD', label: "Pièce d'identité" },
+  { type: 'LICENSE', label: 'Permis de conduire' },
+];
 
 function formatCurrency(value) {
   return `${Math.round(value || 0).toLocaleString('fr-FR')} MRU`;
@@ -22,6 +35,7 @@ export default function DriverDetailPage() {
   const [reason, setReason] = useState('');
   const [actionError, setActionError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [viewingType, setViewingType] = useState(null);
 
   async function handleStatusChange(e) {
     e.preventDefault();
@@ -31,6 +45,19 @@ export default function DriverDetailPage() {
     try {
       await setDriverStatus(id, newStatus);
       setNewStatus('');
+      reload();
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleQuickStatus(status) {
+    setBusy(true);
+    setActionError('');
+    try {
+      await setDriverStatus(id, status);
       reload();
     } catch (err) {
       setActionError(err.message);
@@ -54,6 +81,18 @@ export default function DriverDetailPage() {
       setActionError(err.message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleViewDocument(type) {
+    setViewingType(type);
+    setActionError('');
+    try {
+      await viewDriverDocument(id, type);
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setViewingType(null);
     }
   }
 
@@ -144,6 +183,50 @@ export default function DriverDetailPage() {
       </div>
 
       <div className="panel">
+        <h3>Documents</h3>
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {DOCUMENT_TYPES.map(({ type, label }) => {
+                const doc = driver.documents?.find((d) => d.type === type);
+                return (
+                  <tr key={type}>
+                    <td>{label}</td>
+                    <td>
+                      {doc ? (
+                        `Fourni le ${new Date(doc.uploadedAt).toLocaleDateString('fr-FR')}`
+                      ) : (
+                        <span className="status-badge status-UNAVAILABLE">Manquant</span>
+                      )}
+                    </td>
+                    <td>
+                      {doc && (
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          disabled={viewingType === type}
+                          onClick={() => handleViewDocument(type)}
+                        >
+                          Voir
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="panel">
         <h3>Statistiques</h3>
         <div className="stats-grid">
           <StatCard label="Courses terminées" value={driver.stats.completedRides} />
@@ -154,21 +237,35 @@ export default function DriverDetailPage() {
         </div>
       </div>
 
-      <div className="panel">
+      <div className={`panel${driver.approvalStatus === 'PENDING' ? ' panel-pending' : ''}`}>
         <h3>Statut</h3>
-        <form className="btn-row" onSubmit={handleStatusChange}>
-          <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
-            <option value="">Changer le statut…</option>
-            {STATUS_OPTIONS.filter((s) => s !== driver.approvalStatus).map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <button className="btn btn-primary" type="submit" disabled={busy || !newStatus}>
-            Appliquer
-          </button>
-        </form>
+        {driver.approvalStatus === 'PENDING' ? (
+          <>
+            <p className="hint">Nouvelle inscription en attente de validation. Vérifiez le profil ci-dessus avant de statuer.</p>
+            <div className="btn-row">
+              <button className="btn btn-approve" onClick={() => handleQuickStatus('APPROVED')} disabled={busy}>
+                ✓ Approuver le chauffeur
+              </button>
+              <button className="btn btn-reject" onClick={() => handleQuickStatus('REJECTED')} disabled={busy}>
+                ✕ Rejeter la demande
+              </button>
+            </div>
+          </>
+        ) : (
+          <form className="btn-row" onSubmit={handleStatusChange}>
+            <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
+              <option value="">Changer le statut…</option>
+              {STATUS_OPTIONS.filter((s) => s !== driver.approvalStatus).map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-primary" type="submit" disabled={busy || !newStatus}>
+              Appliquer
+            </button>
+          </form>
+        )}
       </div>
 
       <div className="panel">

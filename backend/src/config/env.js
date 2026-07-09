@@ -38,6 +38,10 @@ const envSchema = z.object({
   // completed for a driver with no rate set.
   DEFAULT_COMMISSION_RATE: z.coerce.number().min(0).max(1).default(0.2),
 
+  // Max size for a driver-uploaded verification document (photo/ID/license),
+  // stored as a Postgres bytea - see upload.middleware.js.
+  MAX_UPLOAD_DOC_SIZE_MB: z.coerce.number().positive().default(5),
+
   // Stripe (test mode) online card payment. Both optional so the app still
   // boots without them configured - the checkout-session endpoint then
   // returns a clear 503 instead of attempting a payment.

@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api, openFile } from './client';
 
 export function listDrivers(status) {
   return api.get('/api/admin/drivers', { query: { status } });
@@ -30,4 +30,8 @@ export function setCommissionRate(id, newRate, reason) {
 
 export function getCommissionHistory(id) {
   return api.get(`/api/admin/drivers/${id}/commission-history`);
+}
+
+export function viewDriverDocument(id, type) {
+  return openFile(`/api/admin/drivers/${id}/documents/${type}/file`);
 }

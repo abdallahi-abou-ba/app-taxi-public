@@ -11,7 +11,8 @@
     "referral": "Parrainage",
     "call": "Appeler",
     "client": "Client",
-    "driver": "Chauffeur"
+    "driver": "Chauffeur",
+    "documents": "Documents"
   },
   "nav": {
     "ride": "Course",
@@ -24,7 +25,8 @@
     "drive": "Conduire",
     "currentRide": "Course en cours",
     "scheduledRides": "Mes réservations",
-    "referral": "Parrainage"
+    "referral": "Parrainage",
+    "documents": "Mes documents"
   },
   "splash": {
     "loading": "Chargement..."
@@ -119,7 +121,24 @@
     "startTrip": "Démarrer la course",
     "completeTrip": "Terminer la course",
     "pendingApproval": "Votre compte est en attente de validation par l'administrateur. Vous pourrez passer en ligne une fois votre compte validé.",
-    "rejectedApproval": "Votre compte chauffeur n'a pas été validé. Contactez l'assistance pour plus d'informations."
+    "rejectedApproval": "Votre compte chauffeur n'a pas été validé. Contactez l'assistance pour plus d'informations.",
+    "uploadDocumentsCta": "Envoyer mes documents"
+  },
+  "driverDocuments": {
+    "title": "Mes documents",
+    "subtitle": "Envoyez une photo de vous, de votre pièce d'identité et de votre permis pour que l'administrateur puisse valider votre compte.",
+    "types": {
+      "PHOTO": "Photo",
+      "ID_CARD": "Pièce d'identité",
+      "LICENSE": "Permis de conduire"
+    },
+    "uploadedOn": "Envoyé le {{date}}",
+    "notUploaded": "Aucun document envoyé",
+    "chooseFromGallery": "Choisir depuis la galerie",
+    "takePhoto": "Prendre une photo",
+    "uploadError": "Impossible d'envoyer le document",
+    "loadError": "Impossible de charger vos documents",
+    "permissionDenied": "Autorisation refusée"
   },
   "incomingRide": {
     "title": "Nouvelle demande de course",
