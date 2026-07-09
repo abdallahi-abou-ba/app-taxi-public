@@ -1,92 +1,13 @@
 <!doctype html>
 <html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Taxi MVP — Administration</title>
-  <link rel="stylesheet" href="admin.css" />
-</head>
-<body>
-  <header class="topbar">
-    <h1>Taxi MVP — Administration</h1>
-    <button id="logout-btn" class="btn btn-secondary hidden">Déconnexion</button>
-  </header>
-
-  <main id="login-view" class="view">
-    <form id="login-form" class="login-card">
-      <h2>Connexion admin</h2>
-      <p id="login-error" class="error hidden"></p>
-      <label>
-        E-mail
-        <input type="email" id="login-email" required autocomplete="username" />
-      </label>
-      <label>
-        Mot de passe
-        <input type="password" id="login-password" required autocomplete="current-password" />
-      </label>
-      <button type="submit" class="btn btn-primary">Se connecter</button>
-    </form>
-  </main>
-
-  <main id="dashboard-view" class="view hidden">
-    <section class="panel">
-      <h2>Statistiques globales</h2>
-      <div class="stats-grid" id="stats-grid"></div>
-    </section>
-
-    <section class="panel">
-      <h2>Chauffeurs en attente de validation</h2>
-      <p id="pending-empty" class="hint hidden">Aucun chauffeur en attente.</p>
-      <table class="table" id="pending-table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>E-mail</th>
-            <th>Téléphone</th>
-            <th>Matricule</th>
-            <th>Modèle</th>
-            <th>Inscrit le</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="pending-tbody"></tbody>
-      </table>
-    </section>
-
-    <section class="panel">
-      <h2>Tous les chauffeurs</h2>
-      <table class="table" id="drivers-table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>E-mail</th>
-            <th>Téléphone</th>
-            <th>Matricule</th>
-            <th>Modèle</th>
-            <th>Statut</th>
-            <th>Inscrit le</th>
-          </tr>
-        </thead>
-        <tbody id="drivers-tbody"></tbody>
-      </table>
-    </section>
-
-    <section class="panel">
-      <h2>Clients</h2>
-      <table class="table" id="clients-table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>E-mail</th>
-            <th>Téléphone</th>
-            <th>Inscrit le</th>
-          </tr>
-        </thead>
-        <tbody id="clients-tbody"></tbody>
-      </table>
-    </section>
-  </main>
-
-  <script src="admin.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taxi MVP — Administration</title>
+    <script type="module" crossorigin src="/admin/assets/index-D3WmI7HS.js"></script>
+    <link rel="stylesheet" crossorigin href="/admin/assets/index-DSeVUWui.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

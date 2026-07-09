@@ -40,11 +40,15 @@ app.use(
 
 app.use('/api', routes);
 
-// Internal admin dashboard (static HTML/CSS/JS, no build step) - calls the
-// /api/admin/* endpoints below with a Bearer token, same origin so no CORS
+// Internal admin dashboard: a built React SPA (see admin/, built via
+// `npm run build:deploy` into public/admin), served same origin so no CORS
 // setup is needed. All script/style lives in separate files, not inline, so
 // it works under helmet's default Content-Security-Policy unchanged.
 app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
+// express.static only serves exact file matches, so a client-side route
+// (e.g. /admin/drivers/123) 404s on a hard reload without this fallback -
+// let React Router's <BrowserRouter basename="/admin"> handle the path.
+app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(__dirname, '../public/admin/index.html')));
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

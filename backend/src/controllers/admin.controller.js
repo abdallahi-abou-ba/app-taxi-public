@@ -1,10 +1,27 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const adminService = require('../services/admin.service');
+const rideService = require('../services/ride.service');
+const revenueService = require('../services/revenue.service');
 
 const listDrivers = asyncHandler(async (req, res) => {
   const drivers = await adminService.listDrivers(req.query.status);
   sendSuccess(res, { data: drivers });
+});
+
+const getDriverDetail = asyncHandler(async (req, res) => {
+  const driver = await adminService.getDriverDetail(req.params.id);
+  sendSuccess(res, { data: driver });
+});
+
+const createDriver = asyncHandler(async (req, res) => {
+  const driver = await adminService.createDriver(req.body);
+  sendSuccess(res, { data: driver, status: 201 });
+});
+
+const updateDriver = asyncHandler(async (req, res) => {
+  const driver = await adminService.updateDriver(req.params.id, req.body);
+  sendSuccess(res, { data: driver });
 });
 
 const approveDriver = asyncHandler(async (req, res) => {
@@ -17,6 +34,26 @@ const rejectDriver = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: driver });
 });
 
+const setDriverStatus = asyncHandler(async (req, res) => {
+  const driver = await adminService.setDriverStatus(req.params.id, req.body.status);
+  sendSuccess(res, { data: driver });
+});
+
+const archiveDriver = asyncHandler(async (req, res) => {
+  await adminService.archiveDriver(req.params.id);
+  sendSuccess(res, { data: { id: req.params.id } });
+});
+
+const setCommissionRate = asyncHandler(async (req, res) => {
+  const driver = await adminService.setCommissionRate(req.params.id, req.user.id, req.body.newRate, req.body.reason);
+  sendSuccess(res, { data: driver });
+});
+
+const getCommissionHistory = asyncHandler(async (req, res) => {
+  const history = await adminService.getCommissionHistory(req.params.id);
+  sendSuccess(res, { data: history });
+});
+
 const listClients = asyncHandler(async (req, res) => {
   const clients = await adminService.listClients();
   sendSuccess(res, { data: clients });
@@ -27,4 +64,39 @@ const getStats = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: stats });
 });
 
-module.exports = { listDrivers, approveDriver, rejectDriver, listClients, getStats };
+const listRides = asyncHandler(async (req, res) => {
+  const { page, pageSize, ...filters } = req.query;
+  const result = await rideService.adminListRides({ ...filters, page, pageSize });
+  sendSuccess(res, {
+    data: result.rides,
+    meta: { page: result.page, pageSize: result.pageSize, total: result.total, totalPages: result.totalPages },
+  });
+});
+
+const getRide = asyncHandler(async (req, res) => {
+  const ride = await rideService.adminGetRideById(req.params.id);
+  sendSuccess(res, { data: ride });
+});
+
+const getRevenue = asyncHandler(async (req, res) => {
+  const revenue = await revenueService.getRevenueAggregate(req.query);
+  sendSuccess(res, { data: revenue });
+});
+
+module.exports = {
+  listDrivers,
+  getDriverDetail,
+  createDriver,
+  updateDriver,
+  approveDriver,
+  rejectDriver,
+  setDriverStatus,
+  archiveDriver,
+  setCommissionRate,
+  getCommissionHistory,
+  listClients,
+  getStats,
+  listRides,
+  getRide,
+  getRevenue,
+};

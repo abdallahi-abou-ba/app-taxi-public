@@ -18,6 +18,13 @@ const requireAuth = asyncHandler(async (req, res, next) => {
   if (!user || user.deletedAt) {
     throw new AppError('User no longer exists', 401, 'UNAUTHORIZED');
   }
+  // A driver blocked mid-session loses access immediately, not just on their
+  // next login - requireAuth re-reads the user on every request, so this
+  // catches an already-issued access token too (no need to wait for it to
+  // expire naturally).
+  if (user.approvalStatus === 'BLOCKED') {
+    throw new AppError('Your account has been blocked. Contact support.', 403, 'FORBIDDEN');
+  }
 
   req.user = user;
   next();

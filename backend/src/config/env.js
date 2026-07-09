@@ -33,6 +33,11 @@ const envSchema = z.object({
   // friend once the friend completes their first ride.
   REFERRAL_REWARD_AMOUNT: z.coerce.number().nonnegative().default(20),
 
+  // Default company commission rate (fraction of fare) applied to a new
+  // driver at registration/creation, and as the fallback if a ride is ever
+  // completed for a driver with no rate set.
+  DEFAULT_COMMISSION_RATE: z.coerce.number().min(0).max(1).default(0.2),
+
   // Stripe (test mode) online card payment. Both optional so the app still
   // boots without them configured - the checkout-session endpoint then
   // returns a clear 503 instead of attempting a payment.

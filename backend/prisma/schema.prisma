@@ -18,6 +18,16 @@ enum DriverApprovalStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
+  BLOCKED
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  SUSPENDED
+  UNAVAILABLE
+  ARCHIVED
 }
 
 enum RideStatus {
@@ -61,15 +71,46 @@ model User {
 
   // Vehicle info collected at driver registration. Plate is required for a
   // DRIVER (enforced in the registration validator, not the DB, since CLIENT/
-  // ADMIN rows never have one); model is optional.
+  // ADMIN rows never have one); model is optional. Separate from the
+  // admin-managed Vehicle/VehicleAssignment fleet records (see below) -
+  // these stay as the mobile app's own self-reported fields, untouched by
+  // the admin back office.
   vehiclePlate String?
   vehicleModel String?
 
   // Set to PENDING for a new DRIVER at registration, null for CLIENT/ADMIN.
   // A driver can't go online or accept rides until an admin sets this to
   // APPROVED (see user.service.js#updateAvailability, ride.service.js#acceptRide).
+  // SUSPENDED/BLOCKED are admin-set operational states: both already fail the
+  // `!== 'APPROVED'` checks above (blocking availability/ride-acceptance)
+  // with no extra code; BLOCKED additionally denies login/refresh/requireAuth
+  // entirely (see auth.service.js, auth.middleware.js).
   approvalStatus DriverApprovalStatus?
   approvedAt     DateTime?
+
+  // Extended driver profile (admin back office, Phase 1). All optional -
+  // existing rows get null until an admin fills them in. Document/photo
+  // fields are plain URLs for a future object-storage integration; no
+  // upload pipeline exists yet, this pass doesn't build one.
+  address            String?
+  nationalId         String?
+  licenseNumber      String?
+  licenseExpiryAt    DateTime?
+  contractType       String?
+  // Captured once at driver creation as a historical record of the starting
+  // balance; not editable afterward. The live, spendable balance is the
+  // existing `creditBalance` field below, which this seeds at creation time.
+  initialBalance     Float?    @default(0)
+  photoUrl           String?
+  idDocumentUrl      String?
+  licenseDocumentUrl String?
+
+  // Driver's current commission rate (fraction 0..1, e.g. 0.20 = 20%).
+  // Null for non-drivers. The only way this changes is
+  // admin.service.js#setCommissionRate, which also writes a CommissionChange
+  // row - so a ride's frozen commissionRateSnapshot (see Ride below) can
+  // never silently drift out of sync with an unrecorded rate change.
+  commissionRate Float?
 
   // Running average across all ratings received (as a driver or as a client -
   // whichever role this user has). Updated incrementally when a rating comes in.
@@ -100,8 +141,87 @@ model User {
   ridesAsDriver Ride[] @relation("DriverRides")
   refreshTokens RefreshToken[]
 
+  commissionChangesReceived CommissionChange[] @relation("CommissionChangeDriver")
+  commissionChangesMade     CommissionChange[] @relation("CommissionChangeAdmin")
+  vehicleAssignments        VehicleAssignment[]
+  currentVehicles           Vehicle[]           @relation("VehicleCurrentDriver")
+
   @@index([role, isAvailable])
   @@map("users")
+}
+
+// History of commissionRate changes on User (spec 9.3) - written every time
+// admin.service.js#setCommissionRate changes a driver's rate, so past rate
+// changes stay auditable even though User only stores the current rate.
+model CommissionChange {
+  id              String   @id @default(uuid())
+  driverId        String
+  driver          User     @relation("CommissionChangeDriver", fields: [driverId], references: [id])
+  oldRate         Float?
+  newRate         Float
+  reason          String?
+  changedByUserId String
+  changedByUser   User     @relation("CommissionChangeAdmin", fields: [changedByUserId], references: [id])
+  changedAt       DateTime @default(now())
+
+  @@index([driverId])
+  @@map("commission_changes")
+}
+
+// Admin-managed fleet record, additive next to User.vehiclePlate/vehicleModel
+// (the mobile app's own self-reported fields, left untouched).
+model Vehicle {
+  id        String  @id @default(uuid())
+  brand     String
+  model     String
+  plate     String  @unique
+  color     String?
+  year      Int?
+  type      String?
+  seatCount Int?
+
+  insuranceProvider  String?
+  insuranceNumber    String?
+  insuranceExpiresAt DateTime?
+
+  carteGriseNumber             String?
+  technicalInspectionExpiresAt DateTime?
+
+  status VehicleStatus @default(ACTIVE)
+
+  // Denormalized "current driver" pointer for hot-path reads, kept in sync
+  // exclusively by vehicle.service.js#assignVehicle/#unassignVehicle - the
+  // source of truth for *history* is VehicleAssignment below.
+  currentDriverId String?
+  currentDriver   User?   @relation("VehicleCurrentDriver", fields: [currentDriverId], references: [id])
+
+  assignments VehicleAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([currentDriverId])
+  @@map("vehicles")
+}
+
+// Vehicle<->driver assignment history (spec 5.3). Assigning a vehicle closes
+// any row with endDate: null for that vehicle, then opens a new one - see
+// vehicle.service.js#assignVehicle.
+model VehicleAssignment {
+  id        String    @id @default(uuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  driverId  String
+  driver    User      @relation(fields: [driverId], references: [id])
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  @@index([driverId])
+  @@index([vehicleId, endDate])
+  @@map("vehicle_assignments")
 }
 
 model RefreshToken {
@@ -158,6 +278,11 @@ model Ride {
   cancelledBy        Role?
   cancellationReason String?
 
+  // Drivers who declined this ride (see ride.service.js#declineRide). Status
+  // stays REQUESTED - a decline only hides the request from that one driver,
+  // it doesn't remove it for the other nearby drivers it was broadcast to.
+  declinedByDriverIds String[] @default([])
+
   // Chosen by the client at request time. Still no online gateway - the
   // driver confirms collection manually either way, this just records intent.
   paymentMethod PaymentMethod @default(CASH)
@@ -178,6 +303,17 @@ model Ride {
   // toward this ride at completion - the driver should only collect
   // (estimatedFare - creditApplied) in cash, not the full estimate.
   creditApplied Float @default(0)
+
+  // Frozen at the moment this ride reaches COMPLETED (see
+  // ride.service.js#snapshotCommission), using the driver's commissionRate
+  // AT THAT MOMENT - a later change to the driver's rate must never
+  // retroactively alter an already-completed ride's numbers. Stored as real
+  // columns (not derived at read time) so admin.service.js's revenue
+  // aggregates can _sum them directly. commissionAmount is the company's
+  // cut, driverNetAmount = estimatedFare - commissionAmount.
+  commissionRateSnapshot Float?
+  commissionAmount       Float?
+  driverNetAmount        Float?
 
   // Per-user "trash": hiding a ride only removes it from that user's own
   // history list, the other participant and the ride record are unaffected.
@@ -203,5 +339,6 @@ model Ride {
   @@index([status])
   @@index([clientId])
   @@index([driverId])
+  @@index([driverId, completedAt])
   @@map("rides")
 }

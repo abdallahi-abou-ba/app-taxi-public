@@ -214,6 +214,28 @@ async function acceptRide(driverId, rideId) {
   return ride;
 }
 
+// A decline is per-driver, not a ride-wide state change: the ride stays
+// REQUESTED so any other driver it was broadcast to can still accept it.
+// Idempotent - re-declining an already-declined ride is a silent no-op.
+async function declineRide(driverId, rideId) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+  if (!ride) {
+    throw new AppError('Ride not found', 404, 'NOT_FOUND');
+  }
+  if (ride.status !== 'REQUESTED') {
+    throw new AppError('This ride is no longer awaiting a driver', 409, 'CONFLICT');
+  }
+
+  if (!ride.declinedByDriverIds.includes(driverId)) {
+    await prisma.ride.update({
+      where: { id: rideId },
+      data: { declinedByDriverIds: { push: driverId } },
+    });
+  }
+
+  return { id: ride.id };
+}
+
 // On ride completion: first spend any existing credit balance toward this
 // ride's cash payment (Ride.creditApplied), then - if this is the client's
 // first-ever completed ride and they were referred - grant a one-time
@@ -262,6 +284,29 @@ async function applyCreditAndReferralReward(ride) {
   return updatedRide;
 }
 
+// Frozen at the moment a ride completes, using the driver's commissionRate
+// AT THAT MOMENT - a later rate change (see admin.service.js#setCommissionRate,
+// which logs to CommissionChange) must never retroactively alter an
+// already-completed ride. Computed on the full estimatedFare, not
+// fare-minus-creditApplied: referral credit is a cost the company already
+// absorbed when it funded the referral program, so it shouldn't also shrink
+// the driver's commission base. Must run before applyCreditAndReferralReward
+// for that reason (that function's own re-fetch of the ride then naturally
+// picks up these fields).
+async function snapshotCommission(ride) {
+  const driver = await prisma.user.findUnique({ where: { id: ride.driverId }, select: { commissionRate: true } });
+  const rate = driver?.commissionRate ?? env.DEFAULT_COMMISSION_RATE;
+  const fare = ride.estimatedFare || 0;
+  const commissionAmount = Math.round(fare * rate * 100) / 100;
+  const driverNetAmount = Math.round((fare - commissionAmount) * 100) / 100;
+
+  return prisma.ride.update({
+    where: { id: ride.id },
+    data: { commissionRateSnapshot: rate, commissionAmount, driverNetAmount },
+    include: RIDE_INCLUDE,
+  });
+}
+
 async function transitionRide(driverId, rideId, action) {
   const { from, to, timestampField } = TRANSITIONS[action];
 
@@ -277,6 +322,7 @@ async function transitionRide(driverId, rideId, action) {
   let ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
   if (to === 'COMPLETED') {
     rideTracker.clearActiveRide(driverId);
+    ride = await snapshotCommission(ride);
     ride = await applyCreditAndReferralReward(ride);
   }
 
@@ -456,6 +502,44 @@ async function hideRideFromHistory(userId, role, rideId) {
   return { id: updated.id };
 }
 
+// Admin-facing: no participant check (admin sees every ride), paginated
+// since ride volume grows unbounded over time (unlike the small, unpaginated
+// driver/vehicle/client admin lists).
+async function adminListRides({ driverId, clientId, status, paymentMethod, from, to, page, pageSize }) {
+  const pageNum = page || 1;
+  const pageSizeNum = pageSize || 20;
+  const where = {
+    ...(driverId && { driverId }),
+    ...(clientId && { clientId }),
+    ...(status && { status }),
+    ...(paymentMethod && { paymentMethod }),
+    ...((from || to) && {
+      requestedAt: { ...(from && { gte: new Date(from) }), ...(to && { lte: new Date(to) }) },
+    }),
+  };
+
+  const [total, rides] = await Promise.all([
+    prisma.ride.count({ where }),
+    prisma.ride.findMany({
+      where,
+      include: RIDE_INCLUDE,
+      orderBy: { requestedAt: 'desc' },
+      skip: (pageNum - 1) * pageSizeNum,
+      take: pageSizeNum,
+    }),
+  ]);
+
+  return { rides, total, page: pageNum, pageSize: pageSizeNum, totalPages: Math.ceil(total / pageSizeNum) };
+}
+
+async function adminGetRideById(rideId) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
+  if (!ride) {
+    throw new AppError('Ride not found', 404, 'NOT_FOUND');
+  }
+  return ride;
+}
+
 async function getStats(userId, role) {
   const field = role === 'DRIVER' ? 'driverId' : 'clientId';
   const startOfMonth = new Date();
@@ -490,6 +574,7 @@ module.exports = {
   listRides,
   getActiveRide,
   acceptRide,
+  declineRide,
   arriveRide: (driverId, rideId) => transitionRide(driverId, rideId, 'arrive'),
   startRide: (driverId, rideId) => transitionRide(driverId, rideId, 'start'),
   completeRide: (driverId, rideId) => transitionRide(driverId, rideId, 'complete'),
@@ -500,5 +585,7 @@ module.exports = {
   markRidePaidFromStripe,
   hideRideFromHistory,
   getStats,
+  adminListRides,
+  adminGetRideById,
   ACTIVE_STATUSES,
 };

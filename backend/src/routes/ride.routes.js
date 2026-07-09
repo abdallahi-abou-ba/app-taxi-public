@@ -25,6 +25,7 @@ router.post('/scheduled', requireRole('CLIENT'), validate(scheduleRideSchema), r
 router.get('/scheduled', rideController.listScheduledRides);
 router.get('/:id', validate(rideIdParamSchema, 'params'), rideController.getRide);
 router.patch('/:id/accept', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.acceptRide);
+router.patch('/:id/decline', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.declineRide);
 router.patch('/:id/arrive', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.arriveRide);
 router.patch('/:id/start', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.startRide);
 router.patch('/:id/complete', requireRole('DRIVER'), validate(rideIdParamSchema, 'params'), rideController.completeRide);

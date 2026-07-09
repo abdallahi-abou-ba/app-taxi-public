@@ -1,12 +1,11 @@
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const env = require('../config/env');
 const AppError = require('../utils/appError');
 const { generateUniqueReferralCode } = require('../utils/referral.util');
+const { hashPassword, comparePassword } = require('../utils/password.util');
 
-const SALT_ROUNDS = 10;
 const REFRESH_TOKEN_BYTES = 48;
 
 function toPublicUser(user) {
@@ -59,7 +58,7 @@ async function register({ email, password, fullName, phone, role, referralCode, 
     referredById = referrer.id;
   }
 
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const passwordHash = await hashPassword(password);
   const myReferralCode = await generateUniqueReferralCode();
 
   const user = await prisma.user.create({
@@ -73,6 +72,7 @@ async function register({ email, password, fullName, phone, role, referralCode, 
       vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
       vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
       approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
+      commissionRate: role === 'DRIVER' ? env.DEFAULT_COMMISSION_RATE : undefined,
       referralCode: myReferralCode,
       referredById,
     },
@@ -87,9 +87,16 @@ async function login({ email, password }) {
     throw new AppError('Invalid email or password', 401, 'UNAUTHORIZED');
   }
 
-  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+  const passwordMatches = await comparePassword(password, user.passwordHash);
   if (!passwordMatches) {
     throw new AppError('Invalid email or password', 401, 'UNAUTHORIZED');
+  }
+
+  // Checked after the password match (not before) so a wrong-password
+  // attempt against a blocked account still gets the generic invalid-
+  // credentials message, never leaking the account's status.
+  if (user.approvalStatus === 'BLOCKED') {
+    throw new AppError('Your account has been blocked. Contact support.', 403, 'FORBIDDEN');
   }
 
   return { user: toPublicUser(user), ...(await issueTokens(user)) };
@@ -104,6 +111,9 @@ async function refresh(rawRefreshToken) {
 
   if (!stored || stored.revokedAt || stored.expiresAt < new Date()) {
     throw new AppError('Invalid or expired refresh token', 401, 'UNAUTHORIZED');
+  }
+  if (stored.user.approvalStatus === 'BLOCKED') {
+    throw new AppError('Your account has been blocked. Contact support.', 403, 'FORBIDDEN');
   }
 
   await prisma.refreshToken.update({ where: { id: stored.id }, data: { revokedAt: new Date() } });

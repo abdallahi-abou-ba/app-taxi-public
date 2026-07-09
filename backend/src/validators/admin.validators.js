@@ -1,11 +1,84 @@
 const { z } = require('zod');
 
+const DRIVER_STATUS_VALUES = ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED', 'BLOCKED'];
+
 const driverIdParamSchema = z.object({
   id: z.string().uuid('Invalid driver id'),
 });
 
 const listDriversQuerySchema = z.object({
-  status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
+  status: z.enum(DRIVER_STATUS_VALUES).optional(),
 });
 
-module.exports = { driverIdParamSchema, listDriversQuerySchema };
+const createDriverSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  fullName: z.string().trim().min(1),
+  phone: z.string().trim().optional(),
+  vehiclePlate: z.string().trim().min(1),
+  vehicleModel: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+  nationalId: z.string().trim().optional(),
+  licenseNumber: z.string().trim().optional(),
+  licenseExpiryAt: z.coerce.date().optional(),
+  contractType: z.string().trim().optional(),
+  initialBalance: z.coerce.number().nonnegative().optional(),
+});
+
+const updateDriverSchema = z
+  .object({
+    fullName: z.string().trim().min(1),
+    phone: z.string().trim(),
+    vehiclePlate: z.string().trim().min(1),
+    vehicleModel: z.string().trim(),
+    address: z.string().trim(),
+    nationalId: z.string().trim(),
+    licenseNumber: z.string().trim(),
+    licenseExpiryAt: z.coerce.date(),
+    contractType: z.string().trim(),
+    photoUrl: z.string().trim().url(),
+    idDocumentUrl: z.string().trim().url(),
+    licenseDocumentUrl: z.string().trim().url(),
+  })
+  .partial();
+
+const driverStatusBodySchema = z.object({
+  status: z.enum(DRIVER_STATUS_VALUES),
+});
+
+const commissionRateBodySchema = z.object({
+  newRate: z.number().min(0).max(1),
+  reason: z.string().trim().max(500).optional(),
+});
+
+const RIDE_STATUS_VALUES = ['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+
+const adminListRidesQuerySchema = z.object({
+  driverId: z.string().uuid().optional(),
+  clientId: z.string().uuid().optional(),
+  status: z.enum(RIDE_STATUS_VALUES).optional(),
+  paymentMethod: z.enum(['CASH', 'CARD']).optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
+});
+
+const revenueQuerySchema = z.object({
+  groupBy: z.enum(['driver', 'day', 'week', 'month']).default('driver'),
+  driverId: z.string().uuid().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+});
+
+module.exports = {
+  DRIVER_STATUS_VALUES,
+  driverIdParamSchema,
+  listDriversQuerySchema,
+  createDriverSchema,
+  updateDriverSchema,
+  driverStatusBodySchema,
+  commissionRateBodySchema,
+  adminListRidesQuerySchema,
+  revenueQuerySchema,
+};

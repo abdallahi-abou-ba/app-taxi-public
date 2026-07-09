@@ -37,6 +37,11 @@ const acceptRide = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: ride });
 });
 
+const declineRide = asyncHandler(async (req, res) => {
+  const result = await rideService.declineRide(req.user.id, req.params.id);
+  sendSuccess(res, { data: result });
+});
+
 const arriveRide = asyncHandler(async (req, res) => {
   const ride = await rideService.arriveRide(req.user.id, req.params.id);
   sendSuccess(res, { data: ride });
@@ -101,6 +106,7 @@ module.exports = {
   listRides,
   getActiveRide,
   acceptRide,
+  declineRide,
   arriveRide,
   startRide,
   completeRide,

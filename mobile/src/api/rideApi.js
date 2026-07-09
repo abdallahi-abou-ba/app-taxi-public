@@ -28,6 +28,10 @@ export function acceptRide(id) {
   return api.patch(`/api/rides/${id}/accept`);
 }
 
+export function declineRide(id) {
+  return api.patch(`/api/rides/${id}/decline`);
+}
+
 export function arriveRide(id) {
   return api.patch(`/api/rides/${id}/arrive`);
 }

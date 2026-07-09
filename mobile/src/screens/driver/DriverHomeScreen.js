@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useDriverLocationStatus } from '../../context/DriverLocationContext';
 import { updateAvailability } from '../../api/userApi';
-import { acceptRide } from '../../api/rideApi';
+import { acceptRide, declineRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
 import useCurrentLocation from '../../hooks/useCurrentLocation';
 import useRideAlertSound from '../../hooks/useRideAlertSound';
@@ -111,6 +111,16 @@ export default function DriverHomeScreen({ navigation }) {
     }
   };
 
+  const handleDecline = () => {
+    if (!incomingRide) return;
+    // Best-effort: the ride stays visible to whichever other nearby drivers
+    // it was also broadcast to either way, so a failed decline call here
+    // isn't worth blocking or alerting on - it just means this driver might
+    // see the same request again.
+    declineRide(incomingRide.id).catch(() => {});
+    setIncomingRide(null);
+  };
+
   if (activeRideLoading) {
     return <LoadingOverlay message={t('splash.loading')} />;
   }
@@ -164,7 +174,7 @@ export default function DriverHomeScreen({ navigation }) {
         />
       </View>
 
-      <IncomingRideModal ride={incomingRide} loading={accepting} onAccept={handleAccept} onDecline={() => setIncomingRide(null)} />
+      <IncomingRideModal ride={incomingRide} loading={accepting} onAccept={handleAccept} onDecline={handleDecline} />
     </View>
   );
 }
