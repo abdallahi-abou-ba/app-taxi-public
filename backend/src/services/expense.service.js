@@ -1,7 +1,6 @@
 const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
-
-const EXPENSE_CATEGORIES = ['FUEL', 'MAINTENANCE', 'INSURANCE', 'SALARY', 'RENT', 'OTHER'];
+const { EXPENSE_CATEGORY_VALUES, EXPENSE_CATEGORY_GROUPS, getDriverBorneAmount } = require('../utils/expense.constants');
 
 const EXPENSE_INCLUDE = {
   vehicle: { select: { id: true, brand: true, model: true, plate: true } },
@@ -81,12 +80,43 @@ async function getExpenseSummary({ from, to } = {}) {
     prisma.expense.aggregate({ where, _sum: { amount: true } }),
   ]);
 
-  const categories = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c, 0]));
+  const categories = Object.fromEntries(EXPENSE_CATEGORY_VALUES.map((c) => [c, 0]));
+  const groups = { DRIVER: 0, VEHICLE: 0, PLATFORM: 0, OTHER: 0 };
   for (const row of byCategory) {
-    categories[row.category] = row._sum.amount || 0;
+    const amount = row._sum.amount || 0;
+    categories[row.category] = amount;
+    groups[EXPENSE_CATEGORY_GROUPS[row.category] || 'OTHER'] += amount;
   }
 
-  return { total: totalAgg._sum.amount || 0, byCategory: categories };
+  return { total: totalAgg._sum.amount || 0, byCategory: categories, byGroup: groups };
 }
 
-module.exports = { listExpenses, getExpenseById, createExpense, updateExpense, deleteExpense, getExpenseSummary };
+// Sum of the portion of a driver's expenses that they personally bear
+// (spec 10.4/19.5) over a period - feeds into the driver balance
+// calculation (see driverBalance.service.js). Pulled row-by-row rather than
+// a SQL SUM because SHARED's driver-borne amount isn't the row's `amount`
+// column itself, it's the separate `driverShareAmount`.
+async function getDriverBorneExpensesTotal(driverId, { from, to } = {}) {
+  const expenses = await prisma.expense.findMany({
+    where: {
+      driverId,
+      bearer: { in: ['DRIVER', 'SHARED'] },
+      ...((from || to) && {
+        expenseDate: { ...(from && { gte: new Date(from) }), ...(to && { lte: new Date(to) }) },
+      }),
+    },
+    select: { amount: true, bearer: true, driverShareAmount: true },
+  });
+
+  return expenses.reduce((sum, e) => sum + getDriverBorneAmount(e), 0);
+}
+
+module.exports = {
+  listExpenses,
+  getExpenseById,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  getExpenseSummary,
+  getDriverBorneExpensesTotal,
+};

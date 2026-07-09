@@ -8,17 +8,20 @@ describe('admin roles and permissions', () => {
     expect(res.status).toBe(403);
   });
 
-  it('a FINANCE admin can reach revenue but not drivers', async () => {
+  it('a FINANCE (Comptable) admin can reach revenue/expenses but not drivers', async () => {
     const finance = await createAdmin({ adminRole: 'FINANCE' });
 
     const revenue = await request(app).get('/api/admin/revenue').set(authHeader(finance.accessToken));
     expect(revenue.status).toBe(200);
 
+    const expenses = await request(app).get('/api/admin/expenses').set(authHeader(finance.accessToken));
+    expect(expenses.status).toBe(200);
+
     const drivers = await request(app).get('/api/admin/drivers').set(authHeader(finance.accessToken));
     expect(drivers.status).toBe(403);
   });
 
-  it('an OPERATIONS admin can reach drivers/vehicles but not revenue', async () => {
+  it('an OPERATIONS (Administrateur) admin can reach drivers/vehicles/revenue but not expenses', async () => {
     const ops = await createAdmin({ adminRole: 'OPERATIONS' });
 
     const drivers = await request(app).get('/api/admin/drivers').set(authHeader(ops.accessToken));
@@ -28,7 +31,10 @@ describe('admin roles and permissions', () => {
     expect(vehicles.status).toBe(200);
 
     const revenue = await request(app).get('/api/admin/revenue').set(authHeader(ops.accessToken));
-    expect(revenue.status).toBe(403);
+    expect(revenue.status).toBe(200);
+
+    const expenses = await request(app).get('/api/admin/expenses').set(authHeader(ops.accessToken));
+    expect(expenses.status).toBe(403);
   });
 
   it('a SUPPORT admin can reach complaints/clients but not drivers, and none of them can reach /admins', async () => {

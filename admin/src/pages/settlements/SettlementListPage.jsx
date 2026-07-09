@@ -59,6 +59,7 @@ export default function SettlementListPage() {
     { key: 'periodEnd', label: 'Fin', render: (r) => new Date(r.periodEnd).toLocaleDateString('fr-FR') },
     { key: 'cashCommissionOwed', label: 'Commission due (cash)', render: (r) => formatCurrency(r.cashCommissionOwed) },
     { key: 'cardNetOwed', label: 'Net dû (carte)', render: (r) => formatCurrency(r.cardNetOwed) },
+    { key: 'expensesOwed', label: 'Frais chauffeur', render: (r) => formatCurrency(r.expensesOwed) },
     { key: 'netAmount', label: 'Solde net', render: (r) => formatCurrency(r.netAmount) },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {

@@ -24,6 +24,7 @@ const createVehicleSchema = z.object({
   insuranceExpiresAt: z.coerce.date().optional(),
   carteGriseNumber: z.string().trim().optional(),
   technicalInspectionExpiresAt: z.coerce.date().optional(),
+  ownerName: z.string().trim().optional(),
 });
 
 const updateVehicleSchema = z
@@ -40,6 +41,7 @@ const updateVehicleSchema = z
     insuranceExpiresAt: z.coerce.date(),
     carteGriseNumber: z.string().trim(),
     technicalInspectionExpiresAt: z.coerce.date(),
+    ownerName: z.string().trim(),
     status: z.enum(VEHICLE_STATUS_VALUES),
   })
   .partial();

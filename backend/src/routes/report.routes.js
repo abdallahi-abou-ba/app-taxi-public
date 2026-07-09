@@ -8,7 +8,7 @@ const {
 } = require('../validators/report.validators');
 
 // Mounted under /api/admin/reports by admin.routes.js, which already applies
-// requireAuth + requireRole('ADMIN') + requirePermission('FINANCE'). CSV
+// requireAuth + requireRole('ADMIN') + requirePermission('REPORTS'). CSV
 // exports (spec 10) - no PDF/Excel generation library added for this MVP
 // pass, CSV covers the same underlying need (opens directly in Excel/Sheets).
 const router = Router();

@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { listExpenses, deleteExpense } from '../../api/expenses';
 import DataTable from '../../components/DataTable';
-
-const CATEGORY_OPTIONS = ['FUEL', 'MAINTENANCE', 'INSURANCE', 'SALARY', 'RENT', 'OTHER'];
+import { EXPENSE_CATEGORY_GROUPS } from '../../expenseConstants';
 
 function formatCurrency(value) {
   return `${Math.round(value || 0).toLocaleString('fr-FR')} MRU`;
@@ -30,6 +29,11 @@ export default function ExpenseListPage() {
     { key: 'description', label: 'Description' },
     { key: 'vehicle', label: 'Véhicule', render: (r) => r.vehicle?.plate || '—' },
     { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
+    {
+      key: 'bearer',
+      label: 'Supporté par',
+      render: (r) => (r.bearer === 'SHARED' ? `SHARED (${formatCurrency(r.driverShareAmount)})` : r.bearer),
+    },
     {
       key: 'actions',
       label: '',

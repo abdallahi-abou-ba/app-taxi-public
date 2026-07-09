@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
+const { getDriverBorneExpensesTotal } = require('./expense.service');
 
 const SETTLEMENT_INCLUDE = {
   driver: { select: { id: true, fullName: true, email: true } },
@@ -54,19 +55,27 @@ async function generateSettlement({ driverId, periodStart, periodEnd, notes }, c
     throw new AppError('periodEnd must be after periodStart', 422, 'VALIDATION_ERROR');
   }
 
-  const [cashAgg, cardAgg] = await Promise.all([
+  // CASH is the only method where the driver physically holds the money
+  // (spec 10.2) - every other method (CARD, and the Mauritanian mobile-money
+  // options added since) is treated like spec 10.3's "electronic" case: the
+  // company receives the funds, so it owes the driver their net share.
+  const [cashAgg, electronicAgg, expensesOwed] = await Promise.all([
     prisma.ride.aggregate({
       where: { driverId, status: 'COMPLETED', paymentMethod: 'CASH', completedAt: { gte: start, lt: end } },
       _sum: { commissionAmount: true },
     }),
     prisma.ride.aggregate({
-      where: { driverId, status: 'COMPLETED', paymentMethod: 'CARD', completedAt: { gte: start, lt: end } },
+      where: { driverId, status: 'COMPLETED', paymentMethod: { not: 'CASH' }, completedAt: { gte: start, lt: end } },
       _sum: { driverNetAmount: true },
     }),
+    // Spec 10.4/19.5: expenses the driver bears (DRIVER/SHARED) over the
+    // same period reduce what the company owes them, same direction as
+    // cashCommissionOwed.
+    getDriverBorneExpensesTotal(driverId, { from: start, to: end }),
   ]);
 
   const cashCommissionOwed = cashAgg._sum.commissionAmount || 0;
-  const cardNetOwed = cardAgg._sum.driverNetAmount || 0;
+  const cardNetOwed = electronicAgg._sum.driverNetAmount || 0;
 
   return prisma.settlement.create({
     data: {
@@ -75,7 +84,8 @@ async function generateSettlement({ driverId, periodStart, periodEnd, notes }, c
       periodEnd: end,
       cashCommissionOwed,
       cardNetOwed,
-      netAmount: cardNetOwed - cashCommissionOwed,
+      expensesOwed,
+      netAmount: cardNetOwed - cashCommissionOwed - expensesOwed,
       notes,
       createdByUserId,
     },

@@ -10,7 +10,7 @@ const {
 } = require('../validators/expense.validators');
 
 // Mounted under /api/admin/expenses by admin.routes.js, which already
-// applies requireAuth + requireRole('ADMIN') + requirePermission('FINANCE').
+// applies requireAuth + requireRole('ADMIN') + requirePermission('EXPENSES').
 const router = Router();
 
 router.get('/', validate(listExpensesQuerySchema, 'query'), controller.listExpenses);

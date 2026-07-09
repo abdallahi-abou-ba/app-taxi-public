@@ -68,7 +68,12 @@ async function archiveVehicle(vehicleId) {
 // given driver - transactional so the vehicle's currentDriverId pointer and
 // the VehicleAssignment history table never disagree.
 async function assignVehicle(vehicleId, driverId) {
-  await findVehicleOrThrow(vehicleId);
+  const vehicle = await findVehicleOrThrow(vehicleId);
+  // Spec rule 19.2: a non-ACTIVE vehicle (suspended, in maintenance,
+  // unavailable, archived) must not be put into service on a ride.
+  if (vehicle.status !== 'ACTIVE') {
+    throw new AppError(`Cannot assign a vehicle with status ${vehicle.status}`, 409, 'CONFLICT');
+  }
 
   const driver = await prisma.user.findUnique({ where: { id: driverId } });
   if (!driver || driver.role !== 'DRIVER') {

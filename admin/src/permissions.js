@@ -2,8 +2,8 @@
 // used only to hide nav items/actions the current admin can't reach, not as
 // an actual security boundary (the backend enforces that on every request).
 const ADMIN_ROLE_PERMISSIONS = {
-  FINANCE: ['FINANCE'],
-  OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES'],
+  FINANCE: ['REVENUE', 'EXPENSES', 'SETTLEMENTS', 'REPORTS'],
+  OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES', 'REVENUE'],
   SUPPORT: ['COMPLAINTS', 'CLIENTS', 'RIDES'],
 };
 

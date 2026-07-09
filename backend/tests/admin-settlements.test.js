@@ -47,6 +47,7 @@ describe('admin driver settlements', () => {
     expect(generated.body.data.status).toBe('PENDING');
     expect(generated.body.data.cashCommissionOwed).toBeCloseTo(cashRide.commissionAmount, 2);
     expect(generated.body.data.cardNetOwed).toBeCloseTo(cardRide.driverNetAmount, 2);
+    expect(generated.body.data.expensesOwed).toBe(0);
     expect(generated.body.data.netAmount).toBeCloseTo(cardRide.driverNetAmount - cashRide.commissionAmount, 2);
 
     const settlementId = generated.body.data.id;
@@ -61,6 +62,32 @@ describe('admin driver settlements', () => {
 
     const rePay = await request(app).patch(`/api/admin/settlements/${settlementId}/pay`).set(authHeader(admin.accessToken));
     expect(rePay.status).toBe(409);
+  });
+
+  it('subtracts driver-borne expenses from the net amount owed', async () => {
+    const admin = await createAdmin();
+    const client = await registerUser({ role: 'CLIENT' });
+    const driver = await registerUser({ role: 'DRIVER' });
+
+    const cardRide = await completeRide(client, driver, 'CARD');
+
+    const expense = await request(app)
+      .post('/api/admin/expenses')
+      .set(authHeader(admin.accessToken))
+      .send({ category: 'UNIFORM', amount: 20, driverId: driver.user.id, bearer: 'DRIVER' });
+    expect(expense.status).toBe(201);
+
+    const generated = await request(app)
+      .post('/api/admin/settlements')
+      .set(authHeader(admin.accessToken))
+      .send({
+        driverId: driver.user.id,
+        periodStart: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        periodEnd: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      });
+    expect(generated.status).toBe(201);
+    expect(generated.body.data.expensesOwed).toBeCloseTo(20, 2);
+    expect(generated.body.data.netAmount).toBeCloseTo(cardRide.driverNetAmount - 20, 2);
   });
 
   it('rejects a period where periodEnd is not after periodStart', async () => {

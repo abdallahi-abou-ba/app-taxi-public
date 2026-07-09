@@ -108,6 +108,10 @@ export default function DriverDetailPage() {
             <div className="hint">{driver.phone || '—'}</div>
           </div>
           <div>
+            <strong>WhatsApp</strong>
+            <div className="hint">{driver.whatsapp || driver.phone || '—'}</div>
+          </div>
+          <div>
             <strong>Véhicule</strong>
             <div className="hint">
               {driver.vehiclePlate || '—'} {driver.vehicleModel}

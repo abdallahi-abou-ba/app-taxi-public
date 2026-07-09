@@ -10,6 +10,7 @@ const EMPTY = {
   password: '',
   fullName: '',
   phone: '',
+  whatsapp: '',
   vehiclePlate: '',
   vehicleModel: '',
   address: '',
@@ -117,6 +118,9 @@ export default function DriverFormPage() {
         </FormField>
         <FormField label="Téléphone">
           <input type="text" value={form.phone || ''} onChange={(e) => set('phone', e.target.value)} />
+        </FormField>
+        <FormField label="WhatsApp (si différent)">
+          <input type="text" value={form.whatsapp || ''} onChange={(e) => set('whatsapp', e.target.value)} />
         </FormField>
         <FormField label="Matricule véhicule">
           <input

@@ -40,12 +40,17 @@ function requireRole(...roles) {
   };
 }
 
-// Back-office sections an AdminRole (spec 11) can reach. SUPER_ADMIN is
-// deliberately absent as a key here - requirePermission below grants it
-// everything unconditionally instead of listing every section twice.
+// Back-office sections an AdminRole (spec 16's role table) can reach.
+// SUPER_ADMIN is deliberately absent as a key here - requirePermission below
+// grants it everything unconditionally instead of listing every section
+// twice. Mirrors the spec's 4 admin-facing roles: OPERATIONS is
+// "Administrateur" (chauffeurs/courses/recettes - REVENUE is view-only in
+// spirit but not enforced as such here), FINANCE is "Comptable" (recettes,
+// frais, règlements, rapports - a superset of OPERATIONS's REVENUE access
+// plus the finance-only sections), SUPPORT is "Support client".
 const ADMIN_ROLE_PERMISSIONS = {
-  FINANCE: ['FINANCE'],
-  OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES'],
+  FINANCE: ['REVENUE', 'EXPENSES', 'SETTLEMENTS', 'REPORTS'],
+  OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES', 'REVENUE'],
   SUPPORT: ['COMPLAINTS', 'CLIENTS', 'RIDES'],
 };
 

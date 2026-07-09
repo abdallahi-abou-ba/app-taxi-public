@@ -8,7 +8,7 @@ const {
 } = require('../validators/settlement.validators');
 
 // Mounted under /api/admin/settlements by admin.routes.js, which already
-// applies requireAuth + requireRole('ADMIN') + requirePermission('FINANCE').
+// applies requireAuth + requireRole('ADMIN') + requirePermission('SETTLEMENTS').
 const router = Router();
 
 router.get('/', validate(listSettlementsQuerySchema, 'query'), controller.listSettlements);

@@ -43,13 +43,49 @@ enum AdminRole {
   SUPPORT
 }
 
+// Spec 8.2's taxonomy, grouped by what the expense relates to (driver,
+// vehicle, or the platform itself) - the group isn't a stored column, it's
+// derived from the category via EXPENSE_CATEGORY_GROUPS in
+// expense.constants.js, so category and group can never drift out of sync.
+// OTHER is a deliberate addition beyond the spec's own list - it doesn't
+// belong to any of the 3 groups, just a catch-all escape hatch.
 enum ExpenseCategory {
+  // Frais liés au chauffeur
+  DRIVER_ADVANCE
+  PENALTY
+  UNIFORM
+  TRAINING
+  DOCUMENT_FEE
+  COMMUNICATION
+  // Frais liés au véhicule
   FUEL
-  MAINTENANCE
+  OIL_CHANGE
+  REPAIR
+  CAR_WASH
   INSURANCE
-  SALARY
-  RENT
+  TECHNICAL_INSPECTION
+  TIRES
+  MAINTENANCE
+  SPARE_PARTS
+  // Frais liés à la plateforme
+  SERVER_HOSTING
+  SMS
+  INTERNET
+  ADVERTISING
+  CUSTOMER_SUPPORT
+  PAYMENT_PROCESSING_FEE
+  ADMIN_FEE
+  // Catch-all, not part of the spec's 3 groups
   OTHER
+}
+
+// Spec 8.4: who ultimately bears an expense - needed for the driver balance
+// calculation (spec 10.4), since a DRIVER- or SHARED-borne expense reduces
+// what the company owes the driver, while a COMPANY-borne one doesn't.
+enum ExpenseBearer {
+  COMPANY
+  DRIVER
+  SHARED
 }
 
 enum SettlementStatus {
@@ -83,9 +119,20 @@ enum RideStatus {
   CANCELLED
 }
 
+// CASH/CARD are the only methods with real handling (cash collected
+// directly by the driver; CARD via Stripe Checkout - see payment.controller.js).
+// BANKILY/SEDAD/MASRIVI/WALLET/COMPANY (spec 10.1, Mauritanian mobile-money
+// services) are declarative only for this pass - no gateway integration, the
+// client/driver just records which of these was actually used, the same way
+// CASH already works: no automated collection, just bookkeeping.
 enum PaymentMethod {
   CASH
   CARD
+  BANKILY
+  SEDAD
+  MASRIVI
+  WALLET
+  COMPANY
 }
 
 model User {
@@ -135,6 +182,9 @@ model User {
   // existing rows get null until an admin fills them in. Document/photo
   // fields are plain URLs for a future object-storage integration; no
   // upload pipeline exists yet, this pass doesn't build one.
+  // Only set when different from `phone` (spec 4.1's "numéro WhatsApp si
+  // différent") - null means "same as phone", not "no WhatsApp".
+  whatsapp           String?
   address            String?
   nationalId         String?
   licenseNumber      String?
@@ -267,6 +317,11 @@ model Vehicle {
   carteGriseNumber             String?
   technicalInspectionExpiresAt DateTime?
 
+  // Spec 5.1's "propriétaire du véhicule" - a plain name, not a User FK: the
+  // owner is often not the driver (e.g. a company or a third party who
+  // leases the car to a driver), so there's no existing account to link to.
+  ownerName String?
+
   status VehicleStatus @default(ACTIVE)
 
   // Denormalized "current driver" pointer for hot-path reads, kept in sync
@@ -301,6 +356,14 @@ model Expense {
   driverId  String?
   driver    User?    @relation("ExpenseDriver", fields: [driverId], references: [id])
 
+  // Who bears this cost (spec 8.4). driverShareAmount is only meaningful
+  // (and required, see expense.validators.js) when bearer=SHARED - the
+  // portion of `amount` the driver bears; the rest is COMPANY's. For
+  // bearer=DRIVER the driver's burden is the full `amount`, no separate
+  // field needed. See expense.constants.js#getDriverBorneAmount.
+  bearer            ExpenseBearer @default(COMPANY)
+  driverShareAmount Float?
+
   receiptUrl      String?
   createdByUserId String
   createdByUser   User     @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id])
@@ -319,9 +382,12 @@ model Expense {
 // snapshot fields (never recomputed from the driver's *current* rate) -
 // cashCommissionOwed is what the driver owes the company for CASH rides
 // (they already collected the fare directly), cardNetOwed is what the
-// company owes the driver for CARD rides (Stripe paid the company the full
-// fare). netAmount > 0 means the company pays the driver; < 0 means the
-// driver owes the company.
+// company owes the driver for CARD/electronic rides (the company received
+// the full fare). expensesOwed (spec 10.4/19.5) is the driver's share of
+// expenses they bear (bearer=DRIVER/SHARED) over the same period - it also
+// reduces what the company owes the driver, same direction as
+// cashCommissionOwed. netAmount > 0 means the company pays the driver; < 0
+// means the driver owes the company.
 model Settlement {
   id                 String           @id @default(uuid())
   driverId           String
@@ -330,6 +396,7 @@ model Settlement {
   periodEnd          DateTime
   cashCommissionOwed Float
   cardNetOwed        Float
+  expensesOwed       Float            @default(0)
   netAmount          Float
   status             SettlementStatus @default(PENDING)
   notes              String?

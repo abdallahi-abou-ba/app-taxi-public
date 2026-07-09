@@ -87,6 +87,10 @@ export default function VehicleDetailPage() {
         <h3>Détails</h3>
         <div className="form-grid">
           <div>
+            <strong>Propriétaire</strong>
+            <div className="hint">{vehicle.ownerName || '—'}</div>
+          </div>
+          <div>
             <strong>Couleur</strong>
             <div className="hint">{vehicle.color || '—'}</div>
           </div>

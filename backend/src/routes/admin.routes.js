@@ -71,17 +71,18 @@ router.patch(
   adminController.setDriverStatus
 );
 // Commission changes are financial - reachable by DRIVERS (day-to-day
-// operations) or FINANCE, unlike the rest of the /drivers subtree.
+// operations) or REVENUE (Comptable's remit per spec 3.3), unlike the rest
+// of the /drivers subtree.
 router.patch(
   '/drivers/:id/commission-rate',
-  requirePermission('DRIVERS', 'FINANCE'),
+  requirePermission('DRIVERS', 'REVENUE'),
   validate(driverIdParamSchema, 'params'),
   validate(commissionRateBodySchema, 'body'),
   adminController.setCommissionRate
 );
 router.get(
   '/drivers/:id/commission-history',
-  requirePermission('DRIVERS', 'FINANCE'),
+  requirePermission('DRIVERS', 'REVENUE'),
   validate(driverIdParamSchema, 'params'),
   adminController.getCommissionHistory
 );
@@ -92,7 +93,7 @@ router.get('/stats', adminController.getStats);
 router.get('/rides', requirePermission('RIDES'), validate(adminListRidesQuerySchema, 'query'), adminController.listRides);
 router.get('/rides/:id', requirePermission('RIDES'), validate(rideIdParamSchema, 'params'), adminController.getRide);
 
-router.get('/revenue', requirePermission('FINANCE'), validate(revenueQuerySchema, 'query'), adminController.getRevenue);
+router.get('/revenue', requirePermission('REVENUE'), validate(revenueQuerySchema, 'query'), adminController.getRevenue);
 
 router.get(
   '/activity-log',
@@ -103,9 +104,9 @@ router.get(
 
 router.use('/vehicles', requirePermission('VEHICLES'), vehicleRoutes);
 router.use('/admins', adminUserRoutes);
-router.use('/expenses', requirePermission('FINANCE'), expenseRoutes);
-router.use('/settlements', requirePermission('FINANCE'), settlementRoutes);
+router.use('/expenses', requirePermission('EXPENSES'), expenseRoutes);
+router.use('/settlements', requirePermission('SETTLEMENTS'), settlementRoutes);
 router.use('/complaints', requirePermission('COMPLAINTS'), adminComplaintRoutes);
-router.use('/reports', requirePermission('FINANCE'), reportRoutes);
+router.use('/reports', requirePermission('REPORTS'), reportRoutes);
 
 module.exports = router;

@@ -16,6 +16,7 @@ const EMPTY = {
   insuranceExpiresAt: '',
   carteGriseNumber: '',
   technicalInspectionExpiresAt: '',
+  ownerName: '',
 };
 
 function toDateInput(value) {
@@ -100,6 +101,9 @@ export default function VehicleFormPage() {
         </FormField>
         <FormField label="Matricule">
           <input type="text" required value={form.plate} onChange={(e) => set('plate', e.target.value)} />
+        </FormField>
+        <FormField label="Propriétaire">
+          <input type="text" value={form.ownerName || ''} onChange={(e) => set('ownerName', e.target.value)} />
         </FormField>
         <FormField label="Couleur">
           <input type="text" value={form.color || ''} onChange={(e) => set('color', e.target.value)} />
