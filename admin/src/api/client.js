@@ -74,3 +74,25 @@ export const api = {
   patch: (path, body, options) => request('PATCH', path, { ...options, body }),
   delete: (path, body, options) => request('DELETE', path, { ...options, body }),
 };
+
+// CSV export endpoints return a raw file, not the { success, data } envelope
+// api.get expects - so this bypasses parseResponse and triggers a browser
+// download directly from the fetched blob instead of returning JSON.
+export async function downloadFile(path, { query, filename } = {}) {
+  const res = await doFetch('GET', path, { query });
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    const error = json?.error || {};
+    throw new ApiError(res.status, error.code || 'UNKNOWN_ERROR', error.message || 'Export failed');
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

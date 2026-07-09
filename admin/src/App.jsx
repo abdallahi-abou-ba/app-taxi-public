@@ -14,6 +14,14 @@ import RideListPage from './pages/rides/RideListPage';
 import RideDetailPage from './pages/rides/RideDetailPage';
 import RevenuePage from './pages/revenue/RevenuePage';
 import ClientListPage from './pages/clients/ClientListPage';
+import ExpenseListPage from './pages/expenses/ExpenseListPage';
+import ExpenseFormPage from './pages/expenses/ExpenseFormPage';
+import SettlementListPage from './pages/settlements/SettlementListPage';
+import ComplaintListPage from './pages/complaints/ComplaintListPage';
+import ComplaintDetailPage from './pages/complaints/ComplaintDetailPage';
+import ReportsPage from './pages/reports/ReportsPage';
+import ActivityLogPage from './pages/ActivityLogPage';
+import AdminListPage from './pages/admins/AdminListPage';
 
 export default function App() {
   return (
@@ -36,6 +44,14 @@ export default function App() {
               <Route path="/rides/:id" element={<RideDetailPage />} />
               <Route path="/revenue" element={<RevenuePage />} />
               <Route path="/clients" element={<ClientListPage />} />
+              <Route path="/expenses" element={<ExpenseListPage />} />
+              <Route path="/expenses/new" element={<ExpenseFormPage />} />
+              <Route path="/settlements" element={<SettlementListPage />} />
+              <Route path="/complaints" element={<ComplaintListPage />} />
+              <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/activity-log" element={<ActivityLogPage />} />
+              <Route path="/admins" element={<AdminListPage />} />
             </Route>
           </Route>
         </Routes>

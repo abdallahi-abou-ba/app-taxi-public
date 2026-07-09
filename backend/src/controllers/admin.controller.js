@@ -3,6 +3,7 @@ const { sendSuccess } = require('../utils/apiResponse');
 const adminService = require('../services/admin.service');
 const rideService = require('../services/ride.service');
 const revenueService = require('../services/revenue.service');
+const activityLogService = require('../services/activityLog.service');
 
 const listDrivers = asyncHandler(async (req, res) => {
   const drivers = await adminService.listDrivers(req.query.status);
@@ -16,36 +17,83 @@ const getDriverDetail = asyncHandler(async (req, res) => {
 
 const createDriver = asyncHandler(async (req, res) => {
   const driver = await adminService.createDriver(req.body);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_CREATED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+  });
   sendSuccess(res, { data: driver, status: 201 });
 });
 
 const updateDriver = asyncHandler(async (req, res) => {
   const driver = await adminService.updateDriver(req.params.id, req.body);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_UPDATED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+    details: { fields: Object.keys(req.body) },
+  });
   sendSuccess(res, { data: driver });
 });
 
 const approveDriver = asyncHandler(async (req, res) => {
   const driver = await adminService.setDriverApproval(req.params.id, 'APPROVED');
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_STATUS_CHANGED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+    details: { status: 'APPROVED' },
+  });
   sendSuccess(res, { data: driver });
 });
 
 const rejectDriver = asyncHandler(async (req, res) => {
   const driver = await adminService.setDriverApproval(req.params.id, 'REJECTED');
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_STATUS_CHANGED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+    details: { status: 'REJECTED' },
+  });
   sendSuccess(res, { data: driver });
 });
 
 const setDriverStatus = asyncHandler(async (req, res) => {
   const driver = await adminService.setDriverStatus(req.params.id, req.body.status);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_STATUS_CHANGED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+    details: { status: req.body.status },
+  });
   sendSuccess(res, { data: driver });
 });
 
 const archiveDriver = asyncHandler(async (req, res) => {
   await adminService.archiveDriver(req.params.id);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_ARCHIVED',
+    entityType: 'DRIVER',
+    entityId: req.params.id,
+  });
   sendSuccess(res, { data: { id: req.params.id } });
 });
 
 const setCommissionRate = asyncHandler(async (req, res) => {
   const driver = await adminService.setCommissionRate(req.params.id, req.user.id, req.body.newRate, req.body.reason);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'DRIVER_COMMISSION_RATE_CHANGED',
+    entityType: 'DRIVER',
+    entityId: driver.id,
+    details: { newRate: req.body.newRate, reason: req.body.reason },
+  });
   sendSuccess(res, { data: driver });
 });
 
@@ -83,6 +131,15 @@ const getRevenue = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: revenue });
 });
 
+const getActivityLog = asyncHandler(async (req, res) => {
+  const { page, pageSize, ...filters } = req.query;
+  const result = await activityLogService.listActivityLog({ ...filters, page, pageSize });
+  sendSuccess(res, {
+    data: result.logs,
+    meta: { page: result.page, pageSize: result.pageSize, total: result.total, totalPages: result.totalPages },
+  });
+});
+
 module.exports = {
   listDrivers,
   getDriverDetail,
@@ -99,4 +156,5 @@ module.exports = {
   listRides,
   getRide,
   getRevenue,
+  getActivityLog,
 };

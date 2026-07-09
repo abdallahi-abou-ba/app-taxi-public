@@ -71,6 +71,14 @@ const revenueQuerySchema = z.object({
   to: z.string().datetime().optional(),
 });
 
+const activityLogQuerySchema = z.object({
+  adminUserId: z.string().uuid().optional(),
+  entityType: z.string().trim().optional(),
+  entityId: z.string().trim().optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(200).optional(),
+});
+
 module.exports = {
   DRIVER_STATUS_VALUES,
   driverIdParamSchema,
@@ -81,4 +89,5 @@ module.exports = {
   commissionRateBodySchema,
   adminListRidesQuerySchema,
   revenueQuerySchema,
+  activityLogQuerySchema,
 };

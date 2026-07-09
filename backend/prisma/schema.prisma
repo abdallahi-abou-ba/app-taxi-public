@@ -30,6 +30,49 @@ enum VehicleStatus {
   ARCHIVED
 }
 
+// Sub-role for a User with role=ADMIN only (null for CLIENT/DRIVER). Granular
+// permissions (spec 11) are intentionally coarse - by back-office section,
+// not per-action - since the client's spec doesn't call for finer control.
+// SUPER_ADMIN bypasses every requirePermission() check unconditionally (see
+// auth.middleware.js), so it's the only role that can also manage other
+// admins' roles.
+enum AdminRole {
+  SUPER_ADMIN
+  FINANCE
+  OPERATIONS
+  SUPPORT
+}
+
+enum ExpenseCategory {
+  FUEL
+  MAINTENANCE
+  INSURANCE
+  SALARY
+  RENT
+  OTHER
+}
+
+enum SettlementStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum ComplaintCategory {
+  DRIVER_BEHAVIOR
+  VEHICLE_CONDITION
+  PAYMENT
+  SAFETY
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
 enum RideStatus {
   SCHEDULED
   REQUESTED
@@ -112,6 +155,9 @@ model User {
   // never silently drift out of sync with an unrecorded rate change.
   commissionRate Float?
 
+  // Meaningful only for role=ADMIN (null for CLIENT/DRIVER). See AdminRole.
+  adminRole AdminRole?
+
   // Running average across all ratings received (as a driver or as a client -
   // whichever role this user has). Updated incrementally when a rating comes in.
   ratingAverage Float?
@@ -145,9 +191,43 @@ model User {
   commissionChangesMade     CommissionChange[] @relation("CommissionChangeAdmin")
   vehicleAssignments        VehicleAssignment[]
   currentVehicles           Vehicle[]           @relation("VehicleCurrentDriver")
+  adminActivityLogs         AdminActivityLog[]  @relation("AdminActivityLogAdmin")
+
+  expensesRecorded    Expense[]    @relation("ExpenseDriver")
+  expensesCreated     Expense[]    @relation("ExpenseCreatedBy")
+  settlementsAsDriver Settlement[] @relation("SettlementDriver")
+  settlementsCreated  Settlement[] @relation("SettlementCreatedBy")
+  settlementsPaid     Settlement[] @relation("SettlementPaidBy")
+
+  complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
+  complaintsAbout     Complaint[] @relation("ComplaintAboutUser")
+  complaintsResolved  Complaint[] @relation("ComplaintResolvedBy")
 
   @@index([role, isAvailable])
   @@map("users")
+}
+
+// Audit trail of admin back-office actions (spec 13). Written by
+// activityLog.service.js#logActivity, called from every mutating admin.*
+// and vehicle.* service function - a plain append-only log, never updated
+// or deleted. entityId is a loose reference (no FK) since the referenced
+// row (a driver, vehicle, etc.) may itself later be archived or the id
+// reused across entityTypes; details is a free-form snapshot of what
+// changed, shaped differently per action.
+model AdminActivityLog {
+  id          String   @id @default(uuid())
+  adminUserId String
+  adminUser   User     @relation("AdminActivityLogAdmin", fields: [adminUserId], references: [id])
+  action      String
+  entityType  String
+  entityId    String?
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([adminUserId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("admin_activity_logs")
 }
 
 // History of commissionRate changes on User (spec 9.3) - written every time
@@ -196,6 +276,7 @@ model Vehicle {
   currentDriver   User?   @relation("VehicleCurrentDriver", fields: [currentDriverId], references: [id])
 
   assignments VehicleAssignment[]
+  expenses    Expense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -203,6 +284,95 @@ model Vehicle {
   @@index([status])
   @@index([currentDriverId])
   @@map("vehicles")
+}
+
+// Operational expense (spec 6) - fuel, maintenance, insurance, salaries, etc.
+// Kept separate from revenue.service.js's commission-based aggregates; its
+// own getExpenseSummary aggregate lives in expense.service.js.
+model Expense {
+  id          String          @id @default(uuid())
+  category    ExpenseCategory
+  amount      Float
+  description String?
+  expenseDate DateTime        @default(now())
+
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+  driverId  String?
+  driver    User?    @relation("ExpenseDriver", fields: [driverId], references: [id])
+
+  receiptUrl      String?
+  createdByUserId String
+  createdByUser   User     @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([category])
+  @@index([expenseDate])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@map("expenses")
+}
+
+// Periodic driver payout reconciliation (spec 8). Generated from completed
+// rides in [periodStart, periodEnd) using the ride's frozen commission
+// snapshot fields (never recomputed from the driver's *current* rate) -
+// cashCommissionOwed is what the driver owes the company for CASH rides
+// (they already collected the fare directly), cardNetOwed is what the
+// company owes the driver for CARD rides (Stripe paid the company the full
+// fare). netAmount > 0 means the company pays the driver; < 0 means the
+// driver owes the company.
+model Settlement {
+  id                 String           @id @default(uuid())
+  driverId           String
+  driver             User             @relation("SettlementDriver", fields: [driverId], references: [id])
+  periodStart        DateTime
+  periodEnd          DateTime
+  cashCommissionOwed Float
+  cardNetOwed        Float
+  netAmount          Float
+  status             SettlementStatus @default(PENDING)
+  notes              String?
+
+  createdByUserId String
+  createdByUser   User      @relation("SettlementCreatedBy", fields: [createdByUserId], references: [id])
+  paidAt          DateTime?
+  paidByUserId    String?
+  paidByUser      User?     @relation("SettlementPaidBy", fields: [paidByUserId], references: [id])
+  createdAt       DateTime  @default(now())
+
+  @@index([driverId])
+  @@index([status])
+  @@map("settlements")
+}
+
+// Client/driver-submitted complaint (spec 12), managed from the admin back
+// office. submittedByUser is whoever filed it (either role); aboutUser is
+// optional (e.g. a client complaining about a specific driver); rideId ties
+// it to the ride in question when relevant.
+model Complaint {
+  id                String            @id @default(uuid())
+  submittedByUserId String
+  submittedByUser   User              @relation("ComplaintSubmittedBy", fields: [submittedByUserId], references: [id])
+  aboutUserId       String?
+  aboutUser         User?             @relation("ComplaintAboutUser", fields: [aboutUserId], references: [id])
+  rideId            String?
+  ride              Ride?             @relation(fields: [rideId], references: [id])
+  category          ComplaintCategory
+  description       String
+  status            ComplaintStatus   @default(OPEN)
+  adminNotes        String?
+
+  resolvedByUserId String?
+  resolvedByUser   User?     @relation("ComplaintResolvedBy", fields: [resolvedByUserId], references: [id])
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([submittedByUserId])
+  @@index([rideId])
+  @@map("complaints")
 }
 
 // Vehicle<->driver assignment history (spec 5.3). Assigning a vehicle closes
@@ -335,6 +505,8 @@ model Ride {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  complaints Complaint[]
 
   @@index([status])
   @@index([clientId])

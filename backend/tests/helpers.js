@@ -51,7 +51,7 @@ async function createAdmin(overrides = {}) {
   const email = uniqueEmail('admin');
   const passwordHash = await bcrypt.hash('password123', 10);
   const user = await prisma.user.create({
-    data: { email, passwordHash, fullName: 'Test Admin', role: 'ADMIN', ...overrides },
+    data: { email, passwordHash, fullName: 'Test Admin', role: 'ADMIN', adminRole: 'SUPER_ADMIN', ...overrides },
   });
   const res = await request(app).post('/api/auth/login').send({ email, password: 'password123' });
   if (res.status !== 200) {

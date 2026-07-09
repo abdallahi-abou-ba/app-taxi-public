@@ -40,4 +40,31 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { requireAuth, requireRole };
+// Back-office sections an AdminRole (spec 11) can reach. SUPER_ADMIN is
+// deliberately absent as a key here - requirePermission below grants it
+// everything unconditionally instead of listing every section twice.
+const ADMIN_ROLE_PERMISSIONS = {
+  FINANCE: ['FINANCE'],
+  OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES'],
+  SUPPORT: ['COMPLAINTS', 'CLIENTS', 'RIDES'],
+};
+
+/**
+ * Restricts a route to admins whose adminRole grants at least one of the
+ * given sections. Must run after requireAuth + requireRole('ADMIN'). A null
+ * adminRole (should not happen for any admin created after the backfill
+ * migration, but fails closed rather than open if it ever does) gets no
+ * sections at all.
+ */
+function requirePermission(...sections) {
+  return function requirePermissionMiddleware(req, res, next) {
+    const adminRole = req.user?.adminRole;
+    const granted = ADMIN_ROLE_PERMISSIONS[adminRole] || [];
+    if (adminRole === 'SUPER_ADMIN' || sections.some((section) => granted.includes(section))) {
+      return next();
+    }
+    return next(new AppError(`This action requires access to: ${sections.join(' or ')}`, 403, 'FORBIDDEN'));
+  };
+}
+
+module.exports = { requireAuth, requireRole, requirePermission };

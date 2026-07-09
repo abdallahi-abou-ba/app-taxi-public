@@ -6,6 +6,7 @@ const authRoutes = require('./auth.routes');
 const userRoutes = require('./user.routes');
 const rideRoutes = require('./ride.routes');
 const adminRoutes = require('./admin.routes');
+const complaintRoutes = require('./complaint.routes');
 
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/rides', rideRoutes);
 router.use('/admin', adminRoutes);
+router.use('/complaints', complaintRoutes);
 
 module.exports = router;
