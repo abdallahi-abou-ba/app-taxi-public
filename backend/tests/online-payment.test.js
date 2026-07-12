@@ -1,6 +1,9 @@
 jest.mock('../src/utils/osrm.util', () => ({
   getRoute: jest.fn().mockResolvedValue(null),
 }));
+jest.mock('../src/utils/geocode.util', () => ({
+  reverseGeocode: jest.fn().mockResolvedValue(null),
+}));
 
 // Identifiers prefixed with "mock" are allowed inside a jest.mock() factory
 // despite Jest's hoisting (see babel-plugin-jest-hoist) - this stands in for

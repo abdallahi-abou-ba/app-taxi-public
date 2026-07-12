@@ -2,6 +2,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const userService = require('../services/user.service');
 const driverDocumentService = require('../services/driverDocument.service');
+const userAvatarService = require('../services/userAvatar.service');
 const { toPublicUser } = require('../services/auth.service');
 
 const getMe = asyncHandler(async (req, res) => {
@@ -43,6 +44,24 @@ const uploadMyDocument = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: document });
 });
 
+const getMyAvatarFile = asyncHandler(async (req, res) => {
+  const avatar = await userAvatarService.getAvatarFile(req.user.id);
+  res.set('Content-Type', avatar.mimeType);
+  // Prisma returns a Bytes column as a plain Uint8Array, not a real Node
+  // Buffer - res.send() only streams raw bytes for Buffer.isBuffer().
+  res.send(Buffer.from(avatar.data));
+});
+
+const uploadMyAvatar = asyncHandler(async (req, res) => {
+  const avatar = await userAvatarService.upsertAvatar(req.user.id, req.file);
+  sendSuccess(res, { data: avatar });
+});
+
+const deleteMyAvatar = asyncHandler(async (req, res) => {
+  await userAvatarService.deleteAvatar(req.user.id);
+  sendSuccess(res, { data: null });
+});
+
 module.exports = {
   getMe,
   updateMe,
@@ -52,4 +71,7 @@ module.exports = {
   getReferralInfo,
   getMyDocuments,
   uploadMyDocument,
+  getMyAvatarFile,
+  uploadMyAvatar,
+  deleteMyAvatar,
 };

@@ -214,7 +214,12 @@
     "saveChanges": "حفظ التغييرات",
     "saved": "تم تحديث الملف الشخصي",
     "saveError": "تعذّر حفظ ملفك الشخصي",
-    "nameError": "يجب أن يحتوي الاسم على حرفين على الأقل"
+    "nameError": "يجب أن يحتوي الاسم على حرفين على الأقل",
+    "chooseFromGallery": "المعرض",
+    "takePhoto": "صورة",
+    "removePhoto": "حذف الصورة",
+    "permissionDenied": "تم رفض الإذن",
+    "photoError": "تعذّر تحديث الصورة"
   },
   "language": {
     "sectionTitle": "اللغة",

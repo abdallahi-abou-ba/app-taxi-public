@@ -214,7 +214,12 @@
     "saveChanges": "Enregistrer",
     "saved": "Profil mis à jour",
     "saveError": "Impossible d'enregistrer votre profil",
-    "nameError": "Le nom doit contenir au moins 2 caractères"
+    "nameError": "Le nom doit contenir au moins 2 caractères",
+    "chooseFromGallery": "Galerie",
+    "takePhoto": "Photo",
+    "removePhoto": "Supprimer la photo",
+    "permissionDenied": "Autorisation refusée",
+    "photoError": "Impossible de mettre à jour la photo"
   },
   "language": {
     "sectionTitle": "Langue",

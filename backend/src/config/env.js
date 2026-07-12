@@ -16,6 +16,10 @@ const envSchema = z.object({
   // and isn't meant for production load. Point this at a self-hosted OSRM
   // instance for anything beyond MVP testing.
   OSRM_BASE_URL: z.string().default('https://router.project-osrm.org'),
+  // Same public OSM ecosystem as OSRM above, same caveats (dev-only demo
+  // server, self-host for production). Turns a tapped map point into a
+  // readable address for ride summaries instead of raw coordinates.
+  NOMINATIM_BASE_URL: z.string().default('https://nominatim.openstreetmap.org'),
   SEARCH_RADIUS_KM: z.coerce.number().positive().default(5),
   BASE_FARE: z.coerce.number().nonnegative().default(2.5),
   RATE_PER_KM: z.coerce.number().nonnegative().default(1.2),
@@ -45,6 +49,10 @@ const envSchema = z.object({
   // gives realistic headroom while still being sane for bytea storage at
   // this app's driver volume.
   MAX_UPLOAD_DOC_SIZE_MB: z.coerce.number().positive().default(15),
+
+  // Profile picture (CLIENT or DRIVER), resized/re-encoded to JPEG client-side
+  // before upload like documents above - real payloads stay well under this.
+  MAX_UPLOAD_AVATAR_SIZE_MB: z.coerce.number().positive().default(5),
 
   // Stripe (test mode) online card payment. Both optional so the app still
   // boots without them configured - the checkout-session endpoint then

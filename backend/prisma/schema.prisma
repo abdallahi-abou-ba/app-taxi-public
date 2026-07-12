@@ -210,6 +210,11 @@ model User {
   // memory on every single API call app-wide.
   documents DriverDocument[]
 
+  // Optional public-facing profile picture (either role) - separate from
+  // DriverDocument, which is a private, admin-only verification file. Kept
+  // off this model for the same requireAuth reason as documents above.
+  avatar UserAvatar?
+
   // Driver's current commission rate (fraction 0..1, e.g. 0.20 = 20%).
   // Null for non-drivers. The only way this changes is
   // admin.service.js#setCommissionRate, which also writes a CommissionChange
@@ -288,6 +293,20 @@ model DriverDocument {
 
   @@unique([userId, type])
   @@map("driver_documents")
+}
+
+// A user's own profile picture (CLIENT or DRIVER, at most one each) - not
+// gated by admin review like DriverDocument, and self-serve
+// upload/replace/remove via GET/POST/DELETE .../me/avatar.
+model UserAvatar {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data       Bytes
+  mimeType   String
+  uploadedAt DateTime @default(now())
+
+  @@map("user_avatars")
 }
 
 // Audit trail of admin back-office actions (spec 13). Written by

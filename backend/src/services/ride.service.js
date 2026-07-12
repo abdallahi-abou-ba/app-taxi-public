@@ -3,6 +3,7 @@ const env = require('../config/env');
 const AppError = require('../utils/appError');
 const { haversineDistanceKm } = require('../utils/geo.util');
 const { getRoute } = require('../utils/osrm.util');
+const { reverseGeocode } = require('../utils/geocode.util');
 const { estimateFare } = require('../utils/fare.util');
 const { getIO } = require('../lib/socket');
 const rideTracker = require('../sockets/rideTracker');
@@ -57,12 +58,29 @@ async function findNearbyAvailableDrivers(pickupLat, pickupLng) {
 // SCHEDULED ride can't also start an immediate one, and vice versa.
 const BOOKED_STATUSES = [...ACTIVE_STATUSES, 'SCHEDULED'];
 
-async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng) {
-  const route = await getRoute(pickupLat, pickupLng, destinationLat, destinationLng);
+// The mobile app only ever sends raw lat/lng (map tap, no address input) -
+// resolve a human-readable place name here so ride summaries show a name
+// instead of coordinates. Skipped for whichever side already has an address
+// (e.g. a future client-supplied value), and never blocks ride creation on
+// failure - see geocode.util.js's null-on-failure contract (which also
+// internally paces these two calls to respect Nominatim's rate limit).
+async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, existingPickupAddress, existingDestinationAddress) {
+  const [route, pickupAddress, destinationAddress] = await Promise.all([
+    getRoute(pickupLat, pickupLng, destinationLat, destinationLng),
+    existingPickupAddress ? Promise.resolve(existingPickupAddress) : reverseGeocode(pickupLat, pickupLng),
+    existingDestinationAddress ? Promise.resolve(existingDestinationAddress) : reverseGeocode(destinationLat, destinationLng),
+  ]);
   const distanceKm = route ? route.distanceKm : haversineDistanceKm(pickupLat, pickupLng, destinationLat, destinationLng);
   const durationMin = route ? route.durationMin : (distanceKm / AVG_SPEED_KMH) * 60;
   const estimatedFare = estimateFare(distanceKm, durationMin);
-  return { distanceKm, durationMin, estimatedFare, routeGeometry: route ? route.geometry : undefined };
+  return {
+    distanceKm,
+    durationMin,
+    estimatedFare,
+    routeGeometry: route ? route.geometry : undefined,
+    pickupAddress: pickupAddress || undefined,
+    destinationAddress: destinationAddress || undefined,
+  };
 }
 
 async function broadcastToNearbyDrivers(ride) {
@@ -81,8 +99,8 @@ async function requestRide(clientId, input) {
     throw new AppError('You already have an active ride', 409, 'CONFLICT');
   }
 
-  const { pickupLat, pickupLng, destinationLat, destinationLng } = input;
-  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng);
+  const { pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress } = input;
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress);
 
   const ride = await prisma.ride.create({
     data: { clientId, ...input, ...routeData },
@@ -99,14 +117,14 @@ async function scheduleRide(clientId, input) {
     throw new AppError('You already have an active ride', 409, 'CONFLICT');
   }
 
-  const { pickupLat, pickupLng, destinationLat, destinationLng, scheduledFor } = input;
+  const { pickupLat, pickupLng, destinationLat, destinationLng, scheduledFor, pickupAddress, destinationAddress } = input;
   const scheduledDate = new Date(scheduledFor);
   const minLeadMs = env.SCHEDULED_RIDE_MIN_LEAD_MIN * 60 * 1000;
   if (scheduledDate.getTime() < Date.now() + minLeadMs) {
     throw new AppError(`Scheduled rides must be booked at least ${env.SCHEDULED_RIDE_MIN_LEAD_MIN} minutes in advance`, 422, 'VALIDATION_ERROR');
   }
 
-  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng);
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress);
 
   return prisma.ride.create({
     data: { clientId, ...input, scheduledFor: scheduledDate, status: 'SCHEDULED', ...routeData },

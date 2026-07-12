@@ -1,6 +1,9 @@
 jest.mock('../src/utils/osrm.util', () => ({
   getRoute: jest.fn().mockResolvedValue(null),
 }));
+jest.mock('../src/utils/geocode.util', () => ({
+  reverseGeocode: jest.fn().mockResolvedValue(null),
+}));
 
 const request = require('supertest');
 const { app, registerUser, createAdmin, authHeader } = require('./helpers');

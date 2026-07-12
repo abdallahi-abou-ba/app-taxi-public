@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-import { updateMe, deleteAccount } from '../../api/userApi';
+import { updateMe, deleteAccount, uploadAvatar, deleteAvatar } from '../../api/userApi';
+import { getApiBaseUrl } from '../../config/env';
 import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
@@ -12,12 +15,66 @@ import { colors, radius, spacing } from '../../theme/theme';
 
 export default function EditProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, getAccessToken } = useAuth();
   const [fullName, setFullName] = useState(user.fullName);
   const [phone, setPhone] = useState(user.phone || '');
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Optimistically assume a photo exists and try to load it - onError swaps
+  // to the initials fallback. avatarVersion busts the Image cache after an
+  // upload/delete, since the URL itself never changes otherwise.
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const [avatarVersion, setAvatarVersion] = useState(0);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarUri = `${getApiBaseUrl()}/api/users/me/avatar?v=${avatarVersion}`;
+
+  async function pickAvatar(fromCamera) {
+    setError(null);
+    const permission = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError(t('editProfile.permissionDenied'));
+      return;
+    }
+
+    const result = fromCamera
+      ? await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] })
+      : await ImagePicker.launchImageLibraryAsync({ quality: 0.7, allowsEditing: true, aspect: [1, 1] });
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const manipulated = await ImageManipulator.manipulateAsync(result.assets[0].uri, [{ resize: { width: 512 } }], {
+      compress: 0.7,
+      format: ImageManipulator.SaveFormat.JPEG,
+    });
+
+    setAvatarBusy(true);
+    try {
+      await uploadAvatar({ uri: manipulated.uri, mimeType: 'image/jpeg' });
+      setAvatarFailed(false);
+      setAvatarVersion((v) => v + 1);
+    } catch (err) {
+      setError(err.message || t('editProfile.photoError'));
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    setError(null);
+    setAvatarBusy(true);
+    try {
+      await deleteAvatar();
+      setAvatarFailed(true);
+      setAvatarVersion((v) => v + 1);
+    } catch (err) {
+      setError(err.message || t('editProfile.photoError'));
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -67,8 +124,47 @@ export default function EditProfileScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user.fullName?.trim()?.[0]?.toUpperCase() || '?'}</Text>
+        <View style={styles.avatarSection}>
+          <View style={styles.avatar}>
+            {!avatarFailed ? (
+              <Image
+                source={{ uri: avatarUri, headers: { Authorization: `Bearer ${getAccessToken()}` } }}
+                style={styles.avatarImage}
+                onError={() => setAvatarFailed(true)}
+              />
+            ) : (
+              <Text style={styles.avatarText}>{user.fullName?.trim()?.[0]?.toUpperCase() || '?'}</Text>
+            )}
+            {avatarBusy ? (
+              <View style={styles.avatarBusyOverlay}>
+                <ActivityIndicator color={colors.surface} size="small" />
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.avatarActions}>
+            <Pressable
+              onPress={() => pickAvatar(false)}
+              disabled={avatarBusy}
+              style={({ pressed }) => [styles.avatarActionChip, pressed && styles.avatarActionChipPressed]}
+            >
+              <Ionicons name="images-outline" size={14} color={colors.textPrimary} />
+              <Text style={styles.avatarActionText}>{t('editProfile.chooseFromGallery')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => pickAvatar(true)}
+              disabled={avatarBusy}
+              style={({ pressed }) => [styles.avatarActionChip, pressed && styles.avatarActionChipPressed]}
+            >
+              <Ionicons name="camera-outline" size={14} color={colors.textPrimary} />
+              <Text style={styles.avatarActionText}>{t('editProfile.takePhoto')}</Text>
+            </Pressable>
+          </View>
+          {!avatarFailed ? (
+            <Pressable onPress={handleRemoveAvatar} disabled={avatarBusy} hitSlop={6}>
+              <Text style={styles.avatarRemoveText}>{t('editProfile.removePhoto')}</Text>
+            </Pressable>
+          ) : null}
         </View>
 
         <ErrorBanner message={error} />
@@ -165,20 +261,62 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
   },
+  avatarSection: {
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: spacing.xl,
+  },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: colors.charcoal,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: spacing.xl,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarBusyOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(28,28,30,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
     color: colors.primary,
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '800',
+  },
+  avatarActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  avatarActionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  avatarActionChipPressed: {
+    opacity: 0.8,
+  },
+  avatarActionText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  avatarRemoveText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.danger,
   },
   fieldError: {
     color: colors.danger,

@@ -4,7 +4,7 @@ const validate = require('../middleware/validate.middleware');
 const { updateProfileSchema, updateAvailabilitySchema, updatePushTokenSchema, deleteAccountSchema } = require('../validators/user.validators');
 const { documentTypeParamSchema } = require('../validators/driverDocument.validators');
 const { requireAuth } = require('../middleware/auth.middleware');
-const { uploadDocument } = require('../middleware/upload.middleware');
+const { uploadDocument, uploadAvatar } = require('../middleware/upload.middleware');
 
 const router = Router();
 
@@ -23,5 +23,8 @@ router.post(
   uploadDocument,
   userController.uploadMyDocument
 );
+router.get('/me/avatar', userController.getMyAvatarFile);
+router.post('/me/avatar', uploadAvatar, userController.uploadMyAvatar);
+router.delete('/me/avatar', userController.deleteMyAvatar);
 
 module.exports = router;

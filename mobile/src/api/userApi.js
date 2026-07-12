@@ -38,3 +38,17 @@ export function uploadDocument(type, asset) {
   formData.append('file', { uri: asset.uri, name: `${type.toLowerCase()}.${extension}`, type: mimeType });
   return api.post(`/api/users/me/documents/${type}`, formData);
 }
+
+// The avatar image itself is fetched directly via an <Image> (raw bytes, not
+// JSON) - see EditProfileScreen. Only upload/delete go through the API client.
+export function uploadAvatar(asset) {
+  const formData = new FormData();
+  const mimeType = asset.mimeType || 'image/jpeg';
+  const extension = mimeType.split('/')[1] || 'jpg';
+  formData.append('file', { uri: asset.uri, name: `avatar.${extension}`, type: mimeType });
+  return api.post('/api/users/me/avatar', formData);
+}
+
+export function deleteAvatar() {
+  return api.delete('/api/users/me/avatar');
+}
