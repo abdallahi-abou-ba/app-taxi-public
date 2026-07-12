@@ -56,7 +56,7 @@ const adminListRidesQuerySchema = z.object({
   driverId: z.string().uuid().optional(),
   clientId: z.string().uuid().optional(),
   status: z.enum(RIDE_STATUS_VALUES).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
   from: z.string().datetime().optional(),
   to: z.string().datetime().optional(),
   page: z.coerce.number().int().positive().optional(),

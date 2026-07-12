@@ -71,6 +71,11 @@
   "payment": {
     "cash": "نقدًا",
     "card": "بطاقة",
+    "bankily": "Bankily",
+    "sedad": "Sedad",
+    "masrivi": "Masrivi",
+    "click": "Click",
+    "bimbank": "Bimbank",
     "payWith": "الدفع باستخدام:",
     "paid": "تم الدفع ✓",
     "pending": "الدفع معلق",

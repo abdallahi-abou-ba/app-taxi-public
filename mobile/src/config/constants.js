@@ -32,7 +32,24 @@ export const TERMINAL_RIDE_STATUSES = [RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCEL
 export const PAYMENT_METHOD = {
   CASH: 'CASH',
   CARD: 'CARD',
+  BANKILY: 'BANKILY',
+  SEDAD: 'SEDAD',
+  MASRIVI: 'MASRIVI',
+  CLICK: 'CLICK',
+  BIMBANK: 'BIMBANK',
 };
+
+// Shown in the client's payment picker, in this order. WALLET/COMPANY exist
+// in the backend enum but aren't user-selectable here.
+export const CLIENT_PAYMENT_METHODS = [
+  PAYMENT_METHOD.CASH,
+  PAYMENT_METHOD.CARD,
+  PAYMENT_METHOD.BANKILY,
+  PAYMENT_METHOD.SEDAD,
+  PAYMENT_METHOD.MASRIVI,
+  PAYMENT_METHOD.CLICK,
+  PAYMENT_METHOD.BIMBANK,
+];
 
 export const MAP_DEFAULTS = {
   // Casablanca - just a sane fallback center before a real GPS fix arrives.

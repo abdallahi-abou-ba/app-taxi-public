@@ -19,8 +19,18 @@ export function formatDateTime(isoString, locale) {
   return date.toLocaleString(locale);
 }
 
+const PAYMENT_METHOD_KEYS = {
+  CASH: 'payment.cash',
+  CARD: 'payment.card',
+  BANKILY: 'payment.bankily',
+  SEDAD: 'payment.sedad',
+  MASRIVI: 'payment.masrivi',
+  CLICK: 'payment.click',
+  BIMBANK: 'payment.bimbank',
+};
+
 // t = the i18next `t` function from useTranslation(), so the label follows
 // whichever language is currently active.
 export function formatPaymentMethod(paymentMethod, t) {
-  return t(paymentMethod === 'CARD' ? 'payment.card' : 'payment.cash');
+  return t(PAYMENT_METHOD_KEYS[paymentMethod] || 'payment.cash');
 }

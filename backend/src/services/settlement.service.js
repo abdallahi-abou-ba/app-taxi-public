@@ -2,6 +2,15 @@ const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { getDriverBorneExpensesTotal } = require('./expense.service');
 
+// Methods where the driver physically ends up with the money (spec 10.2):
+// CASH in hand, or a mobile-money transfer (Bankily/Sedad/Masrivi/Click/
+// Bimbank) the client sends straight to the driver's own account. The
+// company never touches these funds, so the driver owes it commission on
+// them, same as CASH. CARD (Stripe) and the WALLET/COMPANY buckets are the
+// opposite: the company receives the funds and owes the driver their net
+// share (spec 10.3).
+const DRIVER_COLLECTED_METHODS = ['CASH', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK'];
+
 const SETTLEMENT_INCLUDE = {
   driver: { select: { id: true, fullName: true, email: true } },
   createdByUser: { select: { id: true, fullName: true } },
@@ -55,17 +64,13 @@ async function generateSettlement({ driverId, periodStart, periodEnd, notes }, c
     throw new AppError('periodEnd must be after periodStart', 422, 'VALIDATION_ERROR');
   }
 
-  // CASH is the only method where the driver physically holds the money
-  // (spec 10.2) - every other method (CARD, and the Mauritanian mobile-money
-  // options added since) is treated like spec 10.3's "electronic" case: the
-  // company receives the funds, so it owes the driver their net share.
   const [cashAgg, electronicAgg, expensesOwed] = await Promise.all([
     prisma.ride.aggregate({
-      where: { driverId, status: 'COMPLETED', paymentMethod: 'CASH', completedAt: { gte: start, lt: end } },
+      where: { driverId, status: 'COMPLETED', paymentMethod: { in: DRIVER_COLLECTED_METHODS }, completedAt: { gte: start, lt: end } },
       _sum: { commissionAmount: true },
     }),
     prisma.ride.aggregate({
-      where: { driverId, status: 'COMPLETED', paymentMethod: { not: 'CASH' }, completedAt: { gte: start, lt: end } },
+      where: { driverId, status: 'COMPLETED', paymentMethod: { notIn: DRIVER_COLLECTED_METHODS }, completedAt: { gte: start, lt: end } },
       _sum: { driverNetAmount: true },
     }),
     // Spec 10.4/19.5: expenses the driver bears (DRIVER/SHARED) over the

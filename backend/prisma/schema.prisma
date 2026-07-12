@@ -131,16 +131,21 @@ enum RideStatus {
 
 // CASH/CARD are the only methods with real handling (cash collected
 // directly by the driver; CARD via Stripe Checkout - see payment.controller.js).
-// BANKILY/SEDAD/MASRIVI/WALLET/COMPANY (spec 10.1, Mauritanian mobile-money
-// services) are declarative only for this pass - no gateway integration, the
-// client/driver just records which of these was actually used, the same way
-// CASH already works: no automated collection, just bookkeeping.
+// BANKILY/SEDAD/MASRIVI/CLICK/BIMBANK (spec 10.1, Mauritanian mobile-money
+// apps) are declarative only - no gateway integration, just bookkeeping: the
+// client transfers straight to the driver's own account (same money flow as
+// CASH, the company never touches it), so settlement.service.js groups them
+// with CASH, not with CARD - see DRIVER_COLLECTED_METHODS there. WALLET/
+// COMPANY are kept grouped like CARD (company-side funds) and aren't
+// currently reachable from the mobile client picker.
 enum PaymentMethod {
   CASH
   CARD
   BANKILY
   SEDAD
   MASRIVI
+  CLICK
+  BIMBANK
   WALLET
   COMPANY
 }

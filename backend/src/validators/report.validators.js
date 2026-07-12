@@ -5,7 +5,7 @@ const ridesReportQuerySchema = z.object({
   to: z.string().datetime(),
   driverId: z.string().uuid().optional(),
   status: z.enum(['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
 });
 
 const revenueReportQuerySchema = z.object({

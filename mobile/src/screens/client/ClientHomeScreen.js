@@ -13,10 +13,20 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
 import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
-import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
+import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 const BOOKING_MODE = { NOW: 'now', LATER: 'later' };
+
+const PAYMENT_ICONS = {
+  [PAYMENT_METHOD.CASH]: 'cash-outline',
+  [PAYMENT_METHOD.CARD]: 'card-outline',
+  [PAYMENT_METHOD.BANKILY]: 'phone-portrait-outline',
+  [PAYMENT_METHOD.SEDAD]: 'phone-portrait-outline',
+  [PAYMENT_METHOD.MASRIVI]: 'phone-portrait-outline',
+  [PAYMENT_METHOD.CLICK]: 'phone-portrait-outline',
+  [PAYMENT_METHOD.BIMBANK]: 'phone-portrait-outline',
+};
 
 export default function ClientHomeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
@@ -240,14 +250,14 @@ export default function ClientHomeScreen({ navigation }) {
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>{t('payment.payWith')}</Text>
               <View style={styles.paymentOptions}>
-                {[PAYMENT_METHOD.CASH, PAYMENT_METHOD.CARD].map((method) => (
+                {CLIENT_PAYMENT_METHODS.map((method) => (
                   <Pressable
                     key={method}
                     onPress={() => setPaymentMethod(method)}
                     style={[styles.paymentOption, paymentMethod === method && styles.paymentOptionActive]}
                   >
                     <Ionicons
-                      name={method === PAYMENT_METHOD.CASH ? 'cash-outline' : 'card-outline'}
+                      name={PAYMENT_ICONS[method]}
                       size={14}
                       color={paymentMethod === method ? colors.onPrimary : colors.textSecondary}
                     />
@@ -369,6 +379,7 @@ const styles = StyleSheet.create({
   },
   paymentOptions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   paymentOption: {

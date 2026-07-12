@@ -93,6 +93,28 @@ describe('admin driver settlements', () => {
     expect(generated.body.data.netAmount).toBeCloseTo(cardRide.driverNetAmount - 20, 2);
   });
 
+  it('treats a Bankily/mobile-money ride like cash, not like card', async () => {
+    const admin = await createAdmin();
+    const client = await registerUser({ role: 'CLIENT' });
+    const driver = await registerUser({ role: 'DRIVER' });
+
+    const bankilyRide = await completeRide(client, driver, 'BANKILY');
+
+    const generated = await request(app)
+      .post('/api/admin/settlements')
+      .set(authHeader(admin.accessToken))
+      .send({
+        driverId: driver.user.id,
+        periodStart: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+        periodEnd: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      });
+    expect(generated.status).toBe(201);
+    // The driver received the transfer directly (like cash), so the company
+    // is owed commission on it, not the other way around.
+    expect(generated.body.data.cashCommissionOwed).toBeCloseTo(bankilyRide.commissionAmount, 2);
+    expect(generated.body.data.cardNetOwed).toBe(0);
+  });
+
   it('rejects a period where periodEnd is not after periodStart', async () => {
     const admin = await createAdmin();
     const driver = await registerUser({ role: 'DRIVER' });

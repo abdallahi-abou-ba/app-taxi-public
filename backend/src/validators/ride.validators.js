@@ -7,7 +7,7 @@ const requestRideSchema = z.object({
   destinationLat: z.number().min(-90).max(90),
   destinationLng: z.number().min(-180).max(180),
   destinationAddress: z.string().trim().min(1).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
 });
 
 const scheduleRideSchema = z.object({
@@ -17,7 +17,7 @@ const scheduleRideSchema = z.object({
   destinationLat: z.number().min(-90).max(90),
   destinationLng: z.number().min(-180).max(180),
   destinationAddress: z.string().trim().min(1).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
   scheduledFor: z.string().datetime({ message: 'scheduledFor must be an ISO 8601 datetime' }),
 });
 

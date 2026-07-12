@@ -71,6 +71,11 @@
   "payment": {
     "cash": "Espèces",
     "card": "Carte",
+    "bankily": "Bankily",
+    "sedad": "Sedad",
+    "masrivi": "Masrivi",
+    "click": "Click",
+    "bimbank": "Bimbank",
     "payWith": "Payer avec :",
     "paid": "Payé ✓",
     "pending": "Paiement en attente",
