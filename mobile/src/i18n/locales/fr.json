@@ -141,7 +141,11 @@
     "submitSuccess": "Dossier envoyé avec succès !",
     "uploadError": "Impossible d'envoyer le document",
     "loadError": "Impossible de charger vos documents",
-    "permissionDenied": "Autorisation refusée"
+    "permissionDenied": "Autorisation refusée",
+    "progressLabel": "{{done}} sur {{total}} documents envoyés",
+    "pendingCountLabel": "{{count}} document(s) prêt(s) à être envoyé(s)",
+    "emptyHint": "Ajoutez ce document pour continuer",
+    "replaceHint": "Document envoyé - vous pouvez le remplacer à tout moment"
   },
   "incomingRide": {
     "title": "Nouvelle demande de course",

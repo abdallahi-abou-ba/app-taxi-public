@@ -141,7 +141,11 @@
     "submitSuccess": "تم إرسال الملف بنجاح!",
     "uploadError": "تعذّر إرسال المستند",
     "loadError": "تعذّر تحميل مستنداتك",
-    "permissionDenied": "تم رفض الإذن"
+    "permissionDenied": "تم رفض الإذن",
+    "progressLabel": "{{done}} من {{total}} مستندات تم إرسالها",
+    "pendingCountLabel": "{{count}} مستند(ات) جاهزة للإرسال",
+    "emptyHint": "أضف هذا المستند للمتابعة",
+    "replaceHint": "تم إرسال المستند - يمكنك استبداله في أي وقت"
   },
   "incomingRide": {
     "title": "طلب رحلة جديد",
