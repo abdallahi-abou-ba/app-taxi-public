@@ -12,6 +12,16 @@ const login = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: result });
 });
 
+const registerByPhone = asyncHandler(async (req, res) => {
+  const result = await authService.registerByPhone(req.body);
+  sendSuccess(res, { data: result, status: 201 });
+});
+
+const loginByPhone = asyncHandler(async (req, res) => {
+  const result = await authService.loginByPhone(req.body);
+  sendSuccess(res, { data: result });
+});
+
 const refresh = asyncHandler(async (req, res) => {
   const result = await authService.refresh(req.body.refreshToken);
   sendSuccess(res, { data: result });
@@ -37,4 +47,14 @@ const completeRegistration = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: result, status: 201 });
 });
 
-module.exports = { register, login, refresh, logout, requestOtp, verifyOtp, completeRegistration };
+module.exports = {
+  register,
+  login,
+  registerByPhone,
+  loginByPhone,
+  refresh,
+  logout,
+  requestOtp,
+  verifyOtp,
+  completeRegistration,
+};

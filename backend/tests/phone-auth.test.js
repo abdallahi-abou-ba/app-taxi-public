@@ -63,11 +63,15 @@ describe('phone+OTP auth', () => {
     expect(reuse.status).toBe(401);
   });
 
-  it('rejects completing registration with an invalid registration token', async () => {
+  it('generates a default fullName when the client omits one', async () => {
+    const phone = uniquePhone();
+    const otpRes = await request(app).post('/api/auth/request-otp').send({ phone });
+    const verifyRes = await request(app).post('/api/auth/verify-otp').send({ phone, code: otpRes.body.data.devCode });
+
     const res = await request(app)
       .post('/api/auth/complete-registration')
-      .send({ registrationToken: 'not-a-real-token', fullName: 'Someone', role: 'CLIENT' });
-    expect(res.status).toBe(401);
+      .send({ registrationToken: verifyRes.body.data.registrationToken, role: 'CLIENT' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.user.fullName).toBe(`Client ${phone.slice(-4)}`);
   });
-
 });

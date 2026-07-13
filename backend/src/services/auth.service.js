@@ -115,6 +115,63 @@ async function login({ email, password }) {
   return { user: toPublicUser(user), ...(await issueTokens(user)) };
 }
 
+// Primary mobile auth as of the phone+password rollout - mirrors
+// register()/login() above exactly, just keyed on phone instead of email (no
+// email collected at all). nom/prenom are combined into the single fullName
+// column used everywhere else in the app rather than adding new columns.
+async function registerByPhone({ phone, password, nom, prenom, role, vehiclePlate, vehicleModel }) {
+  const existing = await prisma.user.findUnique({ where: { phone } });
+  if (existing) {
+    throw new AppError('An account with this phone number already exists', 409, 'CONFLICT');
+  }
+
+  const passwordHash = await hashPassword(password);
+  const myReferralCode = await generateUniqueReferralCode();
+  const commissionRate = role === 'DRIVER' ? await getDefaultCommissionRate() : undefined;
+
+  const user = await prisma.user.create({
+    data: {
+      phone,
+      passwordHash,
+      fullName: `${prenom} ${nom}`.trim(),
+      role,
+      isAvailable: role === 'DRIVER' ? false : null,
+      vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
+      vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
+      approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
+      commissionRate,
+      referralCode: myReferralCode,
+    },
+  });
+
+  return { user: toPublicUser(user), ...(await issueTokens(user)) };
+}
+
+async function loginByPhone({ phone, password }) {
+  const user = await prisma.user.findUnique({ where: { phone } });
+  if (!user) {
+    throw new AppError('Invalid phone number or password', 401, 'UNAUTHORIZED');
+  }
+
+  // Defensive: a legacy phone+OTP account (from before this rollout) has no
+  // passwordHash - fail closed with a clear message instead of crashing on
+  // comparePassword.
+  if (!user.passwordHash) {
+    throw new AppError('This account has no password set. Contact support.', 401, 'UNAUTHORIZED');
+  }
+
+  const passwordMatches = await comparePassword(password, user.passwordHash);
+  if (!passwordMatches) {
+    throw new AppError('Invalid phone number or password', 401, 'UNAUTHORIZED');
+  }
+
+  if (user.approvalStatus === 'BLOCKED') {
+    throw new AppError('Your account has been blocked. Contact support.', 403, 'FORBIDDEN');
+  }
+
+  return { user: toPublicUser(user), ...(await issueTokens(user)) };
+}
+
 // Rotates the refresh token on every use: the presented token is revoked and a
 // new access/refresh pair is issued, so a stolen-but-unused token stops working
 // the moment the legitimate client refreshes.
@@ -189,17 +246,16 @@ async function verifyOtp(phone, code) {
   return { isNewUser: false, user: toPublicUser(user), ...(await issueTokens(user)) };
 }
 
-async function completeRegistration({ registrationToken, fullName, role, referralCode, vehiclePlate, vehicleModel }) {
-  const { phone } = verifyRegistrationToken(registrationToken);
+// Phone+OTP signup collects nothing beyond phone/code (+ vehicle info for a
+// driver) - the mobile UI doesn't ask for a name at all, so this always
+// stands in for one. Editable later via PATCH /api/users/me.
+function defaultFullName(role, phone) {
+  const last4 = phone.slice(-4);
+  return `${role === 'DRIVER' ? 'Chauffeur' : 'Client'} ${last4}`;
+}
 
-  let referredById = null;
-  if (referralCode) {
-    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCode.trim().toUpperCase() } });
-    if (!referrer) {
-      throw new AppError('Referral code not found', 422, 'VALIDATION_ERROR');
-    }
-    referredById = referrer.id;
-  }
+async function completeRegistration({ registrationToken, fullName, role, vehiclePlate, vehicleModel }) {
+  const { phone } = verifyRegistrationToken(registrationToken);
 
   const myReferralCode = await generateUniqueReferralCode();
   const commissionRate = role === 'DRIVER' ? await getDefaultCommissionRate() : undefined;
@@ -209,7 +265,7 @@ async function completeRegistration({ registrationToken, fullName, role, referra
     user = await prisma.user.create({
       data: {
         phone,
-        fullName,
+        fullName: fullName || defaultFullName(role, phone),
         role,
         isAvailable: role === 'DRIVER' ? false : null,
         vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
@@ -217,7 +273,6 @@ async function completeRegistration({ registrationToken, fullName, role, referra
         approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
         commissionRate,
         referralCode: myReferralCode,
-        referredById,
       },
     });
   } catch (err) {
@@ -233,6 +288,8 @@ async function completeRegistration({ registrationToken, fullName, role, referra
 module.exports = {
   register,
   login,
+  registerByPhone,
+  loginByPhone,
   refresh,
   logout,
   toPublicUser,

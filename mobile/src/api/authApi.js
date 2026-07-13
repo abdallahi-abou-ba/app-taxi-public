@@ -12,22 +12,23 @@ export function login({ email, password }) {
   return api.post('/api/auth/login', { email, password }, { skipAuth: true });
 }
 
+// Primary mobile auth as of the phone+password rollout.
+export function registerByPhone({ nom, prenom, phone, password, role, vehiclePlate, vehicleModel }) {
+  return api.post(
+    '/api/auth/register-phone',
+    { nom, prenom, phone, password, role, vehiclePlate, vehicleModel },
+    { skipAuth: true }
+  );
+}
+
+export function loginByPhone(phone, password) {
+  return api.post('/api/auth/login-phone', { phone, password }, { skipAuth: true });
+}
+
 export function refresh(refreshToken) {
   return api.post('/api/auth/refresh', { refreshToken }, { skipAuth: true });
 }
 
 export function logout(refreshToken) {
   return api.post('/api/auth/logout', { refreshToken }, { skipAuth: true });
-}
-
-export function requestOtp(phone) {
-  return api.post('/api/auth/request-otp', { phone }, { skipAuth: true });
-}
-
-export function verifyOtp(phone, code) {
-  return api.post('/api/auth/verify-otp', { phone, code }, { skipAuth: true });
-}
-
-export function completeRegistration(payload) {
-  return api.post('/api/auth/complete-registration', payload, { skipAuth: true });
 }

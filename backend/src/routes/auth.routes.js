@@ -5,6 +5,8 @@ const {
   registerSchema,
   loginSchema,
   refreshSchema,
+  registerByPhoneSchema,
+  loginByPhoneSchema,
   requestOtpSchema,
   verifyOtpSchema,
   completeRegistrationSchema,
@@ -17,6 +19,8 @@ router.use(authRateLimiter);
 
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
+router.post('/register-phone', validate(registerByPhoneSchema), authController.registerByPhone);
+router.post('/login-phone', validate(loginByPhoneSchema), authController.loginByPhone);
 router.post('/refresh', validate(refreshSchema), authController.refresh);
 router.post('/logout', validate(refreshSchema), authController.logout);
 router.post('/request-otp', validate(requestOtpSchema), authController.requestOtp);

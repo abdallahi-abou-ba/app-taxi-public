@@ -90,20 +90,13 @@ export function AuthProvider({ children }) {
 
   const registerUser = useCallback(async (fields) => applySession(await authApi.register(fields)), [applySession]);
 
-  // Only applies a session for an existing account (isNewUser: false) - a new
-  // phone has nothing to sign into yet, the caller instead navigates to
-  // profile completion with the returned registrationToken.
-  const verifyOtp = useCallback(
-    async (phone, code) => {
-      const result = await authApi.verifyOtp(phone, code);
-      if (!result.isNewUser) await applySession(result);
-      return result;
-    },
+  const loginByPhone = useCallback(
+    async (phone, password) => applySession(await authApi.loginByPhone(phone, password)),
     [applySession]
   );
 
-  const completeRegistration = useCallback(
-    async (payload) => applySession(await authApi.completeRegistration(payload)),
+  const registerByPhone = useCallback(
+    async (fields) => applySession(await authApi.registerByPhone(fields)),
     [applySession]
   );
 
@@ -130,14 +123,14 @@ export function AuthProvider({ children }) {
       user,
       login,
       register: registerUser,
-      verifyOtp,
-      completeRegistration,
+      loginByPhone,
+      registerByPhone,
       logout,
       updateUser,
       refreshTokens,
       getAccessToken: () => accessTokenRef.current,
     }),
-    [status, user, login, registerUser, verifyOtp, completeRegistration, logout, updateUser, refreshTokens]
+    [status, user, login, registerUser, loginByPhone, registerByPhone, logout, updateUser, refreshTokens]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
