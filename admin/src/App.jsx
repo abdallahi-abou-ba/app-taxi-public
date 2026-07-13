@@ -22,6 +22,7 @@ import ComplaintDetailPage from './pages/complaints/ComplaintDetailPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import ActivityLogPage from './pages/ActivityLogPage';
 import AdminListPage from './pages/admins/AdminListPage';
+import SettingsPage from './pages/settings/SettingsPage';
 
 export default function App() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/activity-log" element={<ActivityLogPage />} />
               <Route path="/admins" element={<AdminListPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
         </Routes>

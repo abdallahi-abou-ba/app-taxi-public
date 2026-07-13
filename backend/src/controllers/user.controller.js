@@ -25,8 +25,18 @@ const updatePushToken = asyncHandler(async (req, res) => {
 });
 
 const deleteMe = asyncHandler(async (req, res) => {
-  await userService.deleteAccount(req.user.id, req.body.password);
+  await userService.deleteAccount(req.user.id, req.body);
   sendSuccess(res, { data: null });
+});
+
+const requestPhoneOtp = asyncHandler(async (req, res) => {
+  const result = await userService.requestPhoneOtp(req.body.phone);
+  sendSuccess(res, { data: result });
+});
+
+const verifyPhoneOtp = asyncHandler(async (req, res) => {
+  const user = await userService.verifyAndSetPhone(req.user.id, req.body.phone, req.body.code);
+  sendSuccess(res, { data: user });
 });
 
 const getReferralInfo = asyncHandler(async (req, res) => {
@@ -68,6 +78,8 @@ module.exports = {
   updateAvailability,
   updatePushToken,
   deleteMe,
+  requestPhoneOtp,
+  verifyPhoneOtp,
   getReferralInfo,
   getMyDocuments,
   uploadMyDocument,

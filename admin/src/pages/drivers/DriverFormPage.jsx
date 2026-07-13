@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { createDriver, getDriver, updateDriver } from '../../api/drivers';
 import FormField from '../../components/FormField';
 
@@ -85,7 +86,8 @@ export default function DriverFormPage() {
   return (
     <div>
       <Link className="back-link" to={isEdit ? `/drivers/${id}` : '/drivers'}>
-        ← Retour
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour
       </Link>
       <div className="page-header">
         <h2>{isEdit ? 'Modifier le chauffeur' : 'Ajouter un chauffeur'}</h2>

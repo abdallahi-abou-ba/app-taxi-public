@@ -1,7 +1,10 @@
 import { Link, useParams } from 'react-router-dom';
+import { ArrowLeft, Navigation, Clock, CreditCard, Wallet, Percent, Landmark, HandCoins, Gift } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getRide } from '../../api/rides';
 import StatusBadge from '../../components/StatusBadge';
+import StatCard from '../../components/StatCard';
+import { formatPaymentMethod } from '../../paymentConstants';
 
 function formatCurrency(value) {
   return value != null ? `${Math.round(value).toLocaleString('fr-FR')} MRU` : '—';
@@ -22,7 +25,8 @@ export default function RideDetailPage() {
   return (
     <div>
       <Link className="back-link" to="/rides">
-        ← Retour aux courses
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour aux courses
       </Link>
 
       <div className="page-header">
@@ -32,7 +36,10 @@ export default function RideDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Trajet</h3>
+        <h3>
+          <Navigation size={16} />
+          Trajet
+        </h3>
         <div className="form-grid">
           <div>
             <strong>Client</strong>
@@ -70,7 +77,10 @@ export default function RideDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Horodatage</h3>
+        <h3>
+          <Clock size={16} />
+          Horodatage
+        </h3>
         <div className="form-grid">
           <div>
             <strong>Demandée</strong>
@@ -102,35 +112,23 @@ export default function RideDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Paiement et commission</h3>
+        <h3>
+          <CreditCard size={16} />
+          Paiement et commission
+        </h3>
         <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-value">{formatCurrency(ride.estimatedFare)}</div>
-            <div className="stat-label">Prix</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{ride.paymentMethod}</div>
-            <div className="stat-label">{ride.isPaid ? 'Payé' : 'Non payé'}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">
-              {ride.commissionRateSnapshot != null ? `${Math.round(ride.commissionRateSnapshot * 100)}%` : '—'}
-            </div>
-            <div className="stat-label">Taux de commission (figé)</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{formatCurrency(ride.commissionAmount)}</div>
-            <div className="stat-label">Commission société</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{formatCurrency(ride.driverNetAmount)}</div>
-            <div className="stat-label">Net chauffeur</div>
-          </div>
+          <StatCard label="Prix" value={formatCurrency(ride.estimatedFare)} icon={Wallet} tone="primary" />
+          <StatCard label={ride.isPaid ? 'Payé' : 'Non payé'} value={formatPaymentMethod(ride.paymentMethod)} icon={CreditCard} tone={ride.isPaid ? 'success' : 'warning'} />
+          <StatCard
+            label="Taux de commission (figé)"
+            value={ride.commissionRateSnapshot != null ? `${Math.round(ride.commissionRateSnapshot * 100)}%` : '—'}
+            icon={Percent}
+            tone="neutral"
+          />
+          <StatCard label="Commission société" value={formatCurrency(ride.commissionAmount)} icon={Landmark} tone="info" />
+          <StatCard label="Net chauffeur" value={formatCurrency(ride.driverNetAmount)} icon={HandCoins} tone="success" />
           {ride.creditApplied > 0 && (
-            <div className="stat-card">
-              <div className="stat-value">{formatCurrency(ride.creditApplied)}</div>
-              <div className="stat-label">Crédit appliqué</div>
-            </div>
+            <StatCard label="Crédit appliqué" value={formatCurrency(ride.creditApplied)} icon={Gift} tone="primary" />
           )}
         </div>
       </div>

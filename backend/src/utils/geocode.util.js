@@ -22,10 +22,10 @@ function throttle() {
  * Returns null (never throws) on any failure, mirroring osrm.util.js's
  * fallback contract - the public demo server has no uptime guarantee.
  */
-async function reverseGeocode(lat, lng) {
+async function reverseGeocode(lat, lng, lang = 'fr') {
   await throttle();
 
-  const url = `${env.NOMINATIM_BASE_URL}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=fr`;
+  const url = `${env.NOMINATIM_BASE_URL}/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=${lang}`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Pencil, Archive, Car, UserCheck, History } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { archiveVehicle, assignVehicle, getVehicle, unassignVehicle } from '../../api/vehicles';
 import { listDrivers } from '../../api/drivers';
@@ -64,7 +65,8 @@ export default function VehicleDetailPage() {
   return (
     <div>
       <Link className="back-link" to="/vehicles">
-        ← Retour aux véhicules
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour aux véhicules
       </Link>
 
       <div className="page-header">
@@ -73,9 +75,11 @@ export default function VehicleDetailPage() {
         </h2>
         <div className="btn-row">
           <Link className="btn btn-secondary" to={`/vehicles/${id}/edit`}>
+            <Pencil size={13} strokeWidth={2.5} />
             Modifier
           </Link>
           <button className="btn btn-danger" onClick={handleArchive} disabled={busy}>
+            <Archive size={13} strokeWidth={2.5} />
             Archiver
           </button>
         </div>
@@ -84,7 +88,10 @@ export default function VehicleDetailPage() {
       {actionError && <p className="error">{actionError}</p>}
 
       <div className="panel">
-        <h3>Détails</h3>
+        <h3>
+          <Car size={16} />
+          Détails
+        </h3>
         <div className="form-grid">
           <div>
             <strong>Propriétaire</strong>
@@ -125,7 +132,10 @@ export default function VehicleDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Chauffeur actuel</h3>
+        <h3>
+          <UserCheck size={16} />
+          Chauffeur actuel
+        </h3>
         {vehicle.currentDriver ? (
           <div className="btn-row" style={{ alignItems: 'center' }}>
             <Link className="link-row" to={`/drivers/${vehicle.currentDriver.id}`}>
@@ -157,7 +167,10 @@ export default function VehicleDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Historique d'affectation</h3>
+        <h3>
+          <History size={16} />
+          Historique d'affectation
+        </h3>
         {vehicle.assignments && vehicle.assignments.length > 0 ? (
           <div className="table-wrap">
             <table className="table">

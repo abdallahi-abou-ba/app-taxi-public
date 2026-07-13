@@ -63,8 +63,8 @@ export default function LoginScreen({ navigation }) {
 
         <PrimaryButton title={t('auth.login')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} style={styles.submitButton} />
 
-        <Pressable onPress={() => navigation.navigate('Register')} style={styles.linkButton} hitSlop={8}>
-          <Text style={styles.linkText}>{t('auth.createAccount')}</Text>
+        <Pressable onPress={() => navigation.navigate('PhoneEntry')} style={styles.linkButton} hitSlop={8}>
+          <Text style={styles.linkText}>{t('auth.usePhoneInstead')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -1,11 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import { useDriverLocationStatus } from '../../context/DriverLocationContext';
-import { updateAvailability } from '../../api/userApi';
+import { getMe, updateAvailability } from '../../api/userApi';
 import { acceptRide, declineRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
 import useCurrentLocation from '../../hooks/useCurrentLocation';
@@ -21,7 +22,7 @@ import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t } = useTranslation();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const socket = useSocket();
   const { isAvailable, setIsAvailable, setHasActiveRide } = useDriverLocationStatus();
   const { activeRide, loading: activeRideLoading } = useActiveRide();
@@ -57,6 +58,18 @@ export default function DriverHomeScreen({ navigation }) {
     if (user) setIsAvailable(!!user.isAvailable);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // approvalStatus otherwise only refreshes on login or the proactive token
+  // refresh (up to ~14min stale) - re-read it whenever this screen regains
+  // focus (e.g. a driver tapping the "your account was approved/suspended"
+  // push) so the banner below reflects the real-time value.
+  useFocusEffect(
+    useCallback(() => {
+      getMe()
+        .then(updateUser)
+        .catch(() => {});
+    }, [updateUser])
+  );
 
   // Resume a mid-ride session (e.g. app was restarted while driving).
   useEffect(() => {
@@ -161,13 +174,19 @@ export default function DriverHomeScreen({ navigation }) {
         {!isApproved ? (
           <>
             <Text style={styles.hint}>
-              {user.approvalStatus === 'REJECTED' ? t('driver.rejectedApproval') : t('driver.pendingApproval')}
+              {user.approvalStatus === 'REJECTED'
+                ? t('driver.rejectedApproval')
+                : user.approvalStatus === 'SUSPENDED'
+                  ? t('driver.suspendedApproval')
+                  : t('driver.pendingApproval')}
             </Text>
-            <PrimaryButton
-              title={t('driver.uploadDocumentsCta')}
-              variant="secondary"
-              onPress={() => navigation.navigate('DriverDocuments')}
-            />
+            {user.approvalStatus !== 'SUSPENDED' ? (
+              <PrimaryButton
+                title={t('driver.uploadDocumentsCta')}
+                variant="secondary"
+                onPress={() => navigation.navigate('DriverDocuments')}
+              />
+            ) : null}
           </>
         ) : null}
 

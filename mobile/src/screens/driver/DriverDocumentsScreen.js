@@ -9,12 +9,13 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { getMyDocuments, uploadDocument } from '../../api/userApi';
 import { colors, radius, shadow, spacing, typography } from '../../theme/theme';
 
-const DOCUMENT_TYPES = ['PHOTO', 'ID_CARD', 'LICENSE'];
+const DOCUMENT_TYPES = ['PHOTO', 'ID_CARD', 'LICENSE', 'VEHICLE_PHOTO'];
 
 const TYPE_STYLE = {
   PHOTO: { icon: 'person-circle-outline', bg: colors.charcoal, fg: colors.textOnDark },
   ID_CARD: { icon: 'card-outline', bg: colors.primarySoft, fg: colors.primaryDark },
   LICENSE: { icon: 'document-text-outline', bg: colors.infoSoft, fg: colors.info },
+  VEHICLE_PHOTO: { icon: 'car-outline', bg: colors.successSoft, fg: colors.success },
 };
 
 export default function DriverDocumentsScreen() {

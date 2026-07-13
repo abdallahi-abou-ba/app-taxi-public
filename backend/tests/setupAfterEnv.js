@@ -11,12 +11,16 @@ beforeEach(async () => {
   await prisma.commissionChange.deleteMany();
   await prisma.vehicleAssignment.deleteMany();
   await prisma.adminActivityLog.deleteMany();
+  await prisma.appSetting.deleteMany();
   await prisma.expense.deleteMany();
   await prisma.settlement.deleteMany();
   await prisma.ride.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.vehicle.deleteMany();
   await prisma.user.deleteMany();
+  // No FK to User (a code can be requested before an account exists) - see
+  // PhoneOtp's own doc comment - so no ordering constraint vs. the above.
+  await prisma.phoneOtp.deleteMany();
 });
 
 afterAll(async () => {

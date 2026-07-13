@@ -3,7 +3,8 @@ const AppError = require('../utils/appError');
 const { hashPassword } = require('../utils/password.util');
 const { generateUniqueReferralCode } = require('../utils/referral.util');
 const { listDocumentStatus } = require('./driverDocument.service');
-const env = require('../config/env');
+const { getDefaultCommissionRate } = require('./appSetting.service');
+const { sendPushToUser } = require('../utils/push.util');
 
 const DRIVER_SELECT = {
   id: true,
@@ -87,6 +88,7 @@ async function createDriver(input) {
   const passwordHash = await hashPassword(input.password);
   const referralCode = await generateUniqueReferralCode();
   const initialBalance = input.initialBalance ?? 0;
+  const commissionRate = await getDefaultCommissionRate();
 
   const driver = await prisma.user.create({
     data: {
@@ -100,7 +102,7 @@ async function createDriver(input) {
       vehiclePlate: input.vehiclePlate,
       vehicleModel: input.vehicleModel,
       approvalStatus: 'PENDING',
-      commissionRate: env.DEFAULT_COMMISSION_RATE,
+      commissionRate,
       address: input.address,
       nationalId: input.nationalId,
       licenseNumber: input.licenseNumber,
@@ -121,14 +123,47 @@ async function updateDriver(driverId, updates) {
   return prisma.user.update({ where: { id: driverId }, data: updates, select: DRIVER_SELECT });
 }
 
+// Copy for each possible driver approvalStatus transition. PENDING is
+// deliberately absent - there's no meaningful "you're back to pending" moment
+// worth notifying a driver about.
+const DRIVER_STATUS_PUSH_COPY = {
+  APPROVED: {
+    title: 'Compte validé',
+    body: 'Votre compte chauffeur a été approuvé. Vous pouvez maintenant passer en ligne.',
+  },
+  REJECTED: {
+    title: 'Compte rejeté',
+    body: "Votre demande de compte chauffeur a été rejetée. Contactez l'assistance pour plus d'informations.",
+  },
+  SUSPENDED: {
+    title: 'Compte suspendu',
+    body: 'Votre compte chauffeur a été suspendu.',
+  },
+  BLOCKED: {
+    title: 'Compte bloqué',
+    body: "Votre compte a été bloqué. Contactez l'assistance.",
+  },
+};
+
+// Fire-and-forget, like every other push call site in this app (see
+// ride.service.js) - a notification failure must never break the admin
+// action that triggered it.
+function notifyDriverStatusChange(driver, newStatus) {
+  const copy = DRIVER_STATUS_PUSH_COPY[newStatus];
+  if (!copy) return;
+  sendPushToUser(driver.id, { ...copy, data: { type: 'driver:approval', status: newStatus } });
+}
+
 async function setDriverApproval(driverId, approvalStatus) {
   await findDriverOrThrow(driverId);
 
-  return prisma.user.update({
+  const driver = await prisma.user.update({
     where: { id: driverId },
     data: { approvalStatus, approvedAt: approvalStatus === 'APPROVED' ? new Date() : null },
     select: DRIVER_SELECT,
   });
+  notifyDriverStatusChange(driver, approvalStatus);
+  return driver;
 }
 
 // Generalized status change (PENDING/APPROVED/REJECTED/SUSPENDED/BLOCKED),
@@ -137,11 +172,13 @@ async function setDriverApproval(driverId, approvalStatus) {
 async function setDriverStatus(driverId, status) {
   await findDriverOrThrow(driverId);
 
-  return prisma.user.update({
+  const driver = await prisma.user.update({
     where: { id: driverId },
     data: { approvalStatus: status, approvedAt: status === 'APPROVED' ? new Date() : null },
     select: DRIVER_SELECT,
   });
+  notifyDriverStatusChange(driver, status);
+  return driver;
 }
 
 // Archive (soft-delete), mirroring user.service.js#deleteAccount's shape but

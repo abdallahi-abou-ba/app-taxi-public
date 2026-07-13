@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Plus, Check, X } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listDrivers, setDriverStatus } from '../../api/drivers';
 import DataTable from '../../components/DataTable';
@@ -55,6 +56,7 @@ export default function DriverListPage() {
               disabled={busyId === r.id}
               onClick={(e) => handleQuickAction(e, r.id, 'APPROVED')}
             >
+              <Check size={13} strokeWidth={2.75} />
               Approuver
             </button>
             <button
@@ -63,6 +65,7 @@ export default function DriverListPage() {
               disabled={busyId === r.id}
               onClick={(e) => handleQuickAction(e, r.id, 'REJECTED')}
             >
+              <X size={13} strokeWidth={2.75} />
               Rejeter
             </button>
           </div>
@@ -75,7 +78,8 @@ export default function DriverListPage() {
       <div className="page-header">
         <h2>Chauffeurs</h2>
         <Link className="btn btn-primary" to="/drivers/new">
-          + Ajouter un chauffeur
+          <Plus size={14} strokeWidth={2.75} />
+          Ajouter un chauffeur
         </Link>
       </div>
 

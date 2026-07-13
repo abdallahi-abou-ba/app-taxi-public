@@ -22,4 +22,19 @@ const logout = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: null });
 });
 
-module.exports = { register, login, refresh, logout };
+const requestOtp = asyncHandler(async (req, res) => {
+  const result = await authService.requestOtp(req.body.phone);
+  sendSuccess(res, { data: result });
+});
+
+const verifyOtp = asyncHandler(async (req, res) => {
+  const result = await authService.verifyOtp(req.body.phone, req.body.code);
+  sendSuccess(res, { data: result });
+});
+
+const completeRegistration = asyncHandler(async (req, res) => {
+  const result = await authService.completeRegistration(req.body);
+  sendSuccess(res, { data: result, status: 201 });
+});
+
+module.exports = { register, login, refresh, logout, requestOtp, verifyOtp, completeRegistration };

@@ -16,8 +16,16 @@ export function updatePushToken(pushToken) {
   return api.patch('/api/users/me/push-token', { pushToken });
 }
 
-export function deleteAccount(password) {
-  return api.delete('/api/users/me', { password });
+export function deleteAccount({ password, otpCode } = {}) {
+  return api.delete('/api/users/me', { password, otpCode });
+}
+
+export function requestPhoneOtp(phone) {
+  return api.post('/api/users/me/phone/request-otp', { phone });
+}
+
+export function verifyPhoneOtp(phone, code) {
+  return api.post('/api/users/me/phone/verify-otp', { phone, code });
 }
 
 export function getReferralInfo() {

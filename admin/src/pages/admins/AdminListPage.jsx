@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listAdmins, createAdminUser, updateAdminRole } from '../../api/admins';
 import DataTable from '../../components/DataTable';
@@ -69,7 +70,10 @@ export default function AdminListPage() {
       </div>
 
       <div className="panel">
-        <h3>Ajouter un administrateur</h3>
+        <h3>
+          <UserPlus size={16} />
+          Ajouter un administrateur
+        </h3>
         {formError && <p className="error">{formError}</p>}
         <form className="form-grid" onSubmit={handleCreate}>
           <FormField label="Nom complet">

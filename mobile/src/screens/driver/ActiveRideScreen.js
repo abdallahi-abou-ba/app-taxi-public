@@ -3,7 +3,16 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
 import { useDriverLocationStatus } from '../../context/DriverLocationContext';
-import { getRide, arriveRide, startRide, completeRide, cancelRide, rateRide, markRidePaid } from '../../api/rideApi';
+import {
+  getRide,
+  arriveRide,
+  startRide,
+  completeRide,
+  cancelRide,
+  rateRide,
+  markRidePaid,
+  confirmRidePayment,
+} from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
@@ -100,6 +109,11 @@ export default function DriverActiveRideScreen({ route, navigation }) {
     setRide(updated);
   };
 
+  const handleConfirmPayment = async () => {
+    const updated = await confirmRidePayment(rideId);
+    setRide(updated);
+  };
+
   if (!ride) return null;
 
   if (ride.status === RIDE_STATUS.COMPLETED || ride.status === RIDE_STATUS.CANCELLED) {
@@ -109,7 +123,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
         <RideSummaryCard ride={ride} viewerRole={ROLE.DRIVER} />
         {ride.status === RIDE_STATUS.COMPLETED ? (
           <>
-            <PaymentStatus ride={ride} viewerRole={ROLE.DRIVER} onMarkPaid={handleMarkPaid} />
+            <PaymentStatus ride={ride} viewerRole={ROLE.DRIVER} onMarkPaid={handleMarkPaid} onConfirmPayment={handleConfirmPayment} />
             <RatingPrompt ride={ride} viewerRole={ROLE.DRIVER} onSubmit={handleRate} />
           </>
         ) : null}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listVehicles } from '../../api/vehicles';
 import DataTable from '../../components/DataTable';
@@ -25,7 +26,8 @@ export default function VehicleListPage() {
       <div className="page-header">
         <h2>Véhicules</h2>
         <Link className="btn btn-primary" to="/vehicles/new">
-          + Ajouter un véhicule
+          <Plus size={14} strokeWidth={2.75} />
+          Ajouter un véhicule
         </Link>
       </div>
 

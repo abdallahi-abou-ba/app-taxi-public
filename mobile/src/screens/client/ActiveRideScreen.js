@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useSocket } from '../../context/SocketContext';
-import { getRide, cancelRide, rateRide, createCheckoutSession } from '../../api/rideApi';
+import { getRide, cancelRide, rateRide, createCheckoutSession, declareRidePaid } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
@@ -97,6 +97,11 @@ export default function ActiveRideScreen({ route, navigation }) {
     setRide(updated);
   };
 
+  const handleDeclarePaid = async () => {
+    const updated = await declareRidePaid(rideId);
+    setRide(updated);
+  };
+
   if (!ride) return null;
 
   if (ride.status === RIDE_STATUS.COMPLETED || ride.status === RIDE_STATUS.CANCELLED) {
@@ -109,7 +114,7 @@ export default function ActiveRideScreen({ route, navigation }) {
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
         {ride.status === RIDE_STATUS.COMPLETED ? (
           <>
-            <PaymentStatus ride={ride} viewerRole={ROLE.CLIENT} onPay={handlePay} />
+            <PaymentStatus ride={ride} viewerRole={ROLE.CLIENT} onPay={handlePay} onDeclarePaid={handleDeclarePaid} />
             <RatingPrompt ride={ride} viewerRole={ROLE.CLIENT} onSubmit={handleRate} />
           </>
         ) : null}

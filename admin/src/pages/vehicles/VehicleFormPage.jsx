@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { createVehicle, getVehicle, updateVehicle } from '../../api/vehicles';
 import FormField from '../../components/FormField';
 
@@ -84,7 +85,8 @@ export default function VehicleFormPage() {
   return (
     <div>
       <Link className="back-link" to={isEdit ? `/vehicles/${id}` : '/vehicles'}>
-        ← Retour
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour
       </Link>
       <div className="page-header">
         <h2>{isEdit ? 'Modifier le véhicule' : 'Ajouter un véhicule'}</h2>

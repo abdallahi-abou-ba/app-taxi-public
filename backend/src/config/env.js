@@ -63,6 +63,20 @@ const envSchema = z.object({
   // deployment would need a local payment provider instead (see
   // RESUME_PROJET.md roadmap). Fine as a Stripe-supported currency for now.
   STRIPE_CURRENCY: z.string().default('usd'),
+
+  // Phone+OTP auth (see sms.util.js, phoneOtp.service.js). 'stub' is the only
+  // implemented provider today - the OTP code is returned in the API
+  // response instead of actually sent, since no SMS budget is set up yet.
+  // Add a real provider (e.g. a Mauritania-focused SMS API) as another enum
+  // value + branch in sms.util.js when ready - nothing else here changes.
+  SMS_PROVIDER: z.enum(['stub']).default('stub'),
+  OTP_TTL_MIN: z.coerce.number().positive().default(5),
+  OTP_MAX_REQUESTS_PER_HOUR: z.coerce.number().int().positive().default(5),
+  OTP_MAX_VERIFY_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  // TTL for the short-lived token bridging phone verification -> profile
+  // completion (see auth.service.js#signRegistrationToken), so a new user
+  // doesn't have to re-enter their OTP code between the two steps.
+  REGISTRATION_TOKEN_TTL_MIN: z.coerce.number().positive().default(15),
 });
 
 const parsed = envSchema.safeParse(process.env);

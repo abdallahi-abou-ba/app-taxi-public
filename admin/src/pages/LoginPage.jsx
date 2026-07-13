@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { CarTaxiFront, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -29,6 +30,9 @@ export default function LoginPage() {
   return (
     <div className="login-screen">
       <form className="login-card" onSubmit={handleSubmit}>
+        <div className="login-brand-icon">
+          <CarTaxiFront size={24} strokeWidth={2.25} />
+        </div>
         <h1>Taxi MVP — Administration</h1>
         {error && <p className="error">{error}</p>}
         <label className="field">
@@ -45,7 +49,8 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
-        <button className="btn btn-primary" type="submit" disabled={submitting}>
+        <button className="btn btn-primary" type="submit" disabled={submitting} style={{ justifyContent: 'center' }}>
+          <LogIn size={15} strokeWidth={2.5} />
           {submitting ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>

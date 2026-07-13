@@ -72,6 +72,16 @@ const markRidePaid = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: ride });
 });
 
+const declareRidePaid = asyncHandler(async (req, res) => {
+  const ride = await rideService.declareRidePaidByClient(req.user.id, req.params.id);
+  sendSuccess(res, { data: ride });
+});
+
+const confirmRidePayment = asyncHandler(async (req, res) => {
+  const ride = await rideService.confirmRidePaymentReceived(req.user.id, req.params.id);
+  sendSuccess(res, { data: ride });
+});
+
 const createCheckoutSession = asyncHandler(async (req, res) => {
   const url = await rideService.createCardCheckoutSession(req.user.id, req.params.id, req.body);
   sendSuccess(res, { data: { url } });
@@ -113,6 +123,8 @@ module.exports = {
   cancelRide,
   rateRide,
   markRidePaid,
+  declareRidePaid,
+  confirmRidePayment,
   createCheckoutSession,
   hideFromHistory,
   getStats,

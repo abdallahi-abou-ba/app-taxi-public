@@ -4,6 +4,7 @@ const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { toPublicUser } = require('./auth.service');
 const { ACTIVE_STATUSES } = require('./ride.service');
+const phoneOtpService = require('./phoneOtp.service');
 
 const SALT_ROUNDS = 10;
 
@@ -39,15 +40,29 @@ async function updatePushToken(userId, pushToken) {
 // Anonymizes rather than hard-deletes: existing rides keep a valid clientId/
 // driverId so the counterpart's history still resolves, just showing
 // "Deleted user" instead of a 404 or a dangling foreign key.
-async function deleteAccount(userId, password) {
+async function deleteAccount(userId, { password, otpCode }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new AppError('User not found', 404, 'NOT_FOUND');
   }
 
-  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-  if (!passwordMatches) {
-    throw new AppError('Incorrect password', 401, 'UNAUTHORIZED');
+  // Two confirmation paths depending on how this account authenticates: a
+  // legacy/email account confirms with its password (as before); a
+  // phone+OTP account (passwordHash null) has no password to check, so it
+  // confirms with a freshly-verified OTP code instead.
+  if (user.passwordHash) {
+    if (!password) {
+      throw new AppError('Password is required', 422, 'VALIDATION_ERROR');
+    }
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatches) {
+      throw new AppError('Incorrect password', 401, 'UNAUTHORIZED');
+    }
+  } else {
+    if (!otpCode || !user.phone) {
+      throw new AppError('A verification code is required', 422, 'VALIDATION_ERROR');
+    }
+    await phoneOtpService.verifyAndConsumeOtp(user.phone, otpCode);
   }
 
   const hasActiveRide = await prisma.ride.findFirst({
@@ -78,6 +93,21 @@ async function deleteAccount(userId, password) {
   ]);
 }
 
+async function requestPhoneOtp(phone) {
+  return phoneOtpService.requestOtp(phone);
+}
+
+// Attaches/changes the caller's own phone number once the OTP for it has
+// been verified - used both by an existing email account adding a phone for
+// the first time (the login bridge) and by anyone changing an already-set
+// phone. P2002 (another account already owns this number) is translated to a
+// 409 by the global error middleware, so no explicit catch is needed here.
+async function verifyAndSetPhone(userId, phone, code) {
+  const normalizedPhone = await phoneOtpService.verifyAndConsumeOtp(phone, code);
+  const user = await prisma.user.update({ where: { id: userId }, data: { phone: normalizedPhone } });
+  return toPublicUser(user);
+}
+
 async function getReferralInfo(userId) {
   const [user, referralCount] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { referralCode: true, creditBalance: true } }),
@@ -87,4 +117,12 @@ async function getReferralInfo(userId) {
   return { referralCode: user.referralCode, creditBalance: user.creditBalance, referralCount };
 }
 
-module.exports = { updateProfile, updateAvailability, updatePushToken, deleteAccount, getReferralInfo };
+module.exports = {
+  updateProfile,
+  updateAvailability,
+  updatePushToken,
+  deleteAccount,
+  requestPhoneOtp,
+  verifyAndSetPhone,
+  getReferralInfo,
+};

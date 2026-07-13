@@ -9,7 +9,7 @@ import RatingPrompt from '../../components/RatingPrompt';
 import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
-import { rateRide, markRidePaid, getRide, createCheckoutSession } from '../../api/rideApi';
+import { rateRide, markRidePaid, getRide, createCheckoutSession, declareRidePaid, confirmRidePayment } from '../../api/rideApi';
 import { formatDateTime } from '../../utils/formatters';
 import { callPhone } from '../../utils/call.util';
 import { RIDE_STATUS, ROLE } from '../../config/constants';
@@ -28,6 +28,16 @@ export default function RideDetailScreen({ route, navigation }) {
 
   const handleMarkPaid = async () => {
     const updated = await markRidePaid(ride.id);
+    setRide(updated);
+  };
+
+  const handleDeclarePaid = async () => {
+    const updated = await declareRidePaid(ride.id);
+    setRide(updated);
+  };
+
+  const handleConfirmPayment = async () => {
+    const updated = await confirmRidePayment(ride.id);
     setRide(updated);
   };
 
@@ -69,7 +79,14 @@ export default function RideDetailScreen({ route, navigation }) {
       </View>
       {ride.status === RIDE_STATUS.COMPLETED ? (
         <>
-          <PaymentStatus ride={ride} viewerRole={user.role} onMarkPaid={handleMarkPaid} onPay={handlePay} />
+          <PaymentStatus
+            ride={ride}
+            viewerRole={user.role}
+            onMarkPaid={handleMarkPaid}
+            onPay={handlePay}
+            onDeclarePaid={handleDeclarePaid}
+            onConfirmPayment={handleConfirmPayment}
+          />
           <RatingPrompt ride={ride} viewerRole={user.role} onSubmit={handleRate} />
         </>
       ) : null}

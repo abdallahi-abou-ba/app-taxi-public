@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { ArrowLeft, FileText, ClipboardCheck } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getComplaint, updateComplaint } from '../../api/complaints';
 import StatusBadge from '../../components/StatusBadge';
@@ -42,7 +43,8 @@ export default function ComplaintDetailPage() {
   return (
     <div>
       <Link className="back-link" to="/complaints">
-        ← Retour aux réclamations
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour aux réclamations
       </Link>
 
       <div className="page-header">
@@ -52,7 +54,10 @@ export default function ComplaintDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Détails</h3>
+        <h3>
+          <FileText size={16} />
+          Détails
+        </h3>
         <div className="form-grid">
           <div>
             <strong>Soumis par</strong>
@@ -77,7 +82,10 @@ export default function ComplaintDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Traiter</h3>
+        <h3>
+          <ClipboardCheck size={16} />
+          Traiter
+        </h3>
         {actionError && <p className="error">{actionError}</p>}
         <form className="form-grid" onSubmit={handleUpdate}>
           <FormField label="Nouveau statut">

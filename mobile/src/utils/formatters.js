@@ -13,6 +13,14 @@ export function formatFare(estimatedFare) {
   return `${estimatedFare.toFixed(2)} MRO`;
 }
 
+// Credit (referral reward balance) is auto-applied to a cash-equivalent ride,
+// reducing what's actually owed below the estimated fare - see RideSummaryCard
+// and PaymentStatus, both of which need this same number.
+export function getAmountDue(ride) {
+  const hasCredit = ride.creditApplied > 0;
+  return hasCredit ? (ride.estimatedFare || 0) - ride.creditApplied : ride.estimatedFare;
+}
+
 export function formatDateTime(isoString, locale) {
   if (!isoString) return '-';
   const date = new Date(isoString);

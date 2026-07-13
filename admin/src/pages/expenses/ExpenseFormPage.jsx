@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { createExpense } from '../../api/expenses';
 import { listDrivers } from '../../api/drivers';
 import { listVehicles } from '../../api/vehicles';
@@ -53,7 +54,8 @@ export default function ExpenseFormPage() {
   return (
     <div>
       <Link className="back-link" to="/expenses">
-        ← Retour
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour
       </Link>
       <div className="page-header">
         <h2>Ajouter une dépense</h2>

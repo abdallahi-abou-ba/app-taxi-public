@@ -38,6 +38,7 @@ enum DriverDocumentType {
   PHOTO
   ID_CARD
   LICENSE
+  VEHICLE_PHOTO
 }
 
 // Sub-role for a User with role=ADMIN only (null for CLIENT/DRIVER). Granular
@@ -152,10 +153,22 @@ enum PaymentMethod {
 
 model User {
   id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
+  // Nullable as of the phone+OTP auth rollout - a CLIENT/DRIVER registered
+  // via phone+OTP has neither an email nor a password (see auth.service.js's
+  // requestOtp/verifyOtp/completeRegistration). ADMIN accounts (created only
+  // via scripts/create-admin.js) and every legacy CLIENT/DRIVER row still
+  // have both set - the invariant "email set <=> passwordHash set" is
+  // enforced at the service layer, not the DB, and login() defensively
+  // checks passwordHash before ever calling comparePassword.
+  email        String?  @unique
+  passwordHash String?
   fullName     String
-  phone        String?
+  // Unique as of the phone+OTP auth rollout - it's now a login credential,
+  // not just a contact field. See phone.util.js#normalizePhone for the
+  // canonical +222XXXXXXXX format every write site normalizes through.
+  // Shipped as its own migration after scripts/audit-and-normalize-phones.js
+  // confirmed no duplicate/malformed values remained.
+  phone        String?  @unique
   role         Role
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -250,20 +263,21 @@ model User {
 
   // Cash-equivalent balance, auto-applied to a future ride's cash payment
   // (see Ride.creditApplied). Funded by referral rewards.
-  creditBalance Float @default(0)
+  creditBalance           Float     @default(0)
   // Set once this user's own "referred friend's first ride" reward has been
   // granted, so it's never granted twice even across many later rides.
   referralRewardGrantedAt DateTime?
 
-  ridesAsClient Ride[] @relation("ClientRides")
-  ridesAsDriver Ride[] @relation("DriverRides")
+  ridesAsClient Ride[]         @relation("ClientRides")
+  ridesAsDriver Ride[]         @relation("DriverRides")
   refreshTokens RefreshToken[]
 
-  commissionChangesReceived CommissionChange[] @relation("CommissionChangeDriver")
-  commissionChangesMade     CommissionChange[] @relation("CommissionChangeAdmin")
+  commissionChangesReceived CommissionChange[]  @relation("CommissionChangeDriver")
+  commissionChangesMade     CommissionChange[]  @relation("CommissionChangeAdmin")
   vehicleAssignments        VehicleAssignment[]
   currentVehicles           Vehicle[]           @relation("VehicleCurrentDriver")
   adminActivityLogs         AdminActivityLog[]  @relation("AdminActivityLogAdmin")
+  appSettingsUpdated        AppSetting[]        @relation("AppSettingUpdatedBy")
 
   expensesRecorded    Expense[]    @relation("ExpenseDriver")
   expensesCreated     Expense[]    @relation("ExpenseCreatedBy")
@@ -335,6 +349,22 @@ model AdminActivityLog {
   @@index([entityType, entityId])
   @@index([createdAt])
   @@map("admin_activity_logs")
+}
+
+// Generic key-value platform setting, admin-editable from the back office
+// (e.g. the default commission rate seeded at driver creation - see
+// appSetting.service.js). Extensible to future settings without a new
+// migration each time; each reader is responsible for parsing `value` to the
+// type it expects.
+model AppSetting {
+  id              String   @id @default(uuid())
+  key             String   @unique
+  value           String
+  updatedAt       DateTime @updatedAt
+  updatedByUserId String?
+  updatedByUser   User?    @relation("AppSettingUpdatedBy", fields: [updatedByUserId], references: [id])
+
+  @@map("app_settings")
 }
 
 // History of commissionRate changes on User (spec 9.3) - written every time
@@ -531,6 +561,24 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
+// One-time codes for the phone+OTP auth flow (see
+// phoneOtp.service.js/auth.service.js#requestOtp/verifyOtp). Deliberately not
+// tied to User by FK - a code can be requested for a phone number that
+// doesn't have an account yet (new registration), same reason RefreshToken's
+// tokenHash pattern is reused here (codeHash, never the plaintext code).
+model PhoneOtp {
+  id         String    @id @default(uuid())
+  phone      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+  @@map("phone_otps")
+}
+
 model Ride {
   id       String  @id @default(uuid())
   clientId String
@@ -540,12 +588,18 @@ model Ride {
 
   status RideStatus @default(REQUESTED)
 
-  pickupLat          Float
-  pickupLng          Float
-  pickupAddress      String?
-  destinationLat     Float
-  destinationLng     Float
-  destinationAddress String?
+  pickupLat            Float
+  pickupLng            Float
+  pickupAddress        String?
+  // Arabic variant, filled in asynchronously after the ride is created (see
+  // ride.service.js#enrichRideAddressesInArabic) - Nominatim only returns one
+  // language per request, so this lags slightly behind pickupAddress rather
+  // than blocking ride creation on a second serialized geocode call.
+  pickupAddressAr      String?
+  destinationLat       Float
+  destinationLng       Float
+  destinationAddress   String?
+  destinationAddressAr String?
 
   distanceKm    Float?
   durationMin   Float?
@@ -584,8 +638,18 @@ model Ride {
   // The driver marks a completed ride as paid once they've collected payment
   // in person (CASH rides). For CARD rides, isPaid/paidAt are instead set by
   // the Stripe webhook once the client completes an online Checkout Session.
+  // For mobile-money rides (BANKILY/SEDAD/MASRIVI/CLICK/BIMBANK - no gateway
+  // API, see paymentMethod.util.js), isPaid/paidAt are only set once the
+  // driver confirms via confirmRidePaymentReceived, itself gated on the
+  // client having first declared payment below.
   isPaid Boolean   @default(false)
   paidAt DateTime?
+
+  // Client-side "I paid" declaration for a mobile-money ride - step 1 of that
+  // two-step flow (see ride.service.js#declareRidePaidByClient). Null until
+  // the client taps "J'ai payé"; isPaid/paidAt above only flip once the
+  // driver then confirms receipt.
+  clientMarkedPaidAt DateTime?
 
   // Set once the client starts (session id) / completes (payment intent id) a
   // Stripe Checkout Session for this ride. Null for CASH rides and for CARD

@@ -1,6 +1,6 @@
 const { z } = require('zod');
 
-const DOCUMENT_TYPE_VALUES = ['PHOTO', 'ID_CARD', 'LICENSE'];
+const DOCUMENT_TYPE_VALUES = ['PHOTO', 'ID_CARD', 'LICENSE', 'VEHICLE_PHOTO'];
 
 const documentTypeParamSchema = z.object({
   type: z.enum(DOCUMENT_TYPE_VALUES),

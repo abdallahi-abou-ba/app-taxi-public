@@ -1,7 +1,14 @@
 const { Router } = require('express');
 const userController = require('../controllers/user.controller');
 const validate = require('../middleware/validate.middleware');
-const { updateProfileSchema, updateAvailabilitySchema, updatePushTokenSchema, deleteAccountSchema } = require('../validators/user.validators');
+const {
+  updateProfileSchema,
+  updateAvailabilitySchema,
+  updatePushTokenSchema,
+  deleteAccountSchema,
+  requestPhoneOtpSchema,
+  verifyPhoneOtpSchema,
+} = require('../validators/user.validators');
 const { documentTypeParamSchema } = require('../validators/driverDocument.validators');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { uploadDocument, uploadAvatar } = require('../middleware/upload.middleware');
@@ -15,6 +22,8 @@ router.patch('/me', validate(updateProfileSchema), userController.updateMe);
 router.delete('/me', validate(deleteAccountSchema), userController.deleteMe);
 router.patch('/me/availability', validate(updateAvailabilitySchema), userController.updateAvailability);
 router.patch('/me/push-token', validate(updatePushTokenSchema), userController.updatePushToken);
+router.post('/me/phone/request-otp', validate(requestPhoneOtpSchema), userController.requestPhoneOtp);
+router.post('/me/phone/verify-otp', validate(verifyPhoneOtpSchema), userController.verifyPhoneOtp);
 router.get('/me/referrals', userController.getReferralInfo);
 router.get('/me/documents', userController.getMyDocuments);
 router.post(

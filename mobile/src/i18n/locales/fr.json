@@ -47,7 +47,18 @@
     "fullNamePlaceholder": "Jeanne Dupont",
     "phoneLabel": "Téléphone",
     "phoneOptionalLabel": "Téléphone (optionnel)",
-    "phonePlaceholder": "0600000000",
+    "phonePlaceholder": "31112233",
+    "phoneEntrySubtitle": "Entrez votre numéro de téléphone pour recevoir un code de connexion.",
+    "requestCode": "Recevoir le code",
+    "otpRequestError": "Impossible d'envoyer le code",
+    "useEmailPasswordInstead": "Se connecter avec un compte existant (e-mail)",
+    "usePhoneInstead": "Se connecter avec un numéro de téléphone",
+    "otpCodeLabel": "Code de vérification",
+    "otpSentTo": "Code envoyé au {{phone}}",
+    "verifyCode": "Vérifier",
+    "resendCode": "Renvoyer le code",
+    "otpInvalid": "Code incorrect ou expiré",
+    "completeProfileTitle": "Terminer la création du compte",
     "imRider": "Je suis passager",
     "imDriver": "Je suis chauffeur",
     "referralCodeLabel": "Code de parrainage (optionnel)",
@@ -85,7 +96,14 @@
     "creditApplied": "Crédit appliqué : -{{amount}}",
     "payNow": "Payer maintenant",
     "payError": "Impossible de lancer le paiement",
-    "waitingOnlinePayment": "En attente du paiement en ligne par le client"
+    "waitingOnlinePayment": "En attente du paiement en ligne par le client",
+    "mobileMoneyInstructions": "Envoyez {{amount}} par {{method}} au numéro du chauffeur ci-dessous, puis confirmez.",
+    "declarePaid": "J'ai payé",
+    "declarePaidError": "Impossible de déclarer ce paiement",
+    "waitingClientDeclaration": "En attente de la déclaration du client",
+    "waitingDriverConfirmation": "En attente de confirmation du chauffeur",
+    "confirmReceipt": "Confirmer réception",
+    "confirmPaymentError": "Impossible de confirmer ce paiement"
   },
   "map": {
     "pickup": "Départ",
@@ -127,15 +145,17 @@
     "completeTrip": "Terminer la course",
     "pendingApproval": "Votre compte est en attente de validation par l'administrateur. Vous pourrez passer en ligne une fois votre compte validé.",
     "rejectedApproval": "Votre compte chauffeur n'a pas été validé. Contactez l'assistance pour plus d'informations.",
+    "suspendedApproval": "Votre compte chauffeur a été suspendu. Contactez l'assistance pour plus d'informations.",
     "uploadDocumentsCta": "Envoyer mes documents"
   },
   "driverDocuments": {
     "title": "Mes documents",
-    "subtitle": "Envoyez une photo de vous, de votre pièce d'identité et de votre permis pour que l'administrateur puisse valider votre compte.",
+    "subtitle": "Envoyez une photo de vous, de votre pièce d'identité, de votre permis et de votre véhicule pour que l'administrateur puisse valider votre compte.",
     "types": {
       "PHOTO": "Photo",
       "ID_CARD": "Pièce d'identité",
-      "LICENSE": "Permis de conduire"
+      "LICENSE": "Permis de conduire",
+      "VEHICLE_PHOTO": "Photo du véhicule"
     },
     "uploadedOn": "Envoyé le {{date}}",
     "notUploaded": "Aucun document envoyé",
@@ -215,6 +235,8 @@
   "editProfile": {
     "fullNameLabel": "Nom complet",
     "phoneLabel": "Téléphone",
+    "noPhone": "Aucun numéro",
+    "changePhone": "Modifier",
     "emailLabel": "E-mail",
     "saveChanges": "Enregistrer",
     "saved": "Profil mis à jour",

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Download } from 'lucide-react';
 import { exportRides, exportRevenue, exportExpenses } from '../../api/reports';
 import FormField from '../../components/FormField';
 
@@ -54,12 +55,15 @@ export default function ReportsPage() {
 
         <div className="btn-row" style={{ marginTop: 16 }}>
           <button className="btn btn-primary" disabled={!!busy} onClick={() => handleExport('rides', exportRides)}>
+            <Download size={14} strokeWidth={2.5} />
             {busy === 'rides' ? 'Export…' : 'Exporter les courses (CSV)'}
           </button>
           <button className="btn btn-primary" disabled={!!busy} onClick={() => handleExport('revenue', exportRevenue)}>
+            <Download size={14} strokeWidth={2.5} />
             {busy === 'revenue' ? 'Export…' : 'Exporter les recettes (CSV)'}
           </button>
           <button className="btn btn-primary" disabled={!!busy} onClick={() => handleExport('expenses', exportExpenses)}>
+            <Download size={14} strokeWidth={2.5} />
             {busy === 'expenses' ? 'Export…' : 'Exporter les dépenses (CSV)'}
           </button>
         </div>

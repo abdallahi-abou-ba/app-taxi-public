@@ -1,15 +1,7 @@
 const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { getDriverBorneExpensesTotal } = require('./expense.service');
-
-// Methods where the driver physically ends up with the money (spec 10.2):
-// CASH in hand, or a mobile-money transfer (Bankily/Sedad/Masrivi/Click/
-// Bimbank) the client sends straight to the driver's own account. The
-// company never touches these funds, so the driver owes it commission on
-// them, same as CASH. CARD (Stripe) and the WALLET/COMPANY buckets are the
-// opposite: the company receives the funds and owes the driver their net
-// share (spec 10.3).
-const DRIVER_COLLECTED_METHODS = ['CASH', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK'];
+const { DRIVER_COLLECTED_METHODS } = require('../utils/paymentMethod.util');
 
 const SETTLEMENT_INCLUDE = {
   driver: { select: { id: true, fullName: true, email: true } },

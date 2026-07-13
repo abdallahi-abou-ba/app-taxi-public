@@ -51,6 +51,18 @@ export const CLIENT_PAYMENT_METHODS = [
   PAYMENT_METHOD.BIMBANK,
 ];
 
+// No gateway API for these Mauritanian mobile-money apps (mirrors
+// backend/src/utils/paymentMethod.util.js) - the client transfers directly to
+// the driver's phone/account outside the app, then declares it paid; the
+// driver confirms receipt. See PaymentStatus.js.
+export const MOBILE_MONEY_METHODS = [
+  PAYMENT_METHOD.BANKILY,
+  PAYMENT_METHOD.SEDAD,
+  PAYMENT_METHOD.MASRIVI,
+  PAYMENT_METHOD.CLICK,
+  PAYMENT_METHOD.BIMBANK,
+];
+
 export const MAP_DEFAULTS = {
   // Casablanca - just a sane fallback center before a real GPS fix arrives.
   latitude: 33.5731,

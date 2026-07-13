@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, Trash2 } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listExpenses, deleteExpense } from '../../api/expenses';
 import DataTable from '../../components/DataTable';
@@ -39,6 +40,7 @@ export default function ExpenseListPage() {
       label: '',
       render: (r) => (
         <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); handleDelete(r.id); }}>
+          <Trash2 size={12} strokeWidth={2.5} />
           Supprimer
         </button>
       ),
@@ -50,7 +52,8 @@ export default function ExpenseListPage() {
       <div className="page-header">
         <h2>Dépenses</h2>
         <Link className="btn btn-primary" to="/expenses/new">
-          + Ajouter une dépense
+          <Plus size={14} strokeWidth={2.75} />
+          Ajouter une dépense
         </Link>
       </div>
 

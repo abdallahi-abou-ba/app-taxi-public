@@ -13,6 +13,11 @@ function navigate(data, role) {
 
   if (data.type === 'ride:new') {
     navigationRef.navigate(role === ROLE.DRIVER ? 'DriverHome' : 'ClientHome');
+  } else if (data.type === 'driver:approval') {
+    // No rideId to fetch - just land on the driver's home screen, which
+    // re-reads approvalStatus on focus (see DriverHomeScreen) so the banner
+    // reflects the new status right away.
+    navigationRef.navigate('DriverHome');
   } else if (data.type === 'ride:search-reminder') {
     // Still REQUESTED, not yet a participant-visible "active" ride in the
     // ActiveRide sense - same waiting screen the client landed on originally.

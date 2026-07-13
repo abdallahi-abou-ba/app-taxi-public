@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-import { updateMe, deleteAccount, uploadAvatar, deleteAvatar } from '../../api/userApi';
+import { updateMe, deleteAccount, uploadAvatar, deleteAvatar, requestPhoneOtp, verifyPhoneOtp } from '../../api/userApi';
 import { getApiBaseUrl } from '../../config/env';
 import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -17,7 +17,6 @@ export default function EditProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const { user, updateUser, logout, getAccessToken } = useAuth();
   const [fullName, setFullName] = useState(user.fullName);
-  const [phone, setPhone] = useState(user.phone || '');
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,10 +75,25 @@ export default function EditProfileScreen({ navigation }) {
     }
   }
 
+  // Phone is a login credential now (see backend User.phone's @unique
+  // constraint), so changing it must go through the same OTP-verified flow
+  // as login, not a raw unverified text field.
+  const [phoneChangeOpen, setPhoneChangeOpen] = useState(false);
+  const [newPhone, setNewPhone] = useState('');
+  const [phoneCode, setPhoneCode] = useState('');
+  const [phoneCodeSent, setPhoneCodeSent] = useState(false);
+  const [phoneChangeError, setPhoneChangeError] = useState(null);
+  const [phoneChangeBusy, setPhoneChangeBusy] = useState(false);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+  const [deleteOtpCode, setDeleteOtpCode] = useState('');
+  const [deleteOtpSent, setDeleteOtpSent] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  // A phone-only (phone+OTP) account has no email; used purely to pick which
+  // confirmation UI to show - the server itself decides which check applies.
+  const hasPassword = !!user.email;
 
   const nameInvalid = fullName.trim().length > 0 && fullName.trim().length < 2;
   const canSubmit = fullName.trim().length >= 2 && !loading;
@@ -89,13 +103,49 @@ export default function EditProfileScreen({ navigation }) {
     setSaved(false);
     setLoading(true);
     try {
-      const updated = await updateMe({ fullName: fullName.trim(), phone: phone.trim() || undefined });
+      const updated = await updateMe({ fullName: fullName.trim() });
       updateUser(updated);
       setSaved(true);
     } catch (err) {
       setError(err.message || t('editProfile.saveError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openPhoneChange = () => {
+    setPhoneChangeOpen(true);
+    setNewPhone('');
+    setPhoneCode('');
+    setPhoneCodeSent(false);
+    setPhoneChangeError(null);
+  };
+
+  const handleSendPhoneCode = async () => {
+    setPhoneChangeError(null);
+    setPhoneChangeBusy(true);
+    try {
+      const result = await requestPhoneOtp(newPhone.trim());
+      setPhoneCodeSent(true);
+      if (result.devCode) setPhoneCode(result.devCode);
+    } catch (err) {
+      setPhoneChangeError(err.message || t('auth.otpRequestError'));
+    } finally {
+      setPhoneChangeBusy(false);
+    }
+  };
+
+  const handleConfirmPhoneChange = async () => {
+    setPhoneChangeError(null);
+    setPhoneChangeBusy(true);
+    try {
+      const updated = await verifyPhoneOtp(newPhone.trim(), phoneCode.trim());
+      updateUser(updated);
+      setPhoneChangeOpen(false);
+    } catch (err) {
+      setPhoneChangeError(err.message || t('auth.otpInvalid'));
+    } finally {
+      setPhoneChangeBusy(false);
     }
   };
 
@@ -109,11 +159,24 @@ export default function EditProfileScreen({ navigation }) {
     }
   };
 
+  const handleSendDeleteOtp = async () => {
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      await requestPhoneOtp(user.phone);
+      setDeleteOtpSent(true);
+    } catch (err) {
+      setDeleteError(err.message || t('auth.otpRequestError'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setDeleteError(null);
     setDeleting(true);
     try {
-      await deleteAccount(deletePassword);
+      await deleteAccount(hasPassword ? { password: deletePassword } : { otpCode: deleteOtpCode.trim() });
       await logout();
     } catch (err) {
       setDeleteError(err.message || t('deleteAccount.genericError'));
@@ -177,18 +240,66 @@ export default function EditProfileScreen({ navigation }) {
 
         <TextField label={t('editProfile.fullNameLabel')} value={fullName} onChangeText={setFullName} placeholder={t('auth.fullNamePlaceholder')} />
         {nameInvalid ? <Text style={styles.fieldError}>{t('editProfile.nameError')}</Text> : null}
-        <TextField
-          label={t('editProfile.phoneLabel')}
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-          placeholder={t('auth.phonePlaceholder')}
-        />
+
+        {user.email ? (
+          <View style={styles.readOnly}>
+            <Text style={styles.readOnlyLabel}>{t('editProfile.emailLabel')}</Text>
+            <Text style={styles.readOnlyValue}>{user.email}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.readOnly}>
-          <Text style={styles.readOnlyLabel}>{t('editProfile.emailLabel')}</Text>
-          <Text style={styles.readOnlyValue}>{user.email}</Text>
+          <Text style={styles.readOnlyLabel}>{t('editProfile.phoneLabel')}</Text>
+          <View style={styles.phoneValueRow}>
+            <Text style={styles.readOnlyValue}>{user.phone || t('editProfile.noPhone')}</Text>
+            <Pressable onPress={openPhoneChange} hitSlop={8}>
+              <Text style={styles.changeLinkText}>{t('editProfile.changePhone')}</Text>
+            </Pressable>
+          </View>
         </View>
+
+        {phoneChangeOpen ? (
+          <View style={styles.phoneChangeForm}>
+            <ErrorBanner message={phoneChangeError} />
+            <TextField
+              label={t('auth.phoneLabel')}
+              value={newPhone}
+              onChangeText={setNewPhone}
+              keyboardType="phone-pad"
+              placeholder={t('auth.phonePlaceholder')}
+              editable={!phoneCodeSent}
+            />
+            {!phoneCodeSent ? (
+              <PrimaryButton
+                title={t('auth.requestCode')}
+                variant="secondary"
+                onPress={handleSendPhoneCode}
+                disabled={newPhone.trim().length < 8 || phoneChangeBusy}
+                loading={phoneChangeBusy}
+              />
+            ) : (
+              <>
+                <TextField
+                  label={t('auth.otpCodeLabel')}
+                  value={phoneCode}
+                  onChangeText={setPhoneCode}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                />
+                <PrimaryButton
+                  title={t('auth.verifyCode')}
+                  onPress={handleConfirmPhoneChange}
+                  disabled={phoneCode.trim().length !== 6 || phoneChangeBusy}
+                  loading={phoneChangeBusy}
+                />
+              </>
+            )}
+            <Pressable onPress={() => setPhoneChangeOpen(false)} hitSlop={8} style={styles.cancelLink}>
+              <Text style={styles.changeLinkText}>{t('deleteAccount.cancel')}</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         <PrimaryButton title={t('editProfile.saveChanges')} onPress={handleSubmit} disabled={!canSubmit} loading={loading} />
 
@@ -214,13 +325,31 @@ export default function EditProfileScreen({ navigation }) {
           {deleteOpen ? (
             <View style={styles.deleteForm}>
               <ErrorBanner message={deleteError} />
-              <TextField
-                label={t('deleteAccount.passwordPlaceholder')}
-                value={deletePassword}
-                onChangeText={setDeletePassword}
-                secureTextEntry
-                placeholder={t('deleteAccount.passwordPlaceholder')}
-              />
+              {hasPassword ? (
+                <TextField
+                  label={t('deleteAccount.passwordPlaceholder')}
+                  value={deletePassword}
+                  onChangeText={setDeletePassword}
+                  secureTextEntry
+                  placeholder={t('deleteAccount.passwordPlaceholder')}
+                />
+              ) : !deleteOtpSent ? (
+                <PrimaryButton
+                  title={t('auth.requestCode')}
+                  variant="secondary"
+                  onPress={handleSendDeleteOtp}
+                  loading={deleting}
+                />
+              ) : (
+                <TextField
+                  label={t('auth.otpCodeLabel')}
+                  value={deleteOtpCode}
+                  onChangeText={setDeleteOtpCode}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  placeholder="000000"
+                />
+              )}
               <Text style={styles.dangerMessage}>{t('deleteAccount.dialogMessage')}</Text>
               <View style={styles.deleteActions}>
                 <PrimaryButton
@@ -229,6 +358,8 @@ export default function EditProfileScreen({ navigation }) {
                   onPress={() => {
                     setDeleteOpen(false);
                     setDeletePassword('');
+                    setDeleteOtpCode('');
+                    setDeleteOtpSent(false);
                     setDeleteError(null);
                   }}
                   style={styles.smallButton}
@@ -237,7 +368,7 @@ export default function EditProfileScreen({ navigation }) {
                   title={t('deleteAccount.confirm')}
                   variant="danger"
                   onPress={handleDeleteAccount}
-                  disabled={deletePassword.length === 0}
+                  disabled={hasPassword ? deletePassword.length === 0 : deleteOtpCode.trim().length !== 6}
                   loading={deleting}
                   style={styles.smallButton}
                 />
@@ -349,6 +480,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textPrimary,
     fontWeight: '500',
+  },
+  phoneValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  changeLinkText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primaryDark,
+  },
+  phoneChangeForm: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  cancelLink: {
+    alignSelf: 'center',
   },
   section: {
     marginTop: 32,

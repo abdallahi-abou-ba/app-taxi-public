@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Sparkles, Check, X } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listSettlements, generateSettlement, markSettlementPaid, cancelSettlement } from '../../api/settlements';
 import { listDrivers } from '../../api/drivers';
@@ -69,9 +70,11 @@ export default function SettlementListPage() {
         r.status === 'PENDING' ? (
           <div className="btn-row">
             <button className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handlePay(r.id); }}>
+              <Check size={12} strokeWidth={2.75} />
               Payer
             </button>
             <button className="btn btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); handleCancel(r.id); }}>
+              <X size={12} strokeWidth={2.75} />
               Annuler
             </button>
           </div>
@@ -86,7 +89,10 @@ export default function SettlementListPage() {
       </div>
 
       <div className="panel">
-        <h3>Générer un règlement</h3>
+        <h3>
+          <Sparkles size={16} />
+          Générer un règlement
+        </h3>
         {formError && <p className="error">{formError}</p>}
         <form className="form-grid" onSubmit={handleGenerate}>
           <FormField label="Chauffeur">

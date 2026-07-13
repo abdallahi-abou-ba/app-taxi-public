@@ -47,6 +47,18 @@ router.patch(
   validate(rideIdParamSchema, 'params'),
   rideController.markRidePaid
 );
+router.patch(
+  '/:id/declare-paid',
+  requireRole('CLIENT'),
+  validate(rideIdParamSchema, 'params'),
+  rideController.declareRidePaid
+);
+router.patch(
+  '/:id/confirm-payment',
+  requireRole('DRIVER'),
+  validate(rideIdParamSchema, 'params'),
+  rideController.confirmRidePayment
+);
 router.post(
   '/:id/checkout-session',
   requireRole('CLIENT'),

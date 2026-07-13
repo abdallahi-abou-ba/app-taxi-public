@@ -5,6 +5,10 @@ const env = require('../config/env');
 const AppError = require('../utils/appError');
 const { generateUniqueReferralCode } = require('../utils/referral.util');
 const { hashPassword, comparePassword } = require('../utils/password.util');
+const { getDefaultCommissionRate } = require('./appSetting.service');
+const phoneOtpService = require('./phoneOtp.service');
+
+const REGISTRATION_TOKEN_PURPOSE = 'PHONE_VERIFIED';
 
 const REFRESH_TOKEN_BYTES = 48;
 
@@ -60,6 +64,7 @@ async function register({ email, password, fullName, phone, role, referralCode, 
 
   const passwordHash = await hashPassword(password);
   const myReferralCode = await generateUniqueReferralCode();
+  const commissionRate = role === 'DRIVER' ? await getDefaultCommissionRate() : undefined;
 
   const user = await prisma.user.create({
     data: {
@@ -72,7 +77,7 @@ async function register({ email, password, fullName, phone, role, referralCode, 
       vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
       vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
       approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
-      commissionRate: role === 'DRIVER' ? env.DEFAULT_COMMISSION_RATE : undefined,
+      commissionRate,
       referralCode: myReferralCode,
       referredById,
     },
@@ -85,6 +90,14 @@ async function login({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     throw new AppError('Invalid email or password', 401, 'UNAUTHORIZED');
+  }
+
+  // Defensive: every row reachable via a unique `email` lookup is expected to
+  // have a passwordHash too (see User.email's doc comment on that invariant),
+  // but this keeps a phone-only account from ever reaching comparePassword
+  // with a null hash if that invariant is ever violated.
+  if (!user.passwordHash) {
+    throw new AppError('This account does not use a password. Use phone login instead.', 401, 'UNAUTHORIZED');
   }
 
   const passwordMatches = await comparePassword(password, user.passwordHash);
@@ -129,4 +142,103 @@ async function logout(rawRefreshToken) {
   });
 }
 
-module.exports = { register, login, refresh, logout, toPublicUser, signToken, verifyToken };
+// Bridges phone verification (requestOtp/verifyOtp below) to profile
+// completion, so a new user isn't asked to re-enter their OTP code a second
+// time. Reuses JWT_SECRET (safe even if replayed against requireAuth - that
+// middleware looks up payload.sub, which this token never sets, so it fails
+// closed with 401 rather than granting any access).
+function signRegistrationToken(phone) {
+  return jwt.sign({ phone, purpose: REGISTRATION_TOKEN_PURPOSE }, env.JWT_SECRET, {
+    expiresIn: `${env.REGISTRATION_TOKEN_TTL_MIN}m`,
+  });
+}
+
+function verifyRegistrationToken(token) {
+  let payload;
+  try {
+    payload = jwt.verify(token, env.JWT_SECRET);
+  } catch {
+    throw new AppError('Invalid or expired registration token', 401, 'UNAUTHORIZED');
+  }
+  if (payload.purpose !== REGISTRATION_TOKEN_PURPOSE) {
+    throw new AppError('Invalid or expired registration token', 401, 'UNAUTHORIZED');
+  }
+  return payload;
+}
+
+async function requestOtp(phone) {
+  return phoneOtpService.requestOtp(phone);
+}
+
+// Phone+OTP is passwordless: an existing account logs straight in once the
+// code checks out; a phone with no matching account instead gets a
+// short-lived registrationToken so the client can collect the rest of the
+// profile (see completeRegistration) without re-verifying the code.
+async function verifyOtp(phone, code) {
+  const normalizedPhone = await phoneOtpService.verifyAndConsumeOtp(phone, code);
+  const user = await prisma.user.findFirst({ where: { phone: normalizedPhone } });
+
+  if (!user) {
+    return { isNewUser: true, registrationToken: signRegistrationToken(normalizedPhone) };
+  }
+
+  if (user.approvalStatus === 'BLOCKED') {
+    throw new AppError('Your account has been blocked. Contact support.', 403, 'FORBIDDEN');
+  }
+
+  return { isNewUser: false, user: toPublicUser(user), ...(await issueTokens(user)) };
+}
+
+async function completeRegistration({ registrationToken, fullName, role, referralCode, vehiclePlate, vehicleModel }) {
+  const { phone } = verifyRegistrationToken(registrationToken);
+
+  let referredById = null;
+  if (referralCode) {
+    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCode.trim().toUpperCase() } });
+    if (!referrer) {
+      throw new AppError('Referral code not found', 422, 'VALIDATION_ERROR');
+    }
+    referredById = referrer.id;
+  }
+
+  const myReferralCode = await generateUniqueReferralCode();
+  const commissionRate = role === 'DRIVER' ? await getDefaultCommissionRate() : undefined;
+
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        phone,
+        fullName,
+        role,
+        isAvailable: role === 'DRIVER' ? false : null,
+        vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
+        vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
+        approvalStatus: role === 'DRIVER' ? 'PENDING' : null,
+        commissionRate,
+        referralCode: myReferralCode,
+        referredById,
+      },
+    });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      throw new AppError('This phone number was just registered', 409, 'CONFLICT');
+    }
+    throw err;
+  }
+
+  return { user: toPublicUser(user), ...(await issueTokens(user)) };
+}
+
+module.exports = {
+  register,
+  login,
+  refresh,
+  logout,
+  toPublicUser,
+  signToken,
+  verifyToken,
+  requestOtp,
+  verifyOtp,
+  completeRegistration,
+};

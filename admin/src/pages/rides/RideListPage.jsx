@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { listRides } from '../../api/rides';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
+import { PAYMENT_METHOD_LABELS, formatPaymentMethod } from '../../paymentConstants';
 
 const STATUS_OPTIONS = ['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 
@@ -15,7 +16,7 @@ const COLUMNS = [
   { key: 'client', label: 'Client', render: (r) => r.client?.fullName || '—' },
   { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
   { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
-  { key: 'paymentMethod', label: 'Paiement' },
+  { key: 'paymentMethod', label: 'Paiement', render: (r) => formatPaymentMethod(r.paymentMethod) },
   { key: 'estimatedFare', label: 'Prix', render: (r) => formatCurrency(r.estimatedFare) },
   { key: 'commissionAmount', label: 'Commission', render: (r) => formatCurrency(r.commissionAmount) },
 ];
@@ -59,8 +60,11 @@ export default function RideListPage() {
         </select>
         <select value={paymentMethod} onChange={updateFilter(setPaymentMethod)}>
           <option value="">Tous les paiements</option>
-          <option value="CASH">Espèces</option>
-          <option value="CARD">Carte</option>
+          {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
       </div>
 

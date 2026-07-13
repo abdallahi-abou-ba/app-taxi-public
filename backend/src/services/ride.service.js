@@ -1,5 +1,6 @@
 const prisma = require('../lib/prisma');
 const env = require('../config/env');
+const logger = require('../config/logger');
 const AppError = require('../utils/appError');
 const { haversineDistanceKm } = require('../utils/geo.util');
 const { getRoute } = require('../utils/osrm.util');
@@ -9,6 +10,8 @@ const { getIO } = require('../lib/socket');
 const rideTracker = require('../sockets/rideTracker');
 const { sendPushToUser } = require('../utils/push.util');
 const paymentService = require('./payment.service');
+const { getDefaultCommissionRate } = require('./appSetting.service');
+const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 // Real road-network distance/duration come from OSRM when reachable (see
 // utils/osrm.util.js). This flat speed assumption is only the fallback for
@@ -83,6 +86,38 @@ async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destina
   };
 }
 
+// Nominatim only returns one language per request, so the Arabic variant
+// costs a second serialized round-trip per point - fetched fire-and-forget
+// after the ride row already exists, rather than blocking ride creation (and
+// doubling the synchronous French lookup's latency) on it. Never throws, and
+// silently does nothing if both lookups come back null (same failure
+// contract as reverseGeocode itself).
+async function enrichRideAddressesInArabic(ride) {
+  try {
+    const [pickupAddressAr, destinationAddressAr] = await Promise.all([
+      reverseGeocode(ride.pickupLat, ride.pickupLng, 'ar'),
+      reverseGeocode(ride.destinationLat, ride.destinationLng, 'ar'),
+    ]);
+    if (!pickupAddressAr && !destinationAddressAr) return;
+
+    // updateMany (not update) so a since-deleted/cancelled-and-purged ride
+    // doesn't throw here.
+    const { count } = await prisma.ride.updateMany({
+      where: { id: ride.id },
+      data: {
+        ...(pickupAddressAr && { pickupAddressAr }),
+        ...(destinationAddressAr && { destinationAddressAr }),
+      },
+    });
+    if (count === 0) return;
+
+    const updated = await prisma.ride.findUnique({ where: { id: ride.id }, include: RIDE_INCLUDE });
+    if (updated) emitRideStatus(updated);
+  } catch (err) {
+    logger.warn(`Arabic address enrichment failed for ride ${ride.id}: ${err.message}`);
+  }
+}
+
 async function broadcastToNearbyDrivers(ride) {
   const nearbyDrivers = await findNearbyAvailableDrivers(ride.pickupLat, ride.pickupLng);
   for (const { driver } of nearbyDrivers) {
@@ -107,6 +142,7 @@ async function requestRide(clientId, input) {
     include: RIDE_INCLUDE,
   });
 
+  enrichRideAddressesInArabic(ride);
   await broadcastToNearbyDrivers(ride);
   return ride;
 }
@@ -126,10 +162,13 @@ async function scheduleRide(clientId, input) {
 
   const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress);
 
-  return prisma.ride.create({
+  const ride = await prisma.ride.create({
     data: { clientId, ...input, scheduledFor: scheduledDate, status: 'SCHEDULED', ...routeData },
     include: RIDE_INCLUDE,
   });
+
+  enrichRideAddressesInArabic(ride);
+  return ride;
 }
 
 async function listScheduledRides(clientId) {
@@ -158,6 +197,12 @@ async function activateScheduledRides() {
     if (count === 0) continue;
 
     const activated = await prisma.ride.findUnique({ where: { id: ride.id }, include: RIDE_INCLUDE });
+    // Retry-safety net: usually already set from scheduleRide's own
+    // enrichment call, but doesn't hurt to retry here in case that first
+    // attempt hit a flaky Nominatim response.
+    if (!activated.pickupAddressAr || !activated.destinationAddressAr) {
+      enrichRideAddressesInArabic(activated);
+    }
     await broadcastToNearbyDrivers(activated);
   }
 }
@@ -313,7 +358,7 @@ async function applyCreditAndReferralReward(ride) {
 // picks up these fields).
 async function snapshotCommission(ride) {
   const driver = await prisma.user.findUnique({ where: { id: ride.driverId }, select: { commissionRate: true } });
-  const rate = driver?.commissionRate ?? env.DEFAULT_COMMISSION_RATE;
+  const rate = driver?.commissionRate ?? (await getDefaultCommissionRate());
   const fare = ride.estimatedFare || 0;
   const commissionAmount = Math.round(fare * rate * 100) / 100;
   const driverNetAmount = Math.round((fare - commissionAmount) * 100) / 100;
@@ -421,7 +466,10 @@ async function rateRide(userId, role, rideId, { rating, comment }) {
 }
 
 // Cash-only: the driver marks a completed ride paid once they've collected
-// cash in person. No amount/method to record - just the one flag.
+// cash in person. No amount/method to record - just the one flag. Mobile-
+// money methods go through declareRidePaidByClient/confirmRidePaymentReceived
+// below instead, since (unlike cash) there's a client-side step to confirm
+// too.
 async function markRidePaid(driverId, rideId) {
   const ride = await prisma.ride.findUnique({ where: { id: rideId } });
   if (!ride) {
@@ -429,6 +477,9 @@ async function markRidePaid(driverId, rideId) {
   }
   if (ride.driverId !== driverId) {
     throw new AppError('You are not the driver for this ride', 403, 'FORBIDDEN');
+  }
+  if (ride.paymentMethod !== 'CASH') {
+    throw new AppError('This ride is not paid by cash', 409, 'CONFLICT');
   }
   if (ride.status !== 'COMPLETED') {
     throw new AppError('A ride can only be marked as paid once it is completed', 409, 'CONFLICT');
@@ -446,6 +497,91 @@ async function markRidePaid(driverId, rideId) {
   // So the client's screen reflects it live too, reusing the same event
   // ActiveRideScreen already listens on for every other status change.
   emitRideStatus(updated);
+  return updated;
+}
+
+// Step 1 of the mobile-money flow (Bankily/Sedad/Masrivi/Click/Bimbank): none
+// of these Mauritanian apps expose a payment gateway API (researched - closed
+// banking systems, no public merchant integration), so the client transfers
+// directly to the driver's phone/mobile-money account outside this app, then
+// taps "J'ai payé" here to let the driver know. isPaid/paidAt aren't set yet -
+// that only happens once the driver confirms receipt (see
+// confirmRidePaymentReceived below), so a client mistakenly/falsely declaring
+// payment can't unilaterally mark a ride paid.
+async function declareRidePaidByClient(clientId, rideId) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+  if (!ride) {
+    throw new AppError('Ride not found', 404, 'NOT_FOUND');
+  }
+  if (ride.clientId !== clientId) {
+    throw new AppError('You are not the client for this ride', 403, 'FORBIDDEN');
+  }
+  if (!MOBILE_MONEY_METHODS.includes(ride.paymentMethod)) {
+    throw new AppError('This ride is not paid by mobile money', 409, 'CONFLICT');
+  }
+  if (ride.status !== 'COMPLETED') {
+    throw new AppError('A ride can only be declared paid once it is completed', 409, 'CONFLICT');
+  }
+  if (ride.isPaid) {
+    throw new AppError('This ride is already marked as paid', 409, 'CONFLICT');
+  }
+  if (ride.clientMarkedPaidAt) {
+    throw new AppError('You have already declared this ride as paid', 409, 'CONFLICT');
+  }
+
+  const updated = await prisma.ride.update({
+    where: { id: rideId },
+    data: { clientMarkedPaidAt: new Date() },
+    include: RIDE_INCLUDE,
+  });
+
+  emitRideStatus(updated);
+  sendPushToUser(updated.driverId, {
+    title: 'Paiement déclaré',
+    body: `${updated.client.fullName} affirme avoir payé par ${updated.paymentMethod}. Vérifiez et confirmez la réception.`,
+    data: { rideId: updated.id, type: 'ride:payment' },
+  });
+  return updated;
+}
+
+// Step 2: the driver confirms the mobile-money transfer actually arrived -
+// only then does isPaid/paidAt flip, mirroring what markRidePaid does for
+// CASH. Requires the client to have declared first (see
+// declareRidePaidByClient) rather than letting the driver confirm
+// proactively, so this always reflects an explicit two-sided exchange.
+async function confirmRidePaymentReceived(driverId, rideId) {
+  const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+  if (!ride) {
+    throw new AppError('Ride not found', 404, 'NOT_FOUND');
+  }
+  if (ride.driverId !== driverId) {
+    throw new AppError('You are not the driver for this ride', 403, 'FORBIDDEN');
+  }
+  if (!MOBILE_MONEY_METHODS.includes(ride.paymentMethod)) {
+    throw new AppError('This ride is not paid by mobile money', 409, 'CONFLICT');
+  }
+  if (ride.status !== 'COMPLETED') {
+    throw new AppError('A ride can only be confirmed paid once it is completed', 409, 'CONFLICT');
+  }
+  if (ride.isPaid) {
+    throw new AppError('This ride is already marked as paid', 409, 'CONFLICT');
+  }
+  if (!ride.clientMarkedPaidAt) {
+    throw new AppError('The client has not declared payment yet', 409, 'CONFLICT');
+  }
+
+  const updated = await prisma.ride.update({
+    where: { id: rideId },
+    data: { isPaid: true, paidAt: new Date() },
+    include: RIDE_INCLUDE,
+  });
+
+  emitRideStatus(updated);
+  sendPushToUser(updated.clientId, {
+    title: 'Paiement confirmé',
+    body: 'Le chauffeur a confirmé la réception de votre paiement.',
+    data: { rideId: updated.id, type: 'ride:payment' },
+  });
   return updated;
 }
 
@@ -599,6 +735,8 @@ module.exports = {
   cancelRide,
   rateRide,
   markRidePaid,
+  declareRidePaidByClient,
+  confirmRidePaymentReceived,
   createCardCheckoutSession,
   markRidePaidFromStripe,
   hideRideFromHistory,

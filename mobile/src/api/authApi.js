@@ -19,3 +19,15 @@ export function refresh(refreshToken) {
 export function logout(refreshToken) {
   return api.post('/api/auth/logout', { refreshToken }, { skipAuth: true });
 }
+
+export function requestOtp(phone) {
+  return api.post('/api/auth/request-otp', { phone }, { skipAuth: true });
+}
+
+export function verifyOtp(phone, code) {
+  return api.post('/api/auth/verify-otp', { phone, code }, { skipAuth: true });
+}
+
+export function completeRegistration(payload) {
+  return api.post('/api/auth/complete-registration', payload, { skipAuth: true });
+}

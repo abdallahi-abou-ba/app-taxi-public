@@ -5,6 +5,7 @@ const rideService = require('../services/ride.service');
 const revenueService = require('../services/revenue.service');
 const activityLogService = require('../services/activityLog.service');
 const driverDocumentService = require('../services/driverDocument.service');
+const appSettingService = require('../services/appSetting.service');
 
 const listDrivers = asyncHandler(async (req, res) => {
   const drivers = await adminService.listDrivers(req.query.status);
@@ -103,6 +104,24 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: history });
 });
 
+const getSettings = asyncHandler(async (req, res) => {
+  const defaultCommissionRate = await appSettingService.getDefaultCommissionRate();
+  sendSuccess(res, { data: { defaultCommissionRate } });
+});
+
+const updateSettings = asyncHandler(async (req, res) => {
+  const oldValue = await appSettingService.getDefaultCommissionRate();
+  await appSettingService.setDefaultCommissionRate(req.body.defaultCommissionRate, req.user.id);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'SETTINGS_UPDATED',
+    entityType: 'APP_SETTING',
+    entityId: 'DEFAULT_COMMISSION_RATE',
+    details: { oldValue, newValue: req.body.defaultCommissionRate },
+  });
+  sendSuccess(res, { data: { defaultCommissionRate: req.body.defaultCommissionRate } });
+});
+
 const getDriverDocumentFile = asyncHandler(async (req, res) => {
   const doc = await driverDocumentService.getDocumentFile(req.params.id, req.params.type);
   res.set('Content-Type', doc.mimeType);
@@ -161,6 +180,8 @@ module.exports = {
   archiveDriver,
   setCommissionRate,
   getCommissionHistory,
+  getSettings,
+  updateSettings,
   getDriverDocumentFile,
   listClients,
   getStats,

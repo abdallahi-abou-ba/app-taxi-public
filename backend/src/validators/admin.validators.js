@@ -1,4 +1,11 @@
 const { z } = require('zod');
+const { normalizePhone } = require('../utils/phone.util');
+
+const phoneField = z
+  .string()
+  .trim()
+  .refine((v) => normalizePhone(v) !== null, 'Invalid phone number')
+  .transform(normalizePhone);
 
 const DRIVER_STATUS_VALUES = ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED', 'BLOCKED'];
 
@@ -14,7 +21,7 @@ const createDriverSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
   fullName: z.string().trim().min(1),
-  phone: z.string().trim().optional(),
+  phone: phoneField.optional(),
   whatsapp: z.string().trim().optional(),
   vehiclePlate: z.string().trim().min(1),
   vehicleModel: z.string().trim().optional(),
@@ -29,7 +36,7 @@ const createDriverSchema = z.object({
 const updateDriverSchema = z
   .object({
     fullName: z.string().trim().min(1),
-    phone: z.string().trim(),
+    phone: phoneField,
     whatsapp: z.string().trim(),
     vehiclePlate: z.string().trim().min(1),
     vehicleModel: z.string().trim(),
@@ -48,6 +55,10 @@ const driverStatusBodySchema = z.object({
 const commissionRateBodySchema = z.object({
   newRate: z.number().min(0).max(1),
   reason: z.string().trim().max(500).optional(),
+});
+
+const updateSettingsSchema = z.object({
+  defaultCommissionRate: z.number().min(0).max(1),
 });
 
 const RIDE_STATUS_VALUES = ['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
@@ -86,6 +97,7 @@ module.exports = {
   updateDriverSchema,
   driverStatusBodySchema,
   commissionRateBodySchema,
+  updateSettingsSchema,
   adminListRidesQuerySchema,
   revenueQuerySchema,
   activityLogQuerySchema,

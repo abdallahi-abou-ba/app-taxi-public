@@ -14,6 +14,7 @@ const {
   updateDriverSchema,
   driverStatusBodySchema,
   commissionRateBodySchema,
+  updateSettingsSchema,
   adminListRidesQuerySchema,
   revenueQuerySchema,
   activityLogQuerySchema,
@@ -96,6 +97,17 @@ router.get(
 
 router.get('/clients', requirePermission('CLIENTS'), adminController.listClients);
 router.get('/stats', adminController.getStats);
+
+// Platform-wide financial policy (default commission rate) - more sensitive
+// than the per-driver commission-rate endpoint above, so gated behind its own
+// SETTINGS permission rather than DRIVERS/REVENUE.
+router.get('/settings', requirePermission('SETTINGS'), adminController.getSettings);
+router.patch(
+  '/settings',
+  requirePermission('SETTINGS'),
+  validate(updateSettingsSchema, 'body'),
+  adminController.updateSettings
+);
 
 router.get('/rides', requirePermission('RIDES'), validate(adminListRidesQuerySchema, 'query'), adminController.listRides);
 router.get('/rides/:id', requirePermission('RIDES'), validate(rideIdParamSchema, 'params'), adminController.getRide);

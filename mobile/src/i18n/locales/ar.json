@@ -47,7 +47,18 @@
     "fullNamePlaceholder": "محمد أحمد",
     "phoneLabel": "رقم الهاتف",
     "phoneOptionalLabel": "رقم الهاتف (اختياري)",
-    "phonePlaceholder": "0600000000",
+    "phonePlaceholder": "31112233",
+    "phoneEntrySubtitle": "أدخل رقم هاتفك لتلقي رمز تسجيل الدخول.",
+    "requestCode": "استلام الرمز",
+    "otpRequestError": "تعذّر إرسال الرمز",
+    "useEmailPasswordInstead": "تسجيل الدخول بحساب موجود (بريد إلكتروني)",
+    "usePhoneInstead": "تسجيل الدخول برقم الهاتف",
+    "otpCodeLabel": "رمز التحقق",
+    "otpSentTo": "تم إرسال الرمز إلى {{phone}}",
+    "verifyCode": "تحقّق",
+    "resendCode": "إعادة إرسال الرمز",
+    "otpInvalid": "رمز غير صحيح أو منتهي الصلاحية",
+    "completeProfileTitle": "إكمال إنشاء الحساب",
     "imRider": "أنا راكب",
     "imDriver": "أنا سائق",
     "referralCodeLabel": "رمز الإحالة (اختياري)",
@@ -85,7 +96,14 @@
     "creditApplied": "تم تطبيق رصيد: -{{amount}}",
     "payNow": "ادفع الآن",
     "payError": "تعذّر بدء عملية الدفع",
-    "waitingOnlinePayment": "في انتظار الدفع الإلكتروني من طرف الزبون"
+    "waitingOnlinePayment": "في انتظار الدفع الإلكتروني من طرف الزبون",
+    "mobileMoneyInstructions": "أرسل {{amount}} عبر {{method}} إلى رقم السائق أدناه، ثم أكّد ذلك.",
+    "declarePaid": "لقد دفعت",
+    "declarePaidError": "تعذّر تأكيد هذا الدفع",
+    "waitingClientDeclaration": "في انتظار تصريح الزبون",
+    "waitingDriverConfirmation": "في انتظار تأكيد السائق",
+    "confirmReceipt": "تأكيد الاستلام",
+    "confirmPaymentError": "تعذّر تأكيد استلام هذا الدفع"
   },
   "map": {
     "pickup": "الانطلاق",
@@ -127,15 +145,17 @@
     "completeTrip": "إنهاء الرحلة",
     "pendingApproval": "حسابك قيد المراجعة من قبل الإدارة. يمكنك الاتصال بالإنترنت بمجرد تفعيل حسابك.",
     "rejectedApproval": "لم يتم قبول حساب السائق الخاص بك. يرجى التواصل مع الدعم لمزيد من المعلومات.",
+    "suspendedApproval": "تم تعليق حساب السائق الخاص بك. يرجى التواصل مع الدعم لمزيد من المعلومات.",
     "uploadDocumentsCta": "إرسال مستنداتي"
   },
   "driverDocuments": {
     "title": "مستنداتي",
-    "subtitle": "أرسل صورة شخصية، وصورة بطاقة هويتك، ورخصة القيادة حتى يتمكن المسؤول من تفعيل حسابك.",
+    "subtitle": "أرسل صورة شخصية، وصورة بطاقة هويتك، ورخصة القيادة، وصورة سيارتك حتى يتمكن المسؤول من تفعيل حسابك.",
     "types": {
       "PHOTO": "صورة شخصية",
       "ID_CARD": "بطاقة الهوية",
-      "LICENSE": "رخصة القيادة"
+      "LICENSE": "رخصة القيادة",
+      "VEHICLE_PHOTO": "صورة السيارة"
     },
     "uploadedOn": "أُرسلت في {{date}}",
     "notUploaded": "لم يتم إرسال أي مستند",
@@ -215,6 +235,8 @@
   "editProfile": {
     "fullNameLabel": "الاسم الكامل",
     "phoneLabel": "رقم الهاتف",
+    "noPhone": "لا يوجد رقم",
+    "changePhone": "تعديل",
     "emailLabel": "البريد الإلكتروني",
     "saveChanges": "حفظ التغييرات",
     "saved": "تم تحديث الملف الشخصي",

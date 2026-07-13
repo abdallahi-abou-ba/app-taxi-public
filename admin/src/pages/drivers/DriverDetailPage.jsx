@@ -1,5 +1,22 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Pencil,
+  Archive,
+  IdCard,
+  FileCheck2,
+  ListChecks,
+  Percent,
+  Check,
+  X,
+  CheckCircle2,
+  XCircle,
+  Wallet,
+  Landmark,
+  HandCoins,
+  ShieldCheck,
+} from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import {
   archiveDriver,
@@ -18,6 +35,7 @@ const DOCUMENT_TYPES = [
   { type: 'PHOTO', label: 'Photo' },
   { type: 'ID_CARD', label: "Pièce d'identité" },
   { type: 'LICENSE', label: 'Permis de conduire' },
+  { type: 'VEHICLE_PHOTO', label: 'Photo du véhicule' },
 ];
 
 function formatCurrency(value) {
@@ -116,7 +134,8 @@ export default function DriverDetailPage() {
   return (
     <div>
       <Link className="back-link" to="/drivers">
-        ← Retour aux chauffeurs
+        <ArrowLeft size={13} strokeWidth={2.5} />
+        Retour aux chauffeurs
       </Link>
 
       <div className="page-header">
@@ -125,9 +144,11 @@ export default function DriverDetailPage() {
         </h2>
         <div className="btn-row">
           <Link className="btn btn-secondary" to={`/drivers/${id}/edit`}>
+            <Pencil size={13} strokeWidth={2.5} />
             Modifier
           </Link>
           <button className="btn btn-danger" onClick={handleArchive} disabled={busy}>
+            <Archive size={13} strokeWidth={2.5} />
             Archiver
           </button>
         </div>
@@ -136,7 +157,10 @@ export default function DriverDetailPage() {
       {actionError && <p className="error">{actionError}</p>}
 
       <div className="panel">
-        <h3>Profil</h3>
+        <h3>
+          <IdCard size={16} />
+          Profil
+        </h3>
         <div className="form-grid">
           <div>
             <strong>E-mail</strong>
@@ -183,7 +207,10 @@ export default function DriverDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Documents</h3>
+        <h3>
+          <FileCheck2 size={16} />
+          Documents
+        </h3>
         <div className="table-wrap">
           <table className="table">
             <thead>
@@ -227,27 +254,35 @@ export default function DriverDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Statistiques</h3>
+        <h3>
+          <ListChecks size={16} />
+          Statistiques
+        </h3>
         <div className="stats-grid">
-          <StatCard label="Courses terminées" value={driver.stats.completedRides} />
-          <StatCard label="Courses annulées" value={driver.stats.cancelledRides} />
-          <StatCard label="Recette totale" value={formatCurrency(driver.stats.totalRevenue)} />
-          <StatCard label="Commission société" value={formatCurrency(driver.stats.totalCommission)} />
-          <StatCard label="Net chauffeur" value={formatCurrency(driver.stats.totalNetEarnings)} />
+          <StatCard label="Courses terminées" value={driver.stats.completedRides} icon={CheckCircle2} tone="success" />
+          <StatCard label="Courses annulées" value={driver.stats.cancelledRides} icon={XCircle} tone="danger" />
+          <StatCard label="Recette totale" value={formatCurrency(driver.stats.totalRevenue)} icon={Wallet} tone="primary" />
+          <StatCard label="Commission société" value={formatCurrency(driver.stats.totalCommission)} icon={Landmark} tone="info" />
+          <StatCard label="Net chauffeur" value={formatCurrency(driver.stats.totalNetEarnings)} icon={HandCoins} tone="success" />
         </div>
       </div>
 
       <div className={`panel${driver.approvalStatus === 'PENDING' ? ' panel-pending' : ''}`}>
-        <h3>Statut</h3>
+        <h3>
+          <ShieldCheck size={16} />
+          Statut
+        </h3>
         {driver.approvalStatus === 'PENDING' ? (
           <>
             <p className="hint">Nouvelle inscription en attente de validation. Vérifiez le profil ci-dessus avant de statuer.</p>
             <div className="btn-row">
               <button className="btn btn-approve" onClick={() => handleQuickStatus('APPROVED')} disabled={busy}>
-                ✓ Approuver le chauffeur
+                <Check size={14} strokeWidth={2.75} />
+                Approuver le chauffeur
               </button>
               <button className="btn btn-reject" onClick={() => handleQuickStatus('REJECTED')} disabled={busy}>
-                ✕ Rejeter la demande
+                <X size={14} strokeWidth={2.75} />
+                Rejeter la demande
               </button>
             </div>
           </>
@@ -269,7 +304,10 @@ export default function DriverDetailPage() {
       </div>
 
       <div className="panel">
-        <h3>Commission ({driver.commissionRate != null ? `${Math.round(driver.commissionRate * 100)}%` : '—'})</h3>
+        <h3>
+          <Percent size={16} />
+          Commission ({driver.commissionRate != null ? `${Math.round(driver.commissionRate * 100)}%` : '—'})
+        </h3>
         <form className="form-grid" onSubmit={handleRateChange}>
           <label className="field">
             Nouveau taux (%)

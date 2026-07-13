@@ -1,16 +1,19 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { formatDistance, formatDuration, formatFare, formatPaymentMethod } from '../utils/formatters';
+import { formatDistance, formatDuration, formatFare, formatPaymentMethod, getAmountDue } from '../utils/formatters';
 import { ROLE } from '../config/constants';
 import { colors, radius, shadow, spacing } from '../theme/theme';
 
 export default function RideSummaryCard({ ride, viewerRole }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const counterpart = viewerRole === ROLE.DRIVER ? ride.client : ride.driver;
   const counterpartLabel = t(viewerRole === ROLE.DRIVER ? 'common.client' : 'common.driver');
   const hasCredit = ride.creditApplied > 0;
-  const amountDue = hasCredit ? (ride.estimatedFare || 0) - ride.creditApplied : ride.estimatedFare;
+  const amountDue = getAmountDue(ride);
+  const isArabic = i18n.language === 'ar';
+  const pickupAddress = (isArabic && ride.pickupAddressAr) || ride.pickupAddress;
+  const destinationAddress = (isArabic && ride.destinationAddressAr) || ride.destinationAddress;
 
   return (
     <View style={styles.card}>
@@ -38,10 +41,10 @@ export default function RideSummaryCard({ ride, viewerRole }) {
         </View>
         <View style={styles.routeAddresses}>
           <Text style={styles.address} numberOfLines={1}>
-            {ride.pickupAddress || `${ride.pickupLat.toFixed(4)}, ${ride.pickupLng.toFixed(4)}`}
+            {pickupAddress || `${ride.pickupLat.toFixed(4)}, ${ride.pickupLng.toFixed(4)}`}
           </Text>
           <Text style={styles.address} numberOfLines={1}>
-            {ride.destinationAddress || `${ride.destinationLat.toFixed(4)}, ${ride.destinationLng.toFixed(4)}`}
+            {destinationAddress || `${ride.destinationLat.toFixed(4)}, ${ride.destinationLng.toFixed(4)}`}
           </Text>
         </View>
       </View>
