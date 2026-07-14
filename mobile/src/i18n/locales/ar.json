@@ -12,7 +12,8 @@
     "call": "اتصال",
     "client": "عميل",
     "driver": "سائق",
-    "documents": "المستندات"
+    "documents": "المستندات",
+    "settlements": "التسويات"
   },
   "nav": {
     "ride": "رحلة",
@@ -26,7 +27,8 @@
     "currentRide": "الرحلة الحالية",
     "scheduledRides": "حجوزاتي",
     "referral": "الإحالة",
-    "documents": "مستنداتي"
+    "documents": "مستنداتي",
+    "settlements": "تسوياتي"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -71,6 +73,7 @@
     "vehiclePlatePlaceholder": "مثال: 1234 AB 01",
     "vehicleModelOptionalLabel": "طراز السيارة (اختياري)",
     "vehicleModelPlaceholder": "مثال: Toyota Corolla",
+    "whatsappOptionalLabel": "رقم واتساب (اختياري، إذا كان مختلفًا)",
     "loginFailed": "فشل تسجيل الدخول",
     "registrationFailed": "فشل إنشاء الحساب"
   },
@@ -272,5 +275,20 @@
     "wrongPassword": "كلمة المرور غير صحيحة",
     "activeRideError": "لا يمكنك حذف حسابك أثناء وجود رحلة نشطة",
     "genericError": "تعذّر حذف الحساب"
+  },
+  "settlements": {
+    "loadError": "تعذّر تحميل تسوياتك",
+    "empty": "لا توجد تسويات حتى الآن",
+    "youOwe": "أنت مدين بـ",
+    "companyOwesYou": "الشركة مدينة لك بـ",
+    "chooseMethod": "اختر وسيلة الدفع",
+    "declarePaid": "لقد دفعت",
+    "declareError": "تعذّر تأكيد هذا الدفع",
+    "waitingConfirmation": "في انتظار التأكيد ({{method}})",
+    "status": {
+      "PENDING": "قيد الانتظار",
+      "PAID": "مدفوع",
+      "CANCELLED": "ملغى"
+    }
   }
 }

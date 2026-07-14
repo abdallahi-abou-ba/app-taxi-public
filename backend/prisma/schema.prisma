@@ -495,6 +495,14 @@ model Settlement {
   paidByUser      User?     @relation("SettlementPaidBy", fields: [paidByUserId], references: [id])
   createdAt       DateTime  @default(now())
 
+  // Driver self-service "I paid" declaration when they owe the company
+  // (netAmount < 0) - transferred via mobile money outside the app, same
+  // manual pattern as a ride's declare/confirm flow (see
+  // paymentMethod.util.js#MOBILE_MONEY_METHODS). Doesn't flip `status` on its
+  // own - an admin still confirms via the existing markSettlementPaid.
+  driverMarkedPaidAt  DateTime?
+  driverPaymentMethod PaymentMethod?
+
   @@index([driverId])
   @@index([status])
   @@map("settlements")

@@ -3,6 +3,7 @@ const { sendSuccess } = require('../utils/apiResponse');
 const userService = require('../services/user.service');
 const driverDocumentService = require('../services/driverDocument.service');
 const userAvatarService = require('../services/userAvatar.service');
+const settlementService = require('../services/settlement.service');
 const { toPublicUser } = require('../services/auth.service');
 
 const getMe = asyncHandler(async (req, res) => {
@@ -72,6 +73,19 @@ const deleteMyAvatar = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: null });
 });
 
+const getMySettlements = asyncHandler(async (req, res) => {
+  const result = await settlementService.listSettlements({ driverId: req.user.id, page: req.query.page, pageSize: req.query.pageSize });
+  sendSuccess(res, {
+    data: result.settlements,
+    meta: { page: result.page, pageSize: result.pageSize, total: result.total, totalPages: result.totalPages },
+  });
+});
+
+const declareMySettlementPaid = asyncHandler(async (req, res) => {
+  const settlement = await settlementService.declareSettlementPaidByDriver(req.user.id, req.params.id, req.body.paymentMethod);
+  sendSuccess(res, { data: settlement });
+});
+
 module.exports = {
   getMe,
   updateMe,
@@ -86,4 +100,6 @@ module.exports = {
   getMyAvatarFile,
   uploadMyAvatar,
   deleteMyAvatar,
+  getMySettlements,
+  declareMySettlementPaid,
 };

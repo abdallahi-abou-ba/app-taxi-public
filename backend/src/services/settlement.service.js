@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { getDriverBorneExpensesTotal } = require('./expense.service');
 const { DRIVER_COLLECTED_METHODS } = require('../utils/paymentMethod.util');
+const { sendPushToUser } = require('../utils/push.util');
 
 const SETTLEMENT_INCLUDE = {
   driver: { select: { id: true, fullName: true, email: true } },
@@ -95,9 +96,44 @@ async function markSettlementPaid(settlementId, paidByUserId) {
   if (settlement.status !== 'PENDING') {
     throw new AppError('Only a pending settlement can be marked paid', 409, 'CONFLICT');
   }
-  return prisma.settlement.update({
+  const updated = await prisma.settlement.update({
     where: { id: settlementId },
     data: { status: 'PAID', paidAt: new Date(), paidByUserId },
+    include: SETTLEMENT_INCLUDE,
+  });
+
+  sendPushToUser(updated.driverId, {
+    title: 'Paiement confirmé',
+    body: 'Votre règlement a été confirmé par l\'administrateur.',
+    data: { settlementId: updated.id, type: 'settlement:paid' },
+  });
+
+  return updated;
+}
+
+// Driver self-service "I paid" declaration - only meaningful when the driver
+// is the one who owes money (netAmount < 0, i.e. cash-equivalent commission +
+// expenses exceed what the company owes back on electronic rides). Doesn't
+// flip status on its own; an admin still confirms via markSettlementPaid
+// above, same two-step shape as a ride's declare/confirm flow.
+async function declareSettlementPaidByDriver(driverId, settlementId, paymentMethod) {
+  const settlement = await findSettlementOrThrow(settlementId);
+  if (settlement.driverId !== driverId) {
+    throw new AppError('This settlement does not belong to you', 403, 'FORBIDDEN');
+  }
+  if (settlement.status !== 'PENDING') {
+    throw new AppError('Only a pending settlement can be declared paid', 409, 'CONFLICT');
+  }
+  if (settlement.netAmount >= 0) {
+    throw new AppError('You do not owe anything on this settlement', 409, 'CONFLICT');
+  }
+  if (settlement.driverMarkedPaidAt) {
+    throw new AppError('You have already declared this settlement as paid', 409, 'CONFLICT');
+  }
+
+  return prisma.settlement.update({
+    where: { id: settlementId },
+    data: { driverMarkedPaidAt: new Date(), driverPaymentMethod: paymentMethod },
     include: SETTLEMENT_INCLUDE,
   });
 }
@@ -114,4 +150,11 @@ async function cancelSettlement(settlementId) {
   });
 }
 
-module.exports = { listSettlements, getSettlementById, generateSettlement, markSettlementPaid, cancelSettlement };
+module.exports = {
+  listSettlements,
+  getSettlementById,
+  generateSettlement,
+  markSettlementPaid,
+  cancelSettlement,
+  declareSettlementPaidByDriver,
+};

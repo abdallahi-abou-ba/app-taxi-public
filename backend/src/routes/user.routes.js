@@ -10,6 +10,7 @@ const {
   verifyPhoneOtpSchema,
 } = require('../validators/user.validators');
 const { documentTypeParamSchema } = require('../validators/driverDocument.validators');
+const { settlementIdParamSchema, declareSettlementPaidSchema } = require('../validators/settlement.validators');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { uploadDocument, uploadAvatar } = require('../middleware/upload.middleware');
 
@@ -35,5 +36,12 @@ router.post(
 router.get('/me/avatar', userController.getMyAvatarFile);
 router.post('/me/avatar', uploadAvatar, userController.uploadMyAvatar);
 router.delete('/me/avatar', userController.deleteMyAvatar);
+router.get('/me/settlements', userController.getMySettlements);
+router.patch(
+  '/me/settlements/:id/declare-paid',
+  validate(settlementIdParamSchema, 'params'),
+  validate(declareSettlementPaidSchema, 'body'),
+  userController.declareMySettlementPaid
+);
 
 module.exports = router;

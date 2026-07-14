@@ -12,7 +12,8 @@
     "call": "Appeler",
     "client": "Client",
     "driver": "Chauffeur",
-    "documents": "Documents"
+    "documents": "Documents",
+    "settlements": "Règlements"
   },
   "nav": {
     "ride": "Course",
@@ -26,7 +27,8 @@
     "currentRide": "Course en cours",
     "scheduledRides": "Mes réservations",
     "referral": "Parrainage",
-    "documents": "Mes documents"
+    "documents": "Mes documents",
+    "settlements": "Mes règlements"
   },
   "splash": {
     "loading": "Chargement..."
@@ -71,6 +73,7 @@
     "vehiclePlatePlaceholder": "Ex : 1234 AB 01",
     "vehicleModelOptionalLabel": "Modèle du véhicule (optionnel)",
     "vehicleModelPlaceholder": "Ex : Toyota Corolla",
+    "whatsappOptionalLabel": "Numéro WhatsApp (optionnel, si différent)",
     "loginFailed": "Échec de la connexion",
     "registrationFailed": "Échec de l'inscription"
   },
@@ -272,5 +275,20 @@
     "wrongPassword": "Mot de passe incorrect",
     "activeRideError": "Vous ne pouvez pas supprimer votre compte pendant une course active",
     "genericError": "Impossible de supprimer le compte"
+  },
+  "settlements": {
+    "loadError": "Impossible de charger vos règlements",
+    "empty": "Aucun règlement pour le moment",
+    "youOwe": "Vous devez",
+    "companyOwesYou": "L'entreprise vous doit",
+    "chooseMethod": "Choisissez votre moyen de paiement",
+    "declarePaid": "J'ai payé",
+    "declareError": "Impossible de déclarer ce paiement",
+    "waitingConfirmation": "En attente de confirmation ({{method}})",
+    "status": {
+      "PENDING": "En attente",
+      "PAID": "Payé",
+      "CANCELLED": "Annulé"
+    }
   }
 }

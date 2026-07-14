@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Sparkles, Check, X } from 'lucide-react';
+import { Sparkles, Check, X, Clock } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { listSettlements, generateSettlement, markSettlementPaid, cancelSettlement } from '../../api/settlements';
 import { listDrivers } from '../../api/drivers';
 import DataTable from '../../components/DataTable';
 import StatusBadge from '../../components/StatusBadge';
 import FormField from '../../components/FormField';
+import { formatPaymentMethod } from '../../paymentConstants';
 
 function formatCurrency(value) {
   return `${Math.round(value || 0).toLocaleString('fr-FR')} MRU`;
@@ -63,6 +64,19 @@ export default function SettlementListPage() {
     { key: 'expensesOwed', label: 'Frais chauffeur', render: (r) => formatCurrency(r.expensesOwed) },
     { key: 'netAmount', label: 'Solde net', render: (r) => formatCurrency(r.netAmount) },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
+    {
+      key: 'driverDeclared',
+      label: 'Déclaration chauffeur',
+      render: (r) =>
+        r.driverMarkedPaidAt ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5 }}>
+            <Clock size={12} strokeWidth={2.5} />
+            {formatPaymentMethod(r.driverPaymentMethod)} · {new Date(r.driverMarkedPaidAt).toLocaleDateString('fr-FR')}
+          </span>
+        ) : (
+          '—'
+        ),
+    },
     {
       key: 'actions',
       label: '',

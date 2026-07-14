@@ -45,6 +45,9 @@ const registerByPhoneSchema = z
     nom: z.string().trim().min(1, 'Nom is required'),
     prenom: z.string().trim().min(1, 'Prénom is required'),
     role: z.enum(['CLIENT', 'DRIVER']),
+    // Driver-only (see User.whatsapp's doc comment) - null/omitted means
+    // "same as phone", not "no WhatsApp".
+    whatsapp: phoneField.optional(),
     vehiclePlate: z.string().trim().min(1).optional(),
     vehicleModel: z.string().trim().min(1).optional(),
   })

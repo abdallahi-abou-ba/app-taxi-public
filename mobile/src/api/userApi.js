@@ -60,3 +60,11 @@ export function uploadAvatar(asset) {
 export function deleteAvatar() {
   return api.delete('/api/users/me/avatar');
 }
+
+export function getMySettlements() {
+  return api.get('/api/users/me/settlements');
+}
+
+export function declareSettlementPaid(id, paymentMethod) {
+  return api.patch(`/api/users/me/settlements/${id}/declare-paid`, { paymentMethod });
+}

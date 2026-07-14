@@ -13,10 +13,10 @@ export function login({ email, password }) {
 }
 
 // Primary mobile auth as of the phone+password rollout.
-export function registerByPhone({ nom, prenom, phone, password, role, vehiclePlate, vehicleModel }) {
+export function registerByPhone({ nom, prenom, phone, password, role, whatsapp, vehiclePlate, vehicleModel }) {
   return api.post(
     '/api/auth/register-phone',
-    { nom, prenom, phone, password, role, vehiclePlate, vehicleModel },
+    { nom, prenom, phone, password, role, whatsapp, vehiclePlate, vehicleModel },
     { skipAuth: true }
   );
 }

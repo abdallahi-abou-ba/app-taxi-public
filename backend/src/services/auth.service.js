@@ -119,7 +119,7 @@ async function login({ email, password }) {
 // register()/login() above exactly, just keyed on phone instead of email (no
 // email collected at all). nom/prenom are combined into the single fullName
 // column used everywhere else in the app rather than adding new columns.
-async function registerByPhone({ phone, password, nom, prenom, role, vehiclePlate, vehicleModel }) {
+async function registerByPhone({ phone, password, nom, prenom, role, whatsapp, vehiclePlate, vehicleModel }) {
   const existing = await prisma.user.findUnique({ where: { phone } });
   if (existing) {
     throw new AppError('An account with this phone number already exists', 409, 'CONFLICT');
@@ -136,6 +136,7 @@ async function registerByPhone({ phone, password, nom, prenom, role, vehiclePlat
       fullName: `${prenom} ${nom}`.trim(),
       role,
       isAvailable: role === 'DRIVER' ? false : null,
+      whatsapp: role === 'DRIVER' ? whatsapp : undefined,
       vehiclePlate: role === 'DRIVER' ? vehiclePlate : undefined,
       vehicleModel: role === 'DRIVER' ? vehicleModel : undefined,
       approvalStatus: role === 'DRIVER' ? 'PENDING' : null,

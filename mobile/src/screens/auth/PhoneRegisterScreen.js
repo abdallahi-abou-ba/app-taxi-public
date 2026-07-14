@@ -18,6 +18,7 @@ export default function PhoneRegisterScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(ROLE.CLIENT);
+  const [whatsapp, setWhatsapp] = useState('');
   const [vehiclePlate, setVehiclePlate] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [error, setError] = useState(null);
@@ -43,6 +44,7 @@ export default function PhoneRegisterScreen({ navigation }) {
         phone: phone.trim(),
         password,
         role,
+        whatsapp: isDriver ? whatsapp.trim() || undefined : undefined,
         vehiclePlate: isDriver ? vehiclePlate.trim() : undefined,
         vehicleModel: isDriver ? vehicleModel.trim() || undefined : undefined,
       });
@@ -81,6 +83,13 @@ export default function PhoneRegisterScreen({ navigation }) {
               value={vehicleModel}
               onChangeText={setVehicleModel}
               placeholder={t('auth.vehicleModelPlaceholder')}
+            />
+            <TextField
+              label={t('auth.whatsappOptionalLabel')}
+              value={whatsapp}
+              onChangeText={setWhatsapp}
+              keyboardType="phone-pad"
+              placeholder={t('auth.phonePlaceholder')}
             />
           </>
         ) : null}

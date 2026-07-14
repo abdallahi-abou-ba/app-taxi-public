@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 const SETTLEMENT_STATUS_VALUES = ['PENDING', 'PAID', 'CANCELLED'];
 
@@ -20,9 +21,14 @@ const createSettlementSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
+const declareSettlementPaidSchema = z.object({
+  paymentMethod: z.enum(MOBILE_MONEY_METHODS),
+});
+
 module.exports = {
   SETTLEMENT_STATUS_VALUES,
   settlementIdParamSchema,
   listSettlementsQuerySchema,
   createSettlementSchema,
+  declareSettlementPaidSchema,
 };
