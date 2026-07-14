@@ -512,7 +512,6 @@ a {
 .status-APPROVED,
 .status-ACTIVE,
 .status-PAID,
-.status-CONFIRMED,
 .status-RESOLVED,
 .status-COMPLETED {
   background: #d9f2e3;

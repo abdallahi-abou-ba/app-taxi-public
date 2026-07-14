@@ -294,22 +294,6 @@
     }
   },
   "recharge": {
-    "loadError": "Impossible de charger les informations de recharge",
-    "amountLabel": "Montant (minimum {{min}})",
-    "amountPlaceholder": "Ex : 500",
-    "belowMinimum": "Le montant minimum est de {{min}}",
-    "chooseMethod": "Choisissez votre moyen de paiement",
-    "mobileMoneyInstructions": "Envoyez le montant par {{method}} au numéro ci-dessous, puis validez - un administrateur confirmera votre recharge.",
-    "noCompanyPhone": "Le numéro de réception n'est pas encore configuré. Contactez le support avant d'envoyer un paiement.",
-    "submit": "Recharger",
-    "submitError": "Impossible de lancer la recharge",
-    "declaredSuccess": "Recharge déclarée - en attente de confirmation par un administrateur",
-    "history": "Historique des recharges",
-    "empty": "Aucune recharge pour le moment",
-    "status": {
-      "PENDING": "En attente",
-      "CONFIRMED": "Confirmée",
-      "CANCELLED": "Annulée"
-    }
+    "intro": "Choisissez votre application mobile money pour la recharger directement."
   }
 }

@@ -44,32 +44,6 @@ async function createCheckoutSession(ride, { successUrl, cancelUrl }) {
   });
 }
 
-// Same Checkout Session shape as createCheckoutSession above, but for a
-// client topping up their own creditBalance rather than paying for a ride -
-// metadata carries a topUpId instead of a rideId so the webhook (see
-// payment.controller.js) can tell the two apart.
-async function createTopUpCheckoutSession(topUp, { successUrl, cancelUrl }) {
-  const stripe = getStripeClient();
-
-  return stripe.checkout.sessions.create({
-    mode: 'payment',
-    payment_method_types: ['card'],
-    line_items: [
-      {
-        price_data: {
-          currency: env.STRIPE_CURRENCY,
-          unit_amount: Math.round(topUp.amount * 100),
-          product_data: { name: 'Recharge de compte' },
-        },
-        quantity: 1,
-      },
-    ],
-    metadata: { topUpId: topUp.id },
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-  });
-}
-
 function constructWebhookEvent(rawBody, signature) {
   const stripe = getStripeClient();
   if (!env.STRIPE_WEBHOOK_SECRET) {
@@ -82,4 +56,4 @@ function constructWebhookEvent(rawBody, signature) {
   }
 }
 
-module.exports = { createCheckoutSession, createTopUpCheckoutSession, constructWebhookEvent };
+module.exports = { createCheckoutSession, constructWebhookEvent };

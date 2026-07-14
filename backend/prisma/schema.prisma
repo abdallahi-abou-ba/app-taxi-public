@@ -105,12 +105,6 @@ enum SettlementStatus {
   CANCELLED
 }
 
-enum WalletTopUpStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-}
-
 enum ComplaintCategory {
   DRIVER_BEHAVIOR
   VEHICLE_CONDITION
@@ -290,9 +284,6 @@ model User {
   settlementsAsDriver Settlement[] @relation("SettlementDriver")
   settlementsCreated  Settlement[] @relation("SettlementCreatedBy")
   settlementsPaid     Settlement[] @relation("SettlementPaidBy")
-
-  walletTopUps          WalletTopUp[] @relation("WalletTopUpDriver")
-  walletTopUpsConfirmed WalletTopUp[] @relation("WalletTopUpConfirmedBy")
 
   complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
   complaintsAbout     Complaint[] @relation("ComplaintAboutUser")
@@ -515,40 +506,6 @@ model Settlement {
   @@index([driverId])
   @@index([status])
   @@map("settlements")
-}
-
-// Driver self-service top-up of their own creditBalance (see User.creditBalance) -
-// just a tracked balance for now, with no automatic effect on settlements.
-// CARD goes through Stripe Checkout exactly like a ride's card payment -
-// confirmed automatically by the webhook (payment.controller.js), never by an
-// admin. Mobile-money methods are declare/confirm, same manual two-step shape
-// as Settlement's driverMarkedPaidAt/markSettlementPaid, except there's no
-// pre-existing admin-created row to declare against - driverDeclaredAt is set
-// at creation time here, since the driver picks amount+method and "declares"
-// in one step.
-model WalletTopUp {
-  id       String @id @default(uuid())
-  driverId String
-  driver   User   @relation("WalletTopUpDriver", fields: [driverId], references: [id])
-
-  amount Float
-  method PaymentMethod
-  status WalletTopUpStatus @default(PENDING)
-
-  driverDeclaredAt DateTime?
-
-  confirmedAt       DateTime?
-  confirmedByUserId String?
-  confirmedByUser   User?     @relation("WalletTopUpConfirmedBy", fields: [confirmedByUserId], references: [id])
-
-  stripeCheckoutSessionId String? @unique
-  stripePaymentIntentId   String? @unique
-
-  createdAt DateTime @default(now())
-
-  @@index([driverId])
-  @@index([status])
-  @@map("wallet_topups")
 }
 
 // Client/driver-submitted complaint (spec 12), managed from the admin back

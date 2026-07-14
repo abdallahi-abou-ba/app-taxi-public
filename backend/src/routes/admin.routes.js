@@ -4,7 +4,6 @@ const vehicleRoutes = require('./vehicle.routes');
 const adminUserRoutes = require('./adminUser.routes');
 const expenseRoutes = require('./expense.routes');
 const settlementRoutes = require('./settlement.routes');
-const walletTopupRoutes = require('./walletTopup.routes');
 const adminComplaintRoutes = require('./adminComplaint.routes');
 const reportRoutes = require('./report.routes');
 const validate = require('../middleware/validate.middleware');
@@ -126,7 +125,6 @@ router.use('/vehicles', requirePermission('VEHICLES'), vehicleRoutes);
 router.use('/admins', adminUserRoutes);
 router.use('/expenses', requirePermission('EXPENSES'), expenseRoutes);
 router.use('/settlements', requirePermission('SETTLEMENTS'), settlementRoutes);
-router.use('/wallet-topups', requirePermission('WALLET_TOPUPS'), walletTopupRoutes);
 router.use('/complaints', requirePermission('COMPLAINTS'), adminComplaintRoutes);
 router.use('/reports', requirePermission('REPORTS'), reportRoutes);
 

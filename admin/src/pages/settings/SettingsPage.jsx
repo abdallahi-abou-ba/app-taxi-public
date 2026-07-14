@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Percent, Phone } from 'lucide-react';
+import { Percent } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -10,11 +10,6 @@ export default function SettingsPage() {
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  const [newPhone, setNewPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
-  const [phoneSuccess, setPhoneSuccess] = useState(false);
-  const [phoneBusy, setPhoneBusy] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -31,24 +26,6 @@ export default function SettingsPage() {
       setActionError(err.message);
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function handlePhoneSubmit(e) {
-    e.preventDefault();
-    if (newPhone === '') return;
-    setPhoneBusy(true);
-    setPhoneError('');
-    setPhoneSuccess(false);
-    try {
-      await updateSettings({ walletTopupPhone: newPhone });
-      setNewPhone('');
-      setPhoneSuccess(true);
-      reload();
-    } catch (err) {
-      setPhoneError(err.message);
-    } finally {
-      setPhoneBusy(false);
     }
   }
 
@@ -81,31 +58,6 @@ export default function SettingsPage() {
           </label>
           <div style={{ alignSelf: 'end' }}>
             <button className="btn btn-primary" type="submit" disabled={busy || newRate === ''}>
-              Enregistrer
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {phoneError && <p className="error">{phoneError}</p>}
-      {phoneSuccess && <p className="hint">Numéro de recharge mis à jour.</p>}
-
-      <div className="panel">
-        <h3>
-          <Phone size={16} />
-          Numéro de recharge mobile money ({settings.walletTopupPhone || '—'})
-        </h3>
-        <p className="hint">
-          Numéro affiché au client pour envoyer une recharge de compte par Bankily/Sedad/Masrivi/Click/Bimbank. Vide
-          tant qu'aucun numéro n'est configuré.
-        </p>
-        <form className="form-grid" onSubmit={handlePhoneSubmit}>
-          <label className="field">
-            Nouveau numéro
-            <input type="tel" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="Ex : 22212345678" />
-          </label>
-          <div style={{ alignSelf: 'end' }}>
-            <button className="btn btn-primary" type="submit" disabled={phoneBusy || newPhone === ''}>
               Enregistrer
             </button>
           </div>

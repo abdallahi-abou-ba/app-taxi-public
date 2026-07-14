@@ -24,7 +24,6 @@ const ICONS = {
   APPROVED: CheckCircle2,
   ACTIVE: CheckCircle2,
   PAID: CheckCircle2,
-  CONFIRMED: CheckCircle2,
   RESOLVED: CheckCircle2,
   COMPLETED: CheckCircle2,
   REJECTED: XCircle,
