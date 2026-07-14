@@ -4,6 +4,7 @@ const userService = require('../services/user.service');
 const driverDocumentService = require('../services/driverDocument.service');
 const userAvatarService = require('../services/userAvatar.service');
 const settlementService = require('../services/settlement.service');
+const walletService = require('../services/wallet.service');
 const { toPublicUser } = require('../services/auth.service');
 
 const getMe = asyncHandler(async (req, res) => {
@@ -86,6 +87,21 @@ const declareMySettlementPaid = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: settlement });
 });
 
+const getWalletTopUpInfo = asyncHandler(async (req, res) => {
+  const info = await walletService.getTopUpInfo();
+  sendSuccess(res, { data: info });
+});
+
+const createMyWalletTopUp = asyncHandler(async (req, res) => {
+  const result = await walletService.createTopUp(req.user.id, req.body);
+  sendSuccess(res, { data: result });
+});
+
+const getMyWalletTopUps = asyncHandler(async (req, res) => {
+  const topUps = await walletService.listMyTopUps(req.user.id);
+  sendSuccess(res, { data: topUps });
+});
+
 module.exports = {
   getMe,
   updateMe,
@@ -102,4 +118,7 @@ module.exports = {
   deleteMyAvatar,
   getMySettlements,
   declareMySettlementPaid,
+  getWalletTopUpInfo,
+  createMyWalletTopUp,
+  getMyWalletTopUps,
 };

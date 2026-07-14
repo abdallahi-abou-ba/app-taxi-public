@@ -105,6 +105,12 @@ enum SettlementStatus {
   CANCELLED
 }
 
+enum WalletTopUpStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
 enum ComplaintCategory {
   DRIVER_BEHAVIOR
   VEHICLE_CONDITION
@@ -284,6 +290,9 @@ model User {
   settlementsAsDriver Settlement[] @relation("SettlementDriver")
   settlementsCreated  Settlement[] @relation("SettlementCreatedBy")
   settlementsPaid     Settlement[] @relation("SettlementPaidBy")
+
+  walletTopUps         WalletTopUp[] @relation("WalletTopUpClient")
+  walletTopUpsConfirmed WalletTopUp[] @relation("WalletTopUpConfirmedBy")
 
   complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
   complaintsAbout     Complaint[] @relation("ComplaintAboutUser")
@@ -506,6 +515,39 @@ model Settlement {
   @@index([driverId])
   @@index([status])
   @@map("settlements")
+}
+
+// Client self-service top-up of their own creditBalance (see User.creditBalance),
+// on top of the existing referral-only funding path. CARD goes through Stripe
+// Checkout exactly like a ride's card payment - confirmed automatically by the
+// webhook (payment.controller.js), never by an admin. Mobile-money methods are
+// declare/confirm, same manual two-step shape as Settlement's
+// driverMarkedPaidAt/markSettlementPaid, except there's no pre-existing
+// admin-created row to declare against - clientDeclaredAt is set at creation
+// time here, since the client picks amount+method and "declares" in one step.
+model WalletTopUp {
+  id       String @id @default(uuid())
+  clientId String
+  client   User   @relation("WalletTopUpClient", fields: [clientId], references: [id])
+
+  amount Float
+  method PaymentMethod
+  status WalletTopUpStatus @default(PENDING)
+
+  clientDeclaredAt DateTime?
+
+  confirmedAt       DateTime?
+  confirmedByUserId String?
+  confirmedByUser   User?     @relation("WalletTopUpConfirmedBy", fields: [confirmedByUserId], references: [id])
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([status])
+  @@map("wallet_topups")
 }
 
 // Client/driver-submitted complaint (spec 12), managed from the admin back

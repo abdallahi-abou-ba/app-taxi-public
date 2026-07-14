@@ -37,6 +37,10 @@ const envSchema = z.object({
   // friend once the friend completes their first ride.
   REFERRAL_REWARD_AMOUNT: z.coerce.number().nonnegative().default(20),
 
+  // Client wallet top-ups (see wallet.service.js) - smallest amount a client
+  // can add to their own creditBalance in one go.
+  WALLET_TOPUP_MIN_AMOUNT: z.coerce.number().positive().default(100),
+
   // Default company commission rate (fraction of fare) applied to a new
   // driver at registration/creation, and as the fallback if a ride is ever
   // completed for a driver with no rate set.

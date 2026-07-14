@@ -13,7 +13,8 @@
     "client": "عميل",
     "driver": "سائق",
     "documents": "المستندات",
-    "settlements": "التسويات"
+    "settlements": "التسويات",
+    "recharge": "شحن الرصيد"
   },
   "nav": {
     "ride": "رحلة",
@@ -28,7 +29,8 @@
     "scheduledRides": "حجوزاتي",
     "referral": "الإحالة",
     "documents": "مستنداتي",
-    "settlements": "تسوياتي"
+    "settlements": "تسوياتي",
+    "recharge": "شحن رصيد حسابي"
   },
   "splash": {
     "loading": "جارٍ التحميل..."
@@ -289,6 +291,25 @@
       "PENDING": "قيد الانتظار",
       "PAID": "مدفوع",
       "CANCELLED": "ملغى"
+    }
+  },
+  "recharge": {
+    "loadError": "تعذّر تحميل معلومات الشحن",
+    "amountLabel": "المبلغ (الحد الأدنى {{min}})",
+    "amountPlaceholder": "مثال: 500",
+    "belowMinimum": "الحد الأدنى للمبلغ هو {{min}}",
+    "chooseMethod": "اختر وسيلة الدفع",
+    "mobileMoneyInstructions": "أرسل المبلغ عبر {{method}} إلى الرقم أدناه ثم أكّد - سيقوم أحد المسؤولين بتأكيد شحن رصيدك.",
+    "noCompanyPhone": "لم يتم بعد تحديد رقم الاستلام. يرجى التواصل مع الدعم قبل إرسال أي دفعة.",
+    "submit": "شحن الرصيد",
+    "submitError": "تعذّر بدء عملية الشحن",
+    "declaredSuccess": "تم تسجيل طلب الشحن - في انتظار تأكيد المسؤول",
+    "history": "سجل عمليات الشحن",
+    "empty": "لا توجد عمليات شحن حتى الآن",
+    "status": {
+      "PENDING": "قيد الانتظار",
+      "CONFIRMED": "مؤكدة",
+      "CANCELLED": "ملغاة"
     }
   }
 }

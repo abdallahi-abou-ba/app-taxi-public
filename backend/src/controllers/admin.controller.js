@@ -105,21 +105,45 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
 });
 
 const getSettings = asyncHandler(async (req, res) => {
-  const defaultCommissionRate = await appSettingService.getDefaultCommissionRate();
-  sendSuccess(res, { data: { defaultCommissionRate } });
+  const [defaultCommissionRate, walletTopupPhone] = await Promise.all([
+    appSettingService.getDefaultCommissionRate(),
+    appSettingService.getWalletTopupPhone(),
+  ]);
+  sendSuccess(res, { data: { defaultCommissionRate, walletTopupPhone } });
 });
 
 const updateSettings = asyncHandler(async (req, res) => {
-  const oldValue = await appSettingService.getDefaultCommissionRate();
-  await appSettingService.setDefaultCommissionRate(req.body.defaultCommissionRate, req.user.id);
-  await activityLogService.logActivity({
-    adminUserId: req.user.id,
-    action: 'SETTINGS_UPDATED',
-    entityType: 'APP_SETTING',
-    entityId: 'DEFAULT_COMMISSION_RATE',
-    details: { oldValue, newValue: req.body.defaultCommissionRate },
-  });
-  sendSuccess(res, { data: { defaultCommissionRate: req.body.defaultCommissionRate } });
+  const { defaultCommissionRate, walletTopupPhone } = req.body;
+
+  if (defaultCommissionRate !== undefined) {
+    const oldValue = await appSettingService.getDefaultCommissionRate();
+    await appSettingService.setDefaultCommissionRate(defaultCommissionRate, req.user.id);
+    await activityLogService.logActivity({
+      adminUserId: req.user.id,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'APP_SETTING',
+      entityId: 'DEFAULT_COMMISSION_RATE',
+      details: { oldValue, newValue: defaultCommissionRate },
+    });
+  }
+
+  if (walletTopupPhone !== undefined) {
+    const oldValue = await appSettingService.getWalletTopupPhone();
+    await appSettingService.setWalletTopupPhone(walletTopupPhone, req.user.id);
+    await activityLogService.logActivity({
+      adminUserId: req.user.id,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'APP_SETTING',
+      entityId: 'WALLET_TOPUP_PHONE',
+      details: { oldValue, newValue: walletTopupPhone },
+    });
+  }
+
+  const [updatedRate, updatedPhone] = await Promise.all([
+    appSettingService.getDefaultCommissionRate(),
+    appSettingService.getWalletTopupPhone(),
+  ]);
+  sendSuccess(res, { data: { defaultCommissionRate: updatedRate, walletTopupPhone: updatedPhone } });
 });
 
 const getDriverDocumentFile = asyncHandler(async (req, res) => {

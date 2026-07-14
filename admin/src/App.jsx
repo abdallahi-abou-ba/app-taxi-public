@@ -17,6 +17,7 @@ import ClientListPage from './pages/clients/ClientListPage';
 import ExpenseListPage from './pages/expenses/ExpenseListPage';
 import ExpenseFormPage from './pages/expenses/ExpenseFormPage';
 import SettlementListPage from './pages/settlements/SettlementListPage';
+import WalletTopUpListPage from './pages/wallet-topups/WalletTopUpListPage';
 import ComplaintListPage from './pages/complaints/ComplaintListPage';
 import ComplaintDetailPage from './pages/complaints/ComplaintDetailPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -48,6 +49,7 @@ export default function App() {
               <Route path="/expenses" element={<ExpenseListPage />} />
               <Route path="/expenses/new" element={<ExpenseFormPage />} />
               <Route path="/settlements" element={<SettlementListPage />} />
+              <Route path="/wallet-topups" element={<WalletTopUpListPage />} />
               <Route path="/complaints" element={<ComplaintListPage />} />
               <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
               <Route path="/reports" element={<ReportsPage />} />

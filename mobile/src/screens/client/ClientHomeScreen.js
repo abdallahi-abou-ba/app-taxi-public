@@ -179,6 +179,7 @@ export default function ClientHomeScreen({ navigation }) {
     { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
     { key: 'reservations', icon: 'calendar-outline', label: t('common.reservations'), onPress: () => navigation.navigate('ScheduledRides') },
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+    { key: 'recharge', icon: 'wallet-outline', label: t('common.recharge'), onPress: () => navigation.navigate('Recharge') },
   ];
 
   return (

@@ -2,6 +2,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const paymentService = require('../services/payment.service');
 const rideService = require('../services/ride.service');
+const walletService = require('../services/wallet.service');
 
 // Mounted directly in app.js (not under requireAuth/express.json) - Stripe
 // calls this itself, verified by signature rather than a user's JWT, and
@@ -12,8 +13,11 @@ const handleStripeWebhook = asyncHandler(async (req, res) => {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const rideId = session.metadata?.rideId;
+    const topUpId = session.metadata?.topUpId;
     if (rideId) {
       await rideService.markRidePaidFromStripe(rideId, session.payment_intent);
+    } else if (topUpId) {
+      await walletService.markTopUpPaidFromStripe(topUpId, session.payment_intent);
     }
   }
 
