@@ -105,6 +105,12 @@ enum SettlementStatus {
   CANCELLED
 }
 
+enum WalletTopUpStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
 enum ComplaintCategory {
   DRIVER_BEHAVIOR
   VEHICLE_CONDITION
@@ -284,6 +290,9 @@ model User {
   settlementsAsDriver Settlement[] @relation("SettlementDriver")
   settlementsCreated  Settlement[] @relation("SettlementCreatedBy")
   settlementsPaid     Settlement[] @relation("SettlementPaidBy")
+
+  walletTopUps          WalletTopUp[] @relation("WalletTopUpDriver")
+  walletTopUpsConfirmed WalletTopUp[] @relation("WalletTopUpConfirmedBy")
 
   complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
   complaintsAbout     Complaint[] @relation("ComplaintAboutUser")
@@ -506,6 +515,43 @@ model Settlement {
   @@index([driverId])
   @@index([status])
   @@map("settlements")
+}
+
+// Driver self-service top-up of their own creditBalance (see User.creditBalance) -
+// just a tracked balance for now, with no automatic effect on settlements.
+// Mobile-money only (Bankily/Sedad/Masrivi/Click/Bimbank) via a merchant-code
+// payment: the driver pastes the company's registered merchant code (see
+// appSetting.service.js#getWalletTopupMerchantCode, one code shared across all
+// providers) into that app's own "Pay a merchant" feature, enters the amount
+// themselves there, and completes the transfer entirely outside this app -
+// there's no gateway API for any of these Mauritanian mobile-money apps. This
+// row is the driver's own declaration of that payment (driverDeclaredAt set
+// at creation, same moment they see the merchant code) - an admin still
+// confirms via confirmTopUp before the balance is actually credited, same
+// two-step shape as Settlement's driverMarkedPaidAt/markSettlementPaid.
+// payerPhone is the mobile-money account they paid from, for the admin's
+// reconciliation - may differ from the driver's own login phone.
+model WalletTopUp {
+  id       String @id @default(uuid())
+  driverId String
+  driver   User   @relation("WalletTopUpDriver", fields: [driverId], references: [id])
+
+  amount     Float
+  method     PaymentMethod
+  payerPhone String
+  status     WalletTopUpStatus @default(PENDING)
+
+  driverDeclaredAt DateTime @default(now())
+
+  confirmedAt       DateTime?
+  confirmedByUserId String?
+  confirmedByUser   User?     @relation("WalletTopUpConfirmedBy", fields: [confirmedByUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([driverId])
+  @@index([status])
+  @@map("wallet_topups")
 }
 
 // Client/driver-submitted complaint (spec 12), managed from the admin back

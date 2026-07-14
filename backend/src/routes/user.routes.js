@@ -11,7 +11,8 @@ const {
 } = require('../validators/user.validators');
 const { documentTypeParamSchema } = require('../validators/driverDocument.validators');
 const { settlementIdParamSchema, declareSettlementPaidSchema } = require('../validators/settlement.validators');
-const { requireAuth } = require('../middleware/auth.middleware');
+const { createTopUpSchema } = require('../validators/wallet.validators');
+const { requireAuth, requireRole } = require('../middleware/auth.middleware');
 const { uploadDocument, uploadAvatar } = require('../middleware/upload.middleware');
 
 const router = Router();
@@ -43,4 +44,8 @@ router.patch(
   validate(declareSettlementPaidSchema, 'body'),
   userController.declareMySettlementPaid
 );
+router.get('/me/wallet/topup-info', requireRole('DRIVER'), userController.getWalletTopUpInfo);
+router.get('/me/wallet/topups', requireRole('DRIVER'), userController.getMyWalletTopUps);
+router.post('/me/wallet/topups', requireRole('DRIVER'), validate(createTopUpSchema), userController.createMyWalletTopUp);
+
 module.exports = router;

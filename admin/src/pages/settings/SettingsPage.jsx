@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Percent } from 'lucide-react';
+import { Percent, Hash } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -10,6 +10,11 @@ export default function SettingsPage() {
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const [newCode, setNewCode] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [codeSuccess, setCodeSuccess] = useState(false);
+  const [codeBusy, setCodeBusy] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -26,6 +31,24 @@ export default function SettingsPage() {
       setActionError(err.message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleCodeSubmit(e) {
+    e.preventDefault();
+    if (newCode === '') return;
+    setCodeBusy(true);
+    setCodeError('');
+    setCodeSuccess(false);
+    try {
+      await updateSettings({ walletTopupMerchantCode: newCode });
+      setNewCode('');
+      setCodeSuccess(true);
+      reload();
+    } catch (err) {
+      setCodeError(err.message);
+    } finally {
+      setCodeBusy(false);
     }
   }
 
@@ -58,6 +81,32 @@ export default function SettingsPage() {
           </label>
           <div style={{ alignSelf: 'end' }}>
             <button className="btn btn-primary" type="submit" disabled={busy || newRate === ''}>
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {codeError && <p className="error">{codeError}</p>}
+      {codeSuccess && <p className="hint">Code marchand mis à jour.</p>}
+
+      <div className="panel">
+        <h3>
+          <Hash size={16} />
+          Code marchand recharge ({settings.walletTopupMerchantCode || '—'})
+        </h3>
+        <p className="hint">
+          Code affiché au chauffeur pour recharger son compte : il le colle dans la fonction "Payer un marchand" de
+          son application mobile money (Bankily/Sedad/Masrivi/Click/Bimbank). Un seul code, commun à toutes les
+          applications. Vide tant qu'aucun code n'est configuré.
+        </p>
+        <form className="form-grid" onSubmit={handleCodeSubmit}>
+          <label className="field">
+            Nouveau code marchand
+            <input type="text" value={newCode} onChange={(e) => setNewCode(e.target.value)} placeholder="Ex : TAXI-12345" />
+          </label>
+          <div style={{ alignSelf: 'end' }}>
+            <button className="btn btn-primary" type="submit" disabled={codeBusy || newCode === ''}>
               Enregistrer
             </button>
           </div>

@@ -49,7 +49,7 @@ function requireRole(...roles) {
 // frais, règlements, rapports - a superset of OPERATIONS's REVENUE access
 // plus the finance-only sections), SUPPORT is "Support client".
 const ADMIN_ROLE_PERMISSIONS = {
-  FINANCE: ['REVENUE', 'EXPENSES', 'SETTLEMENTS', 'REPORTS', 'SETTINGS'],
+  FINANCE: ['REVENUE', 'EXPENSES', 'SETTLEMENTS', 'REPORTS', 'SETTINGS', 'WALLET_TOPUPS'],
   OPERATIONS: ['DRIVERS', 'VEHICLES', 'RIDES', 'REVENUE'],
   SUPPORT: ['COMPLAINTS', 'CLIENTS', 'RIDES'],
 };

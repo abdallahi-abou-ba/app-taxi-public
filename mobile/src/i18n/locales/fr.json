@@ -294,6 +294,26 @@
     }
   },
   "recharge": {
-    "intro": "Choisissez votre application mobile money pour la recharger directement."
+    "loadError": "Impossible de charger les informations de recharge",
+    "merchantCodeLabel": "Code marchand",
+    "copyCode": "Copier le code",
+    "copied": "Copié !",
+    "codeInstructions": "Ouvrez votre application mobile money, choisissez \"Payer un marchand\", collez ce code, entrez le montant et confirmez.",
+    "noMerchantCode": "Le code marchand n'est pas encore configuré. Contactez le support avant d'envoyer un paiement.",
+    "amountLabel": "Montant (minimum {{min}})",
+    "amountPlaceholder": "Ex : 500",
+    "belowMinimum": "Le montant minimum est de {{min}}",
+    "phoneLabel": "Numéro utilisé pour payer",
+    "phonePlaceholder": "Ex : 22233445566",
+    "chooseMethod": "Choisissez votre application mobile money",
+    "submit": "Recharger",
+    "submitError": "Impossible de déclarer cette recharge",
+    "history": "Historique des recharges",
+    "empty": "Aucune recharge pour le moment",
+    "status": {
+      "PENDING": "En attente",
+      "CONFIRMED": "Confirmée",
+      "CANCELLED": "Annulée"
+    }
   }
 }

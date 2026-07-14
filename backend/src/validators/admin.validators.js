@@ -57,9 +57,14 @@ const commissionRateBodySchema = z.object({
   reason: z.string().trim().max(500).optional(),
 });
 
-const updateSettingsSchema = z.object({
-  defaultCommissionRate: z.number().min(0).max(1),
-});
+const updateSettingsSchema = z
+  .object({
+    defaultCommissionRate: z.number().min(0).max(1).optional(),
+    walletTopupMerchantCode: z.string().trim().min(2).max(50).optional(),
+  })
+  .refine((data) => data.defaultCommissionRate !== undefined || data.walletTopupMerchantCode !== undefined, {
+    message: 'At least one setting must be provided',
+  });
 
 const RIDE_STATUS_VALUES = ['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 
