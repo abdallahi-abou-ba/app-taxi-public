@@ -7,7 +7,7 @@ const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 const { sendPushToUser } = require('../utils/push.util');
 
 const TOPUP_INCLUDE = {
-  client: { select: { id: true, fullName: true, phone: true } },
+  driver: { select: { id: true, fullName: true, phone: true } },
   confirmedByUser: { select: { id: true, fullName: true } },
 };
 
@@ -19,7 +19,7 @@ async function findTopUpOrThrow(topUpId) {
   return topUp;
 }
 
-// Info a client needs before starting a top-up - minimum amount and, for
+// Info a driver needs before starting a top-up - minimum amount and, for
 // mobile-money methods, the company's own receiving number (null until an
 // admin sets one from Settings; see appSetting.service.js).
 async function getTopUpInfo() {
@@ -29,13 +29,13 @@ async function getTopUpInfo() {
 
 // CARD goes through Stripe Checkout (confirmed automatically by the webhook -
 // see markTopUpPaidFromStripe below - never by an admin). Mobile-money
-// methods have no gateway API, so the client transfers to the company's own
+// methods have no gateway API, so the driver transfers to the company's own
 // number outside the app and this row itself IS the declaration
-// (clientDeclaredAt set immediately) - unlike Settlement's declare/confirm,
+// (driverDeclaredAt set immediately) - unlike Settlement's declare/confirm,
 // there's no pre-existing admin-created row to declare against here. Either
 // way an admin still confirms mobile-money top-ups via confirmTopUp before
 // the balance is actually credited.
-async function createTopUp(clientId, { amount, method, successUrl, cancelUrl }) {
+async function createTopUp(driverId, { amount, method, successUrl, cancelUrl }) {
   if (amount < env.WALLET_TOPUP_MIN_AMOUNT) {
     throw new AppError(`The minimum top-up amount is ${env.WALLET_TOPUP_MIN_AMOUNT}`, 422, 'VALIDATION_ERROR');
   }
@@ -44,7 +44,7 @@ async function createTopUp(clientId, { amount, method, successUrl, cancelUrl }) 
     if (!successUrl || !cancelUrl) {
       throw new AppError('successUrl and cancelUrl are required for a card top-up', 422, 'VALIDATION_ERROR');
     }
-    const topUp = await prisma.walletTopUp.create({ data: { clientId, amount, method }, include: TOPUP_INCLUDE });
+    const topUp = await prisma.walletTopUp.create({ data: { driverId, amount, method }, include: TOPUP_INCLUDE });
     const session = await paymentService.createTopUpCheckoutSession(topUp, { successUrl, cancelUrl });
     const updated = await prisma.walletTopUp.update({
       where: { id: topUp.id },
@@ -59,14 +59,14 @@ async function createTopUp(clientId, { amount, method, successUrl, cancelUrl }) 
   }
 
   const topUp = await prisma.walletTopUp.create({
-    data: { clientId, amount, method, clientDeclaredAt: new Date() },
+    data: { driverId, amount, method, driverDeclaredAt: new Date() },
     include: TOPUP_INCLUDE,
   });
   return { topUp };
 }
 
-async function listMyTopUps(clientId) {
-  return prisma.walletTopUp.findMany({ where: { clientId }, include: TOPUP_INCLUDE, orderBy: { createdAt: 'desc' } });
+async function listMyTopUps(driverId) {
+  return prisma.walletTopUp.findMany({ where: { driverId }, include: TOPUP_INCLUDE, orderBy: { createdAt: 'desc' } });
 }
 
 // Idempotent - Stripe may redeliver the same webhook event more than once, so
@@ -80,7 +80,7 @@ async function markTopUpPaidFromStripe(topUpId, paymentIntentId) {
       where: { id: topUpId },
       data: { status: 'CONFIRMED', confirmedAt: new Date(), stripePaymentIntentId: paymentIntentId },
     }),
-    prisma.user.update({ where: { id: topUp.clientId }, data: { creditBalance: { increment: topUp.amount } } }),
+    prisma.user.update({ where: { id: topUp.driverId }, data: { creditBalance: { increment: topUp.amount } } }),
   ]);
 }
 
@@ -121,10 +121,10 @@ async function confirmTopUp(topUpId, adminUserId) {
       data: { status: 'CONFIRMED', confirmedAt: new Date(), confirmedByUserId: adminUserId },
       include: TOPUP_INCLUDE,
     }),
-    prisma.user.update({ where: { id: topUp.clientId }, data: { creditBalance: { increment: topUp.amount } } }),
+    prisma.user.update({ where: { id: topUp.driverId }, data: { creditBalance: { increment: topUp.amount } } }),
   ]);
 
-  sendPushToUser(topUp.clientId, {
+  sendPushToUser(topUp.driverId, {
     title: 'Recharge confirmée',
     body: 'Votre recharge de compte a été confirmée et ajoutée à votre solde.',
     data: { topUpId: updated.id, type: 'wallet:confirmed' },

@@ -291,7 +291,7 @@ model User {
   settlementsCreated  Settlement[] @relation("SettlementCreatedBy")
   settlementsPaid     Settlement[] @relation("SettlementPaidBy")
 
-  walletTopUps         WalletTopUp[] @relation("WalletTopUpClient")
+  walletTopUps          WalletTopUp[] @relation("WalletTopUpDriver")
   walletTopUpsConfirmed WalletTopUp[] @relation("WalletTopUpConfirmedBy")
 
   complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
@@ -517,24 +517,25 @@ model Settlement {
   @@map("settlements")
 }
 
-// Client self-service top-up of their own creditBalance (see User.creditBalance),
-// on top of the existing referral-only funding path. CARD goes through Stripe
-// Checkout exactly like a ride's card payment - confirmed automatically by the
-// webhook (payment.controller.js), never by an admin. Mobile-money methods are
-// declare/confirm, same manual two-step shape as Settlement's
-// driverMarkedPaidAt/markSettlementPaid, except there's no pre-existing
-// admin-created row to declare against - clientDeclaredAt is set at creation
-// time here, since the client picks amount+method and "declares" in one step.
+// Driver self-service top-up of their own creditBalance (see User.creditBalance) -
+// just a tracked balance for now, with no automatic effect on settlements.
+// CARD goes through Stripe Checkout exactly like a ride's card payment -
+// confirmed automatically by the webhook (payment.controller.js), never by an
+// admin. Mobile-money methods are declare/confirm, same manual two-step shape
+// as Settlement's driverMarkedPaidAt/markSettlementPaid, except there's no
+// pre-existing admin-created row to declare against - driverDeclaredAt is set
+// at creation time here, since the driver picks amount+method and "declares"
+// in one step.
 model WalletTopUp {
   id       String @id @default(uuid())
-  clientId String
-  client   User   @relation("WalletTopUpClient", fields: [clientId], references: [id])
+  driverId String
+  driver   User   @relation("WalletTopUpDriver", fields: [driverId], references: [id])
 
   amount Float
   method PaymentMethod
   status WalletTopUpStatus @default(PENDING)
 
-  clientDeclaredAt DateTime?
+  driverDeclaredAt DateTime?
 
   confirmedAt       DateTime?
   confirmedByUserId String?
@@ -545,7 +546,7 @@ model WalletTopUp {
 
   createdAt DateTime @default(now())
 
-  @@index([clientId])
+  @@index([driverId])
   @@index([status])
   @@map("wallet_topups")
 }

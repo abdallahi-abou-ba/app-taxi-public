@@ -150,6 +150,7 @@ export default function DriverHomeScreen({ navigation }) {
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
     { key: 'documents', icon: 'document-attach-outline', label: t('common.documents'), onPress: () => navigation.navigate('DriverDocuments') },
     { key: 'settlements', icon: 'wallet-outline', label: t('common.settlements'), onPress: () => navigation.navigate('Settlements') },
+    { key: 'recharge', icon: 'card-outline', label: t('common.recharge'), onPress: () => navigation.navigate('Recharge') },
   ];
 
   return (

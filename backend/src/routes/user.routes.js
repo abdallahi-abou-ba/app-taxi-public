@@ -44,8 +44,8 @@ router.patch(
   validate(declareSettlementPaidSchema, 'body'),
   userController.declareMySettlementPaid
 );
-router.get('/me/wallet/topup-info', requireRole('CLIENT'), userController.getWalletTopUpInfo);
-router.get('/me/wallet/topups', requireRole('CLIENT'), userController.getMyWalletTopUps);
-router.post('/me/wallet/topups', requireRole('CLIENT'), validate(createTopUpSchema), userController.createMyWalletTopUp);
+router.get('/me/wallet/topup-info', requireRole('DRIVER'), userController.getWalletTopUpInfo);
+router.get('/me/wallet/topups', requireRole('DRIVER'), userController.getMyWalletTopUps);
+router.post('/me/wallet/topups', requireRole('DRIVER'), validate(createTopUpSchema), userController.createMyWalletTopUp);
 
 module.exports = router;

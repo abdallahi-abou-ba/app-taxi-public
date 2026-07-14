@@ -11,6 +11,7 @@ import DashboardScreen from '../screens/common/DashboardScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
 import DriverDocumentsScreen from '../screens/driver/DriverDocumentsScreen';
 import SettlementsScreen from '../screens/driver/SettlementsScreen';
+import RechargeScreen from '../screens/driver/RechargeScreen';
 import { colors } from '../theme/theme';
 
 const Stack = createNativeStackNavigator();
@@ -50,6 +51,7 @@ export default function DriverNavigator() {
         <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
         <Stack.Screen name="DriverDocuments" component={DriverDocumentsScreen} options={{ title: t('nav.documents') }} />
         <Stack.Screen name="Settlements" component={SettlementsScreen} options={{ title: t('nav.settlements') }} />
+        <Stack.Screen name="Recharge" component={RechargeScreen} options={{ title: t('nav.recharge') }} />
       </Stack.Navigator>
     </DriverLocationProvider>
   );

@@ -18,7 +18,7 @@ export default function WalletTopUpListPage() {
   );
 
   async function handleConfirm(id) {
-    if (!window.confirm('Confirmer cette recharge et créditer le solde du client ?')) return;
+    if (!window.confirm('Confirmer cette recharge et créditer le solde du chauffeur ?')) return;
     await confirmWalletTopUp(id);
     reload();
   }
@@ -30,14 +30,14 @@ export default function WalletTopUpListPage() {
   }
 
   const columns = [
-    { key: 'client', label: 'Client', render: (r) => r.client?.fullName || '—' },
+    { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'method', label: 'Moyen', render: (r) => formatPaymentMethod(r.method) },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {
       key: 'declaredAt',
       label: 'Déclarée le',
-      render: (r) => (r.clientDeclaredAt ? new Date(r.clientDeclaredAt).toLocaleString('fr-FR') : '—'),
+      render: (r) => (r.driverDeclaredAt ? new Date(r.driverDeclaredAt).toLocaleString('fr-FR') : '—'),
     },
     {
       key: 'confirmedBy',

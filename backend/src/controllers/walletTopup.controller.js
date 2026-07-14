@@ -18,7 +18,7 @@ const confirmTopUp = asyncHandler(async (req, res) => {
     action: 'WALLET_TOPUP_CONFIRMED',
     entityType: 'WALLET_TOPUP',
     entityId: topUp.id,
-    details: { clientId: topUp.clientId, amount: topUp.amount, method: topUp.method },
+    details: { driverId: topUp.driverId, amount: topUp.amount, method: topUp.method },
   });
   sendSuccess(res, { data: topUp });
 });

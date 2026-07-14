@@ -18,10 +18,10 @@ const request = require('supertest');
 const env = require('../src/config/env');
 const { app, registerUser, createAdmin, authHeader } = require('./helpers');
 
-async function createMobileMoneyTopUp(client, amount = 500) {
+async function createMobileMoneyTopUp(driver, amount = 500) {
   const res = await request(app)
     .post('/api/users/me/wallet/topups')
-    .set(authHeader(client.accessToken))
+    .set(authHeader(driver.accessToken))
     .send({ amount, method: 'BANKILY' });
   return res.body.data.topUp;
 }
@@ -29,8 +29,8 @@ async function createMobileMoneyTopUp(client, amount = 500) {
 describe('admin wallet top-up review', () => {
   it('lists pending top-ups and confirms a mobile-money one, crediting the balance', async () => {
     const admin = await createAdmin();
-    const client = await registerUser({ role: 'CLIENT' });
-    const topUp = await createMobileMoneyTopUp(client, 500);
+    const driver = await registerUser({ role: 'DRIVER' });
+    const topUp = await createMobileMoneyTopUp(driver, 500);
 
     const listRes = await request(app)
       .get('/api/admin/wallet-topups?status=PENDING')
@@ -45,14 +45,14 @@ describe('admin wallet top-up review', () => {
     expect(confirmRes.body.data.status).toBe('CONFIRMED');
     expect(confirmRes.body.data.confirmedByUser.id).toBe(admin.user.id);
 
-    const me = await request(app).get('/api/users/me').set(authHeader(client.accessToken));
+    const me = await request(app).get('/api/users/me').set(authHeader(driver.accessToken));
     expect(me.body.data.creditBalance).toBe(500);
   });
 
   it('rejects confirming the same top-up twice', async () => {
     const admin = await createAdmin();
-    const client = await registerUser({ role: 'CLIENT' });
-    const topUp = await createMobileMoneyTopUp(client);
+    const driver = await registerUser({ role: 'DRIVER' });
+    const topUp = await createMobileMoneyTopUp(driver);
 
     await request(app).patch(`/api/admin/wallet-topups/${topUp.id}/confirm`).set(authHeader(admin.accessToken));
     const res = await request(app).patch(`/api/admin/wallet-topups/${topUp.id}/confirm`).set(authHeader(admin.accessToken));
@@ -61,8 +61,8 @@ describe('admin wallet top-up review', () => {
 
   it('cancels a pending top-up without touching the balance', async () => {
     const admin = await createAdmin();
-    const client = await registerUser({ role: 'CLIENT' });
-    const topUp = await createMobileMoneyTopUp(client);
+    const driver = await registerUser({ role: 'DRIVER' });
+    const topUp = await createMobileMoneyTopUp(driver);
 
     const cancelRes = await request(app)
       .patch(`/api/admin/wallet-topups/${topUp.id}/cancel`)
@@ -70,14 +70,14 @@ describe('admin wallet top-up review', () => {
     expect(cancelRes.status).toBe(200);
     expect(cancelRes.body.data.status).toBe('CANCELLED');
 
-    const me = await request(app).get('/api/users/me').set(authHeader(client.accessToken));
+    const me = await request(app).get('/api/users/me').set(authHeader(driver.accessToken));
     expect(me.body.data.creditBalance).toBe(0);
   });
 
   it('rejects a non-FINANCE admin confirming a top-up', async () => {
     const supportAdmin = await createAdmin({ adminRole: 'SUPPORT' });
-    const client = await registerUser({ role: 'CLIENT' });
-    const topUp = await createMobileMoneyTopUp(client);
+    const driver = await registerUser({ role: 'DRIVER' });
+    const topUp = await createMobileMoneyTopUp(driver);
 
     const res = await request(app)
       .patch(`/api/admin/wallet-topups/${topUp.id}/confirm`)
@@ -106,10 +106,10 @@ describe('admin wallet top-up review', () => {
     it('rejects an admin manually confirming a CARD top-up', async () => {
       mockSessionsCreate.mockResolvedValue({ id: 'cs_test_admin_1', url: 'https://checkout.stripe.com/pay/cs_test_admin_1' });
       const admin = await createAdmin();
-      const client = await registerUser({ role: 'CLIENT' });
+      const driver = await registerUser({ role: 'DRIVER' });
       const created = await request(app)
         .post('/api/users/me/wallet/topups')
-        .set(authHeader(client.accessToken))
+        .set(authHeader(driver.accessToken))
         .send({ amount: 500, method: 'CARD', successUrl: 'https://example.com/s', cancelUrl: 'https://example.com/c' });
 
       const res = await request(app)
@@ -120,10 +120,10 @@ describe('admin wallet top-up review', () => {
 
     it('credits the balance via the Stripe webhook, idempotently', async () => {
       mockSessionsCreate.mockResolvedValue({ id: 'cs_test_admin_2', url: 'https://checkout.stripe.com/pay/cs_test_admin_2' });
-      const client = await registerUser({ role: 'CLIENT' });
+      const driver = await registerUser({ role: 'DRIVER' });
       const created = await request(app)
         .post('/api/users/me/wallet/topups')
-        .set(authHeader(client.accessToken))
+        .set(authHeader(driver.accessToken))
         .send({ amount: 700, method: 'CARD', successUrl: 'https://example.com/s', cancelUrl: 'https://example.com/c' });
       const topUpId = created.body.data.topUp.id;
 
@@ -134,7 +134,7 @@ describe('admin wallet top-up review', () => {
       await request(app).post('/api/webhooks/stripe').set('stripe-signature', 't').send(Buffer.from('{}'));
       await request(app).post('/api/webhooks/stripe').set('stripe-signature', 't').send(Buffer.from('{}'));
 
-      const me = await request(app).get('/api/users/me').set(authHeader(client.accessToken));
+      const me = await request(app).get('/api/users/me').set(authHeader(driver.accessToken));
       expect(me.body.data.creditBalance).toBe(700);
     });
   });
