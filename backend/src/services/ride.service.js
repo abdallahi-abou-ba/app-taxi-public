@@ -10,7 +10,7 @@ const { getIO } = require('../lib/socket');
 const rideTracker = require('../sockets/rideTracker');
 const { sendPushToUser } = require('../utils/push.util');
 const paymentService = require('./payment.service');
-const { getDefaultCommissionRate } = require('./appSetting.service');
+const { getDefaultCommissionRate, getMinBalanceToGoOnline } = require('./appSetting.service');
 const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 // Real road-network distance/duration come from OSRM when reachable (see
@@ -252,6 +252,10 @@ async function acceptRide(driverId, rideId) {
   const driver = await prisma.user.findUnique({ where: { id: driverId } });
   if (driver.approvalStatus !== 'APPROVED') {
     throw new AppError('Your driver account is not yet approved', 403, 'FORBIDDEN');
+  }
+  const minBalance = await getMinBalanceToGoOnline();
+  if (driver.creditBalance < minBalance) {
+    throw new AppError(`You need at least ${minBalance} in your balance to accept rides`, 403, 'FORBIDDEN');
   }
 
   const existingActive = await prisma.ride.findFirst({ where: { driverId, status: { in: ACTIVE_STATUSES } } });

@@ -41,6 +41,11 @@ const envSchema = z.object({
   // can declare in one go.
   WALLET_TOPUP_MIN_AMOUNT: z.coerce.number().positive().default(100),
 
+  // Fallback minimum creditBalance (see User.creditBalance) a driver needs to
+  // go online / accept rides, overridable per-deployment via AppSetting (see
+  // appSetting.service.js#getMinBalanceToGoOnline).
+  MIN_BALANCE_TO_GO_ONLINE: z.coerce.number().nonnegative().default(100),
+
   // Default company commission rate (fraction of fare) applied to a new
   // driver at registration/creation, and as the fallback if a ride is ever
   // completed for a driver with no rate set.

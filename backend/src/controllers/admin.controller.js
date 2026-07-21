@@ -105,15 +105,16 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
 });
 
 const getSettings = asyncHandler(async (req, res) => {
-  const [defaultCommissionRate, walletTopupMerchantCode] = await Promise.all([
+  const [defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getWalletTopupMerchantCode(),
+    appSettingService.getMinBalanceToGoOnline(),
   ]);
-  sendSuccess(res, { data: { defaultCommissionRate, walletTopupMerchantCode } });
+  sendSuccess(res, { data: { defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline } });
 });
 
 const updateSettings = asyncHandler(async (req, res) => {
-  const { defaultCommissionRate, walletTopupMerchantCode } = req.body;
+  const { defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline } = req.body;
 
   if (defaultCommissionRate !== undefined) {
     const oldValue = await appSettingService.getDefaultCommissionRate();
@@ -139,11 +140,26 @@ const updateSettings = asyncHandler(async (req, res) => {
     });
   }
 
-  const [updatedRate, updatedCode] = await Promise.all([
+  if (minBalanceToGoOnline !== undefined) {
+    const oldValue = await appSettingService.getMinBalanceToGoOnline();
+    await appSettingService.setMinBalanceToGoOnline(minBalanceToGoOnline, req.user.id);
+    await activityLogService.logActivity({
+      adminUserId: req.user.id,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'APP_SETTING',
+      entityId: 'MIN_BALANCE_TO_GO_ONLINE',
+      details: { oldValue, newValue: minBalanceToGoOnline },
+    });
+  }
+
+  const [updatedRate, updatedCode, updatedMinBalance] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getWalletTopupMerchantCode(),
+    appSettingService.getMinBalanceToGoOnline(),
   ]);
-  sendSuccess(res, { data: { defaultCommissionRate: updatedRate, walletTopupMerchantCode: updatedCode } });
+  sendSuccess(res, {
+    data: { defaultCommissionRate: updatedRate, walletTopupMerchantCode: updatedCode, minBalanceToGoOnline: updatedMinBalance },
+  });
 });
 
 const getDriverDocumentFile = asyncHandler(async (req, res) => {

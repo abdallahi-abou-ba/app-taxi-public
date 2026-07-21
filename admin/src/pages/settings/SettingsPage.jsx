@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Percent, Hash } from 'lucide-react';
+import { Percent, Hash, Wallet } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -15,6 +15,11 @@ export default function SettingsPage() {
   const [codeError, setCodeError] = useState('');
   const [codeSuccess, setCodeSuccess] = useState(false);
   const [codeBusy, setCodeBusy] = useState(false);
+
+  const [newMinBalance, setNewMinBalance] = useState('');
+  const [minBalanceError, setMinBalanceError] = useState('');
+  const [minBalanceSuccess, setMinBalanceSuccess] = useState(false);
+  const [minBalanceBusy, setMinBalanceBusy] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,6 +54,24 @@ export default function SettingsPage() {
       setCodeError(err.message);
     } finally {
       setCodeBusy(false);
+    }
+  }
+
+  async function handleMinBalanceSubmit(e) {
+    e.preventDefault();
+    if (newMinBalance === '') return;
+    setMinBalanceBusy(true);
+    setMinBalanceError('');
+    setMinBalanceSuccess(false);
+    try {
+      await updateSettings({ minBalanceToGoOnline: Number(newMinBalance) });
+      setNewMinBalance('');
+      setMinBalanceSuccess(true);
+      reload();
+    } catch (err) {
+      setMinBalanceError(err.message);
+    } finally {
+      setMinBalanceBusy(false);
     }
   }
 
@@ -107,6 +130,37 @@ export default function SettingsPage() {
           </label>
           <div style={{ alignSelf: 'end' }}>
             <button className="btn btn-primary" type="submit" disabled={codeBusy || newCode === ''}>
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {minBalanceError && <p className="error">{minBalanceError}</p>}
+      {minBalanceSuccess && <p className="hint">Solde minimum mis à jour.</p>}
+
+      <div className="panel">
+        <h3>
+          <Wallet size={16} />
+          Solde minimum pour passer en ligne ({settings.minBalanceToGoOnline ?? '—'} MRU)
+        </h3>
+        <p className="hint">
+          Un capitaine dont le solde rechargé est en dessous de ce montant ne peut pas passer en ligne ni accepter de
+          course.
+        </p>
+        <form className="form-grid" onSubmit={handleMinBalanceSubmit}>
+          <label className="field">
+            Nouveau solde minimum (MRU)
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={newMinBalance}
+              onChange={(e) => setNewMinBalance(e.target.value)}
+            />
+          </label>
+          <div style={{ alignSelf: 'end' }}>
+            <button className="btn btn-primary" type="submit" disabled={minBalanceBusy || newMinBalance === ''}>
               Enregistrer
             </button>
           </div>
