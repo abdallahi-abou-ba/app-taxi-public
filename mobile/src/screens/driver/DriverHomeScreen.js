@@ -149,7 +149,7 @@ export default function DriverHomeScreen({ navigation }) {
     { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
     { key: 'documents', icon: 'document-attach-outline', label: t('common.documents'), onPress: () => navigation.navigate('DriverDocuments') },
-    { key: 'settlements', icon: 'wallet-outline', label: t('common.settlements'), onPress: () => navigation.navigate('Settlements') },
+    { key: 'notifications', icon: 'notifications-outline', label: t('common.notifications'), onPress: () => navigation.navigate('Notifications') },
     { key: 'recharge', icon: 'card-outline', label: t('common.recharge'), onPress: () => navigation.navigate('Recharge') },
   ];
 

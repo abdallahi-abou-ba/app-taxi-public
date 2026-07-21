@@ -17,12 +17,13 @@ async function findTopUpOrThrow(topUpId) {
   return topUp;
 }
 
-// Info a driver needs before starting a top-up - minimum amount and the
+// Info a driver needs before starting a top-up - minimum amount, the
 // company's merchant code (null until an admin sets one from Settings; see
-// appSetting.service.js).
-async function getTopUpInfo() {
+// appSetting.service.js), and their own current balance (otherwise never
+// shown anywhere in the driver app - see User.creditBalance).
+async function getTopUpInfo(creditBalance) {
   const merchantCode = await appSettingService.getWalletTopupMerchantCode();
-  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, merchantCode };
+  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, merchantCode, creditBalance };
 }
 
 // No gateway API for any of these Mauritanian mobile-money apps - the driver

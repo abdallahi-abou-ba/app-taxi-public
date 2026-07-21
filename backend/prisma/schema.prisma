@@ -267,8 +267,10 @@ model User {
   referredBy   User?   @relation("Referrals", fields: [referredById], references: [id])
   referrals    User[]  @relation("Referrals")
 
-  // Cash-equivalent balance, auto-applied to a future ride's cash payment
-  // (see Ride.creditApplied). Funded by referral rewards.
+  // Cash-equivalent balance. For a CLIENT, auto-applied to a future ride's
+  // cash payment (see Ride.creditApplied), funded by referral rewards. For a
+  // DRIVER, funded by a confirmed WalletTopUp and auto-applied against what
+  // they owe on their next generated Settlement (see Settlement.creditApplied).
   creditBalance           Float     @default(0)
   // Set once this user's own "referred friend's first ride" reward has been
   // granted, so it's never granted twice even across many later rides.
@@ -297,6 +299,8 @@ model User {
   complaintsSubmitted Complaint[] @relation("ComplaintSubmittedBy")
   complaintsAbout     Complaint[] @relation("ComplaintAboutUser")
   complaintsResolved  Complaint[] @relation("ComplaintResolvedBy")
+
+  notifications Notification[]
 
   @@index([role, isAvailable])
   @@map("users")
@@ -494,6 +498,12 @@ model Settlement {
   cardNetOwed        Float
   expensesOwed       Float            @default(0)
   netAmount          Float
+  // Amount deducted from the driver's creditBalance at generation time
+  // (see generateSettlement) when netAmount < 0 - up to whatever balance was
+  // available, capped at the amount owed. 0 when netAmount >= 0 or the driver
+  // had no balance. The driver only needs to declare/pay the remainder
+  // (abs(netAmount) - creditApplied) via mobile money.
+  creditApplied      Float            @default(0)
   status             SettlementStatus @default(PENDING)
   notes              String?
 
@@ -517,9 +527,10 @@ model Settlement {
   @@map("settlements")
 }
 
-// Driver self-service top-up of their own creditBalance (see User.creditBalance) -
-// just a tracked balance for now, with no automatic effect on settlements.
-// Mobile-money only (Bankily/Sedad/Masrivi/Click/Bimbank) via a merchant-code
+// Driver self-service top-up of their own creditBalance (see User.creditBalance),
+// auto-applied against what they owe the next time a Settlement is generated
+// (see Settlement.creditApplied). Mobile-money only (Bankily/Sedad/Masrivi/
+// Click/Bimbank) via a merchant-code
 // payment: the driver pastes the company's registered merchant code (see
 // appSetting.service.js#getWalletTopupMerchantCode, one code shared across all
 // providers) into that app's own "Pay a merchant" feature, enters the amount
@@ -552,6 +563,29 @@ model WalletTopUp {
   @@index([driverId])
   @@index([status])
   @@map("wallet_topups")
+}
+
+// In-app history of every push notification sent to a user (see
+// push.util.js#sendPushToUser, which writes one of these alongside the actual
+// Expo push) - lets the mobile app show a "Notifications" screen even though
+// Expo pushes themselves are fire-and-forget and never persisted client-side.
+// type mirrors the `data.type` already used for tap-navigation (see
+// useNotificationTapNavigation.js), e.g. 'driver:approval', 'ride:status'.
+model Notification {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type String
+  title String
+  body  String
+  data  Json?
+  read  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 // Client/driver-submitted complaint (spec 12), managed from the admin back

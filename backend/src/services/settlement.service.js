@@ -74,21 +74,53 @@ async function generateSettlement({ driverId, periodStart, periodEnd, notes }, c
 
   const cashCommissionOwed = cashAgg._sum.commissionAmount || 0;
   const cardNetOwed = electronicAgg._sum.driverNetAmount || 0;
+  const netAmount = cardNetOwed - cashCommissionOwed - expensesOwed;
 
-  return prisma.settlement.create({
-    data: {
-      driverId,
-      periodStart: start,
-      periodEnd: end,
-      cashCommissionOwed,
-      cardNetOwed,
-      expensesOwed,
-      netAmount: cardNetOwed - cashCommissionOwed - expensesOwed,
-      notes,
-      createdByUserId,
-    },
-    include: SETTLEMENT_INCLUDE,
-  });
+  // Auto-pay from the driver's recharged balance (see User.creditBalance,
+  // funded by confirmed WalletTopUps) before falling back to the manual
+  // mobile-money declare/confirm flow - only meaningful when the driver owes
+  // money (netAmount < 0), capped at whatever balance is actually available.
+  const amountOwed = Math.max(0, -netAmount);
+  const creditApplied = Math.min(driver.creditBalance, amountOwed);
+  const fullyPaidByCredit = creditApplied > 0 && creditApplied >= amountOwed;
+
+  const [settlement] = await prisma.$transaction([
+    prisma.settlement.create({
+      data: {
+        driverId,
+        periodStart: start,
+        periodEnd: end,
+        cashCommissionOwed,
+        cardNetOwed,
+        expensesOwed,
+        netAmount,
+        creditApplied,
+        ...(fullyPaidByCredit && { status: 'PAID', paidAt: new Date() }),
+        notes,
+        createdByUserId,
+      },
+      include: SETTLEMENT_INCLUDE,
+    }),
+    ...(creditApplied > 0
+      ? [prisma.user.update({ where: { id: driverId }, data: { creditBalance: { decrement: creditApplied } } })]
+      : []),
+  ]);
+
+  if (fullyPaidByCredit) {
+    sendPushToUser(driverId, {
+      title: 'Règlement payé',
+      body: `Votre règlement de ${amountOwed} a été payé automatiquement depuis votre solde rechargé.`,
+      data: { settlementId: settlement.id, type: 'settlement:paid' },
+    });
+  } else if (creditApplied > 0) {
+    sendPushToUser(driverId, {
+      title: 'Solde appliqué à votre règlement',
+      body: `${creditApplied} de votre solde ont été déduits. Il vous reste ${amountOwed - creditApplied} à régler.`,
+      data: { settlementId: settlement.id, type: 'settlement:credit-applied' },
+    });
+  }
+
+  return settlement;
 }
 
 async function markSettlementPaid(settlementId, paidByUserId) {

@@ -74,7 +74,8 @@ function SettlementCard({ settlement, t, i18n, onChanged }) {
   const [cardError, setCardError] = useState(null);
 
   const owesCompany = settlement.netAmount < 0;
-  const amountDue = Math.abs(settlement.netAmount);
+  const creditApplied = settlement.creditApplied || 0;
+  const amountDue = Math.max(0, Math.abs(settlement.netAmount) - creditApplied);
   const declared = !!settlement.driverMarkedPaidAt;
 
   const handleDeclare = async () => {
@@ -104,6 +105,10 @@ function SettlementCard({ settlement, t, i18n, onChanged }) {
         <Text style={styles.amountLabel}>{owesCompany ? t('settlements.youOwe') : t('settlements.companyOwesYou')}</Text>
         <Text style={[styles.amountValue, owesCompany ? styles.amountDue : styles.amountCredit]}>{formatFare(amountDue)}</Text>
       </View>
+
+      {owesCompany && creditApplied > 0 ? (
+        <Text style={styles.creditAppliedText}>{t('settlements.creditApplied', { amount: formatFare(creditApplied) })}</Text>
+      ) : null}
 
       {settlement.status === 'PENDING' && owesCompany ? (
         declared ? (
@@ -222,6 +227,12 @@ const styles = StyleSheet.create({
   },
   amountCredit: {
     color: colors.success,
+  },
+  creditAppliedText: {
+    fontSize: 12.5,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginTop: -4,
   },
   declaredRow: {
     flexDirection: 'row',

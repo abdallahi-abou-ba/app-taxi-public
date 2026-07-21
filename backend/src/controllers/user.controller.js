@@ -5,6 +5,7 @@ const driverDocumentService = require('../services/driverDocument.service');
 const userAvatarService = require('../services/userAvatar.service');
 const settlementService = require('../services/settlement.service');
 const walletService = require('../services/wallet.service');
+const notificationService = require('../services/notification.service');
 const { toPublicUser } = require('../services/auth.service');
 
 const getMe = asyncHandler(async (req, res) => {
@@ -88,7 +89,7 @@ const declareMySettlementPaid = asyncHandler(async (req, res) => {
 });
 
 const getWalletTopUpInfo = asyncHandler(async (req, res) => {
-  const info = await walletService.getTopUpInfo();
+  const info = await walletService.getTopUpInfo(req.user.creditBalance);
   sendSuccess(res, { data: info });
 });
 
@@ -100,6 +101,19 @@ const createMyWalletTopUp = asyncHandler(async (req, res) => {
 const getMyWalletTopUps = asyncHandler(async (req, res) => {
   const topUps = await walletService.listMyTopUps(req.user.id);
   sendSuccess(res, { data: topUps });
+});
+
+const getMyNotifications = asyncHandler(async (req, res) => {
+  const result = await notificationService.listMyNotifications(req.user.id, { page: req.query.page, pageSize: req.query.pageSize });
+  sendSuccess(res, {
+    data: result.notifications,
+    meta: { page: result.page, pageSize: result.pageSize, total: result.total, totalPages: result.totalPages, unreadCount: result.unreadCount },
+  });
+});
+
+const markMyNotificationsRead = asyncHandler(async (req, res) => {
+  await notificationService.markAllAsRead(req.user.id);
+  sendSuccess(res, { data: null });
 });
 
 module.exports = {
@@ -121,4 +135,6 @@ module.exports = {
   getWalletTopUpInfo,
   createMyWalletTopUp,
   getMyWalletTopUps,
+  getMyNotifications,
+  markMyNotificationsRead,
 };

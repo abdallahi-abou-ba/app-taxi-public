@@ -68,3 +68,11 @@ export function getMySettlements() {
 export function declareSettlementPaid(id, paymentMethod) {
   return api.patch(`/api/users/me/settlements/${id}/declare-paid`, { paymentMethod });
 }
+
+export function getMyNotifications() {
+  return api.get('/api/users/me/notifications');
+}
+
+export function markNotificationsRead() {
+  return api.patch('/api/users/me/notifications/read-all');
+}

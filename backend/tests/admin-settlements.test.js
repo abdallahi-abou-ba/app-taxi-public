@@ -6,7 +6,7 @@ jest.mock('../src/utils/geocode.util', () => ({
 }));
 
 const request = require('supertest');
-const { app, registerUser, createAdmin, authHeader } = require('./helpers');
+const { app, prisma, registerUser, createAdmin, authHeader } = require('./helpers');
 
 const RIDE_PAYLOAD = { pickupLat: 33.5731, pickupLng: -7.5898, destinationLat: 33.5931, destinationLng: -7.6098 };
 
@@ -124,5 +124,49 @@ describe('admin driver settlements', () => {
       .set(authHeader(admin.accessToken))
       .send({ driverId: driver.user.id, periodStart: new Date().toISOString(), periodEnd: new Date(Date.now() - 1000).toISOString() });
     expect(res.status).toBe(422);
+  });
+
+  it('auto-pays from the driver\'s recharged balance (creditBalance) before falling back to manual declare/confirm', async () => {
+    const admin = await createAdmin();
+    const client = await registerUser({ role: 'CLIENT' });
+    const fullyCoveredDriver = await registerUser({ role: 'DRIVER' });
+    const partiallyCoveredDriver = await registerUser({ role: 'DRIVER' });
+
+    const fullyCoveredRide = await completeRide(client, fullyCoveredDriver, 'CASH');
+    const partiallyCoveredRide = await completeRide(client, partiallyCoveredDriver, 'CASH');
+
+    // More balance than owed - the whole settlement should be auto-paid.
+    await prisma.user.update({
+      where: { id: fullyCoveredDriver.user.id },
+      data: { creditBalance: fullyCoveredRide.commissionAmount + 1000 },
+    });
+    // Less balance than owed - only part of it should be auto-applied.
+    const partialCredit = Math.max(0, partiallyCoveredRide.commissionAmount - 1);
+    await prisma.user.update({ where: { id: partiallyCoveredDriver.user.id }, data: { creditBalance: partialCredit } });
+
+    const period = {
+      periodStart: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      periodEnd: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    };
+
+    const fullyCoveredSettlement = await request(app)
+      .post('/api/admin/settlements')
+      .set(authHeader(admin.accessToken))
+      .send({ driverId: fullyCoveredDriver.user.id, ...period });
+    expect(fullyCoveredSettlement.body.data.creditApplied).toBeCloseTo(fullyCoveredRide.commissionAmount, 2);
+    expect(fullyCoveredSettlement.body.data.status).toBe('PAID');
+
+    const fullyCoveredDriverAfter = await prisma.user.findUnique({ where: { id: fullyCoveredDriver.user.id } });
+    expect(fullyCoveredDriverAfter.creditBalance).toBeCloseTo(1000, 2);
+
+    const partiallyCoveredSettlement = await request(app)
+      .post('/api/admin/settlements')
+      .set(authHeader(admin.accessToken))
+      .send({ driverId: partiallyCoveredDriver.user.id, ...period });
+    expect(partiallyCoveredSettlement.body.data.creditApplied).toBeCloseTo(partialCredit, 2);
+    expect(partiallyCoveredSettlement.body.data.status).toBe('PENDING');
+
+    const partiallyCoveredDriverAfter = await prisma.user.findUnique({ where: { id: partiallyCoveredDriver.user.id } });
+    expect(partiallyCoveredDriverAfter.creditBalance).toBeCloseTo(0, 2);
   });
 });

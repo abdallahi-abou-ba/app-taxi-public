@@ -12,6 +12,7 @@ const {
 const { documentTypeParamSchema } = require('../validators/driverDocument.validators');
 const { settlementIdParamSchema, declareSettlementPaidSchema } = require('../validators/settlement.validators');
 const { createTopUpSchema } = require('../validators/wallet.validators');
+const { listNotificationsQuerySchema } = require('../validators/notification.validators');
 const { requireAuth, requireRole } = require('../middleware/auth.middleware');
 const { uploadDocument, uploadAvatar } = require('../middleware/upload.middleware');
 
@@ -47,5 +48,7 @@ router.patch(
 router.get('/me/wallet/topup-info', requireRole('DRIVER'), userController.getWalletTopUpInfo);
 router.get('/me/wallet/topups', requireRole('DRIVER'), userController.getMyWalletTopUps);
 router.post('/me/wallet/topups', requireRole('DRIVER'), validate(createTopUpSchema), userController.createMyWalletTopUp);
+router.get('/me/notifications', validate(listNotificationsQuerySchema, 'query'), userController.getMyNotifications);
+router.patch('/me/notifications/read-all', userController.markMyNotificationsRead);
 
 module.exports = router;

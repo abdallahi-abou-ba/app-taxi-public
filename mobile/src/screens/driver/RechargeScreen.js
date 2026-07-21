@@ -12,7 +12,7 @@ import { MOBILE_MONEY_METHODS } from '../../config/constants';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
-export default function RechargeScreen() {
+export default function RechargeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const [info, setInfo] = useState(null);
   const [topUps, setTopUps] = useState(null);
@@ -85,6 +85,14 @@ export default function RechargeScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
     >
       <ErrorBanner message={error} />
+
+      <View style={styles.balanceCard}>
+        <Text style={styles.balanceLabel}>{t('recharge.currentBalance')}</Text>
+        <Text style={styles.balanceValue}>{formatFare(info.creditBalance)}</Text>
+        <Pressable onPress={() => navigation.navigate('Settlements')} hitSlop={8}>
+          <Text style={styles.balanceLink}>{t('recharge.viewSettlements')}</Text>
+        </Pressable>
+      </View>
 
       {info.merchantCode ? (
         <View style={styles.codeCard}>
@@ -185,6 +193,29 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
     backgroundColor: colors.background,
+  },
+  balanceCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    gap: 4,
+    ...shadow.card,
+  },
+  balanceLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  balanceValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  balanceLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primaryDark,
+    marginTop: 4,
   },
   codeCard: {
     backgroundColor: colors.charcoal,

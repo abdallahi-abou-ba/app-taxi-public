@@ -1,6 +1,7 @@
 const { Expo } = require('expo-server-sdk');
 const prisma = require('../lib/prisma');
 const logger = require('../config/logger');
+const notificationService = require('../services/notification.service');
 
 const expo = new Expo();
 
@@ -10,6 +11,13 @@ const expo = new Expo();
  */
 async function sendPushToUser(userId, { title, body, data } = {}) {
   if (!userId) return;
+
+  // Persisted independently of whether an Expo push actually goes out (no
+  // token, stale token, notifications permission denied, etc.) - this is what
+  // backs the mobile app's in-app "Notifications" screen/history.
+  notificationService
+    .createNotification(userId, { type: data?.type || 'general', title, body, data })
+    .catch((err) => logger.warn(`Notification persist for user ${userId} failed: ${err.message}`));
 
   try {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { pushToken: true } });

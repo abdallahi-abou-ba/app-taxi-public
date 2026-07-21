@@ -8,7 +8,11 @@ import { ROLE } from '../config/constants';
 // 403 on the fetch. Land on their home screen instead; everything else
 // (accepted/arrived/completed/cancelled) is pushed only to existing
 // participants, so ActiveRide can fetch it directly.
-function navigate(data, role) {
+//
+// Exported (not just used by the tap listener below) so the in-app
+// Notifications screen can reuse the exact same routing when a row is
+// tapped there instead of via an actual push.
+export function navigate(data, role) {
   if (!data || !navigationRef.isReady()) return;
 
   if (data.type === 'ride:new') {
@@ -22,6 +26,10 @@ function navigate(data, role) {
     // Still REQUESTED, not yet a participant-visible "active" ride in the
     // ActiveRide sense - same waiting screen the client landed on originally.
     navigationRef.navigate('WaitingForDriver', { rideId: data.rideId });
+  } else if (data.type === 'settlement:paid' || data.type === 'settlement:credit-applied') {
+    navigationRef.navigate('Settlements');
+  } else if (data.type === 'wallet:confirmed') {
+    navigationRef.navigate('Recharge');
   } else if (data.rideId) {
     navigationRef.navigate('ActiveRide', { rideId: data.rideId });
   }

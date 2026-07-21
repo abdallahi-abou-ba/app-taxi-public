@@ -56,17 +56,22 @@ export default function SettlementListPage() {
   }
 
   const columns = [
-    { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
+    { key: 'driver', label: 'Capitaine', render: (r) => r.driver?.fullName || '—' },
     { key: 'periodStart', label: 'Début', render: (r) => new Date(r.periodStart).toLocaleDateString('fr-FR') },
     { key: 'periodEnd', label: 'Fin', render: (r) => new Date(r.periodEnd).toLocaleDateString('fr-FR') },
     { key: 'cashCommissionOwed', label: 'Commission due (cash)', render: (r) => formatCurrency(r.cashCommissionOwed) },
     { key: 'cardNetOwed', label: 'Net dû (carte)', render: (r) => formatCurrency(r.cardNetOwed) },
-    { key: 'expensesOwed', label: 'Frais chauffeur', render: (r) => formatCurrency(r.expensesOwed) },
+    { key: 'expensesOwed', label: 'Frais capitaine', render: (r) => formatCurrency(r.expensesOwed) },
     { key: 'netAmount', label: 'Solde net', render: (r) => formatCurrency(r.netAmount) },
+    {
+      key: 'creditApplied',
+      label: 'Payé via solde',
+      render: (r) => (r.creditApplied > 0 ? formatCurrency(r.creditApplied) : '—'),
+    },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {
       key: 'driverDeclared',
-      label: 'Déclaration chauffeur',
+      label: 'Déclaration capitaine',
       render: (r) =>
         r.driverMarkedPaidAt ? (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5 }}>
@@ -99,7 +104,7 @@ export default function SettlementListPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Règlements chauffeurs</h2>
+        <h2>Règlements capitaines</h2>
       </div>
 
       <div className="panel">
@@ -109,7 +114,7 @@ export default function SettlementListPage() {
         </h3>
         {formError && <p className="error">{formError}</p>}
         <form className="form-grid" onSubmit={handleGenerate}>
-          <FormField label="Chauffeur">
+          <FormField label="Capitaine">
             <select required value={form.driverId} onChange={(e) => setForm((f) => ({ ...f, driverId: e.target.value }))}>
               <option value="">Choisir…</option>
               {(drivers || []).map((d) => (

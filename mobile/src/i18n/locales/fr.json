@@ -11,14 +11,15 @@
     "referral": "Parrainage",
     "call": "Appeler",
     "client": "Client",
-    "driver": "Chauffeur",
+    "driver": "Capitaine",
     "documents": "Documents",
     "settlements": "Règlements",
-    "recharge": "Recharger"
+    "recharge": "Recharger",
+    "notifications": "Notifications"
   },
   "nav": {
     "ride": "Course",
-    "findingDriver": "Recherche d'un chauffeur",
+    "findingDriver": "Recherche d'un capitaine",
     "yourRide": "Votre course",
     "history": "Historique",
     "rideDetails": "Détails de la course",
@@ -30,7 +31,8 @@
     "referral": "Parrainage",
     "documents": "Mes documents",
     "settlements": "Mes règlements",
-    "recharge": "Recharger mon compte"
+    "recharge": "Recharger mon compte",
+    "notifications": "Notifications"
   },
   "splash": {
     "loading": "Chargement..."
@@ -68,7 +70,7 @@
     "otpInvalid": "Code incorrect ou expiré",
     "completeProfileTitle": "Terminer la création du compte",
     "imRider": "Je suis passager",
-    "imDriver": "Je suis chauffeur",
+    "imDriver": "Je suis capitaine",
     "referralCodeLabel": "Code de parrainage (optionnel)",
     "referralCodePlaceholder": "Ex : AB12CD3",
     "vehiclePlateLabel": "Matricule du véhicule",
@@ -81,9 +83,9 @@
   },
   "rideStatus": {
     "SCHEDULED": "Réservation à venir",
-    "REQUESTED": "Recherche d'un chauffeur",
-    "ACCEPTED": "Le chauffeur arrive",
-    "ARRIVED": "Le chauffeur est arrivé",
+    "REQUESTED": "Recherche d'un capitaine",
+    "ACCEPTED": "Le capitaine arrive",
+    "ARRIVED": "Le capitaine est arrivé",
     "IN_PROGRESS": "Course en cours",
     "COMPLETED": "Course terminée",
     "CANCELLED": "Course annulée"
@@ -106,18 +108,18 @@
     "payNow": "Payer maintenant",
     "payError": "Impossible de lancer le paiement",
     "waitingOnlinePayment": "En attente du paiement en ligne par le client",
-    "mobileMoneyInstructions": "Envoyez {{amount}} par {{method}} au numéro du chauffeur ci-dessous, puis confirmez.",
+    "mobileMoneyInstructions": "Envoyez {{amount}} par {{method}} au numéro du capitaine ci-dessous, puis confirmez.",
     "declarePaid": "J'ai payé",
     "declarePaidError": "Impossible de déclarer ce paiement",
     "waitingClientDeclaration": "En attente de la déclaration du client",
-    "waitingDriverConfirmation": "En attente de confirmation du chauffeur",
+    "waitingDriverConfirmation": "En attente de confirmation du capitaine",
     "confirmReceipt": "Confirmer réception",
     "confirmPaymentError": "Impossible de confirmer ce paiement"
   },
   "map": {
     "pickup": "Départ",
     "destination": "Destination",
-    "driver": "Chauffeur",
+    "driver": "Capitaine",
     "you": "Vous"
   },
   "client": {
@@ -128,7 +130,11 @@
     "requestRide": "Demander une course",
     "requestError": "Impossible de demander une course",
     "cancelError": "Impossible d'annuler la course",
-    "searchingNearby": "Recherche d'un chauffeur à proximité...",
+    "searchingSteps": [
+      "Recherche d'un capitaine à proximité...",
+      "Vérification des capitaines disponibles...",
+      "Ça ne devrait plus tarder..."
+    ],
     "locationPermissionDenied": "Autorisation de localisation refusée",
     "locationFetchError": "Impossible d'obtenir la position",
     "activeRideLoadError": "Impossible de charger votre course en cours",
@@ -153,8 +159,8 @@
     "startTrip": "Démarrer la course",
     "completeTrip": "Terminer la course",
     "pendingApproval": "Votre compte est en attente de validation par l'administrateur. Vous pourrez passer en ligne une fois votre compte validé.",
-    "rejectedApproval": "Votre compte chauffeur n'a pas été validé. Contactez l'assistance pour plus d'informations.",
-    "suspendedApproval": "Votre compte chauffeur a été suspendu. Contactez l'assistance pour plus d'informations.",
+    "rejectedApproval": "Votre compte capitaine n'a pas été validé. Contactez l'assistance pour plus d'informations.",
+    "suspendedApproval": "Votre compte capitaine a été suspendu. Contactez l'assistance pour plus d'informations.",
     "uploadDocumentsCta": "Envoyer mes documents"
   },
   "driverDocuments": {
@@ -187,9 +193,9 @@
     "accept": "Accepter"
   },
   "rating": {
-    "rateDriver": "Notez votre chauffeur",
+    "rateDriver": "Notez votre capitaine",
     "rateClient": "Notez votre passager",
-    "thanksDriver": "Merci d'avoir noté votre chauffeur !",
+    "thanksDriver": "Merci d'avoir noté votre capitaine !",
     "thanksClient": "Merci d'avoir noté votre passager !",
     "commentOptional": "Commentaire (optionnel)",
     "commentPlaceholder": "Comment s'est passée votre course ?",
@@ -278,6 +284,10 @@
     "activeRideError": "Vous ne pouvez pas supprimer votre compte pendant une course active",
     "genericError": "Impossible de supprimer le compte"
   },
+  "notifications": {
+    "loadError": "Impossible de charger vos notifications",
+    "empty": "Aucune notification pour le moment"
+  },
   "settlements": {
     "loadError": "Impossible de charger vos règlements",
     "empty": "Aucun règlement pour le moment",
@@ -287,6 +297,7 @@
     "declarePaid": "J'ai payé",
     "declareError": "Impossible de déclarer ce paiement",
     "waitingConfirmation": "En attente de confirmation ({{method}})",
+    "creditApplied": "{{amount}} déjà payés depuis votre solde",
     "status": {
       "PENDING": "En attente",
       "PAID": "Payé",
@@ -295,6 +306,8 @@
   },
   "recharge": {
     "loadError": "Impossible de charger les informations de recharge",
+    "currentBalance": "Solde actuel",
+    "viewSettlements": "Voir mes règlements",
     "merchantCodeLabel": "Code marchand",
     "copyCode": "Copier le code",
     "copied": "Copié !",
