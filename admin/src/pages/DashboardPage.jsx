@@ -58,7 +58,7 @@ export default function DashboardPage() {
             </h3>
             <div className="stats-grid">
               <StatCard label="Clients" value={stats.totalClients} icon={Users} tone="info" />
-              <StatCard label="Chauffeurs" value={stats.totalDrivers} icon={UserCheck} tone="neutral" />
+              <StatCard label="Capitaines" value={stats.totalDrivers} icon={UserCheck} tone="neutral" />
               <StatCard label="En attente" value={stats.driversPending} to="/drivers?status=PENDING" icon={Clock3} tone="warning" />
               <StatCard label="Actifs" value={stats.driversApproved} icon={CheckCircle2} tone="success" />
               <StatCard label="Suspendus" value={stats.driversSuspended} icon={PauseCircle} tone="warning" />
@@ -90,10 +90,10 @@ export default function DashboardPage() {
             <div className="stats-grid">
               <StatCard label="Recette totale" value={formatCurrency(stats.totalRevenue)} icon={Wallet} tone="primary" />
               <StatCard label="Commission société (total)" value={formatCurrency(stats.totalCommission)} icon={Landmark} tone="info" />
-              <StatCard label="Net chauffeurs (total)" value={formatCurrency(stats.totalDriverNet)} icon={HandCoins} tone="success" />
+              <StatCard label="Net capitaines (total)" value={formatCurrency(stats.totalDriverNet)} icon={HandCoins} tone="success" />
               <StatCard label="Recette ce mois" value={formatCurrency(stats.revenueThisMonth)} icon={TrendingUp} tone="primary" />
               <StatCard label="Commission ce mois" value={formatCurrency(stats.commissionThisMonth)} icon={Landmark} tone="info" />
-              <StatCard label="Net chauffeurs ce mois" value={formatCurrency(stats.driverNetThisMonth)} icon={HandCoins} tone="success" />
+              <StatCard label="Net capitaines ce mois" value={formatCurrency(stats.driverNetThisMonth)} icon={HandCoins} tone="success" />
             </div>
           </div>
         </>

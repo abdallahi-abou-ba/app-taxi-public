@@ -46,7 +46,7 @@ export default function RideDetailPage() {
             <div className="hint">{ride.client?.fullName || '—'}</div>
           </div>
           <div>
-            <strong>Chauffeur</strong>
+            <strong>Capitaine</strong>
             <div className="hint">
               {ride.driver ? (
                 <Link className="link-row" to={`/drivers/${ride.driver.id}`}>
@@ -126,7 +126,7 @@ export default function RideDetailPage() {
             tone="neutral"
           />
           <StatCard label="Commission société" value={formatCurrency(ride.commissionAmount)} icon={Landmark} tone="info" />
-          <StatCard label="Net chauffeur" value={formatCurrency(ride.driverNetAmount)} icon={HandCoins} tone="success" />
+          <StatCard label="Net capitaine" value={formatCurrency(ride.driverNetAmount)} icon={HandCoins} tone="success" />
           {ride.creditApplied > 0 && (
             <StatCard label="Crédit appliqué" value={formatCurrency(ride.creditApplied)} icon={Gift} tone="primary" />
           )}

@@ -71,7 +71,7 @@ export default function SettingsPage() {
           {settings.defaultCommissionRate != null ? `${Math.round(settings.defaultCommissionRate * 100)}%` : '—'})
         </h3>
         <p className="hint">
-          S'applique aux nouveaux chauffeurs à la création de leur compte. Ne modifie pas le taux des chauffeurs
+          S'applique aux nouveaux capitaines à la création de leur compte. Ne modifie pas le taux des capitaines
           existants ni les courses déjà terminées.
         </p>
         <form className="form-grid" onSubmit={handleSubmit}>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
           Code marchand recharge ({settings.walletTopupMerchantCode || '—'})
         </h3>
         <p className="hint">
-          Code affiché au chauffeur pour recharger son compte : il le colle dans la fonction "Payer un marchand" de
+          Code affiché au capitaine pour recharger son compte : il le colle dans la fonction "Payer un marchand" de
           son application mobile money (Bankily/Sedad/Masrivi/Click/Bimbank). Un seul code, commun à toutes les
           applications. Vide tant qu'aucun code n'est configuré.
         </p>

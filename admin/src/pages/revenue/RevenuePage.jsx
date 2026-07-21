@@ -8,11 +8,11 @@ function formatCurrency(value) {
 }
 
 const DRIVER_COLUMNS = [
-  { key: 'driverName', label: 'Chauffeur' },
+  { key: 'driverName', label: 'Capitaine' },
   { key: 'rideCount', label: 'Courses' },
   { key: 'grossRevenue', label: 'Recette brute', render: (r) => formatCurrency(r.grossRevenue) },
   { key: 'commission', label: 'Commission', render: (r) => formatCurrency(r.commission) },
-  { key: 'driverNet', label: 'Net chauffeur', render: (r) => formatCurrency(r.driverNet) },
+  { key: 'driverNet', label: 'Net capitaine', render: (r) => formatCurrency(r.driverNet) },
 ];
 
 const PERIOD_COLUMNS = [
@@ -20,7 +20,7 @@ const PERIOD_COLUMNS = [
   { key: 'rideCount', label: 'Courses' },
   { key: 'grossRevenue', label: 'Recette brute', render: (r) => formatCurrency(r.grossRevenue) },
   { key: 'commission', label: 'Commission', render: (r) => formatCurrency(r.commission) },
-  { key: 'driverNet', label: 'Net chauffeur', render: (r) => formatCurrency(r.driverNet) },
+  { key: 'driverNet', label: 'Net capitaine', render: (r) => formatCurrency(r.driverNet) },
 ];
 
 export default function RevenuePage() {
@@ -35,7 +35,7 @@ export default function RevenuePage() {
 
       <div className="filters">
         <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)}>
-          <option value="driver">Par chauffeur</option>
+          <option value="driver">Par capitaine</option>
           <option value="day">Par jour</option>
           <option value="week">Par semaine</option>
           <option value="month">Par mois</option>

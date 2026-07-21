@@ -96,7 +96,7 @@ export default function ExpenseFormPage() {
             ))}
           </select>
         </FormField>
-        <FormField label="Chauffeur concerné">
+        <FormField label="Capitaine concerné">
           <select value={form.driverId} onChange={(e) => set('driverId', e.target.value)}>
             <option value="">Aucun</option>
             {(drivers || []).map((d) => (
@@ -116,7 +116,7 @@ export default function ExpenseFormPage() {
           </select>
         </FormField>
         {form.bearer === 'SHARED' && (
-          <FormField label="Part du chauffeur">
+          <FormField label="Part du capitaine">
             <input
               type="number"
               step="0.01"

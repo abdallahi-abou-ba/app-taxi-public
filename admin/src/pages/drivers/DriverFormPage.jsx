@@ -90,7 +90,7 @@ export default function DriverFormPage() {
         Retour
       </Link>
       <div className="page-header">
-        <h2>{isEdit ? 'Modifier le chauffeur' : 'Ajouter un chauffeur'}</h2>
+        <h2>{isEdit ? 'Modifier le capitaine' : 'Ajouter un capitaine'}</h2>
       </div>
 
       {error && <p className="error">{error}</p>}

@@ -115,7 +115,7 @@ export default function DriverDetailPage() {
   }
 
   async function handleArchive() {
-    if (!window.confirm('Archiver ce chauffeur ?')) return;
+    if (!window.confirm('Archiver ce capitaine ?')) return;
     setBusy(true);
     setActionError('');
     try {
@@ -135,7 +135,7 @@ export default function DriverDetailPage() {
     <div>
       <Link className="back-link" to="/drivers">
         <ArrowLeft size={13} strokeWidth={2.5} />
-        Retour aux chauffeurs
+        Retour aux capitaines
       </Link>
 
       <div className="page-header">
@@ -263,7 +263,7 @@ export default function DriverDetailPage() {
           <StatCard label="Courses annulées" value={driver.stats.cancelledRides} icon={XCircle} tone="danger" />
           <StatCard label="Recette totale" value={formatCurrency(driver.stats.totalRevenue)} icon={Wallet} tone="primary" />
           <StatCard label="Commission société" value={formatCurrency(driver.stats.totalCommission)} icon={Landmark} tone="info" />
-          <StatCard label="Net chauffeur" value={formatCurrency(driver.stats.totalNetEarnings)} icon={HandCoins} tone="success" />
+          <StatCard label="Net capitaine" value={formatCurrency(driver.stats.totalNetEarnings)} icon={HandCoins} tone="success" />
         </div>
       </div>
 
@@ -278,7 +278,7 @@ export default function DriverDetailPage() {
             <div className="btn-row">
               <button className="btn btn-approve" onClick={() => handleQuickStatus('APPROVED')} disabled={busy}>
                 <Check size={14} strokeWidth={2.75} />
-                Approuver le chauffeur
+                Approuver le capitaine
               </button>
               <button className="btn btn-reject" onClick={() => handleQuickStatus('REJECTED')} disabled={busy}>
                 <X size={14} strokeWidth={2.75} />

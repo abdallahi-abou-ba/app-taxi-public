@@ -18,7 +18,7 @@ export default function WalletTopUpListPage() {
   );
 
   async function handleConfirm(id) {
-    if (!window.confirm('Confirmer cette recharge et créditer le solde du chauffeur ?')) return;
+    if (!window.confirm('Confirmer cette recharge et créditer le solde du capitaine ?')) return;
     await confirmWalletTopUp(id);
     reload();
   }
@@ -30,7 +30,7 @@ export default function WalletTopUpListPage() {
   }
 
   const columns = [
-    { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
+    { key: 'driver', label: 'Capitaine', render: (r) => r.driver?.fullName || '—' },
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'method', label: 'Application', render: (r) => formatPaymentMethod(r.method) },
     { key: 'payerPhone', label: 'Numéro utilisé', render: (r) => r.payerPhone || '—' },
@@ -71,7 +71,7 @@ export default function WalletTopUpListPage() {
       </div>
 
       <p className="hint">
-        Le chauffeur paie le code marchand de l'entreprise via son application mobile money, puis le déclare ici -
+        Le capitaine paie le code marchand de l'entreprise via son application mobile money, puis le déclare ici -
         vérifiez la réception avant de confirmer, ce qui crédite son solde.
       </p>
 

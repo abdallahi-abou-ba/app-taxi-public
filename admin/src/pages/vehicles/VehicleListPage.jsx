@@ -14,7 +14,7 @@ const COLUMNS = [
   { key: 'model', label: 'Modèle' },
   { key: 'year', label: 'Année' },
   { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
-  { key: 'currentDriver', label: 'Chauffeur', render: (r) => r.currentDriver?.fullName || '—' },
+  { key: 'currentDriver', label: 'Capitaine', render: (r) => r.currentDriver?.fullName || '—' },
 ];
 
 export default function VehicleListPage() {

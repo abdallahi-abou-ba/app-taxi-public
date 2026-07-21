@@ -22,7 +22,7 @@ import { hasPermission } from '../permissions';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Tableau de bord', end: true, icon: LayoutDashboard },
-  { to: '/drivers', label: 'Chauffeurs', permission: ['DRIVERS'], icon: Users },
+  { to: '/drivers', label: 'Capitaines', permission: ['DRIVERS'], icon: Users },
   { to: '/vehicles', label: 'Véhicules', permission: ['VEHICLES'], icon: Car },
   { to: '/rides', label: 'Courses', permission: ['RIDES'], icon: Route },
   { to: '/revenue', label: 'Recettes', permission: ['REVENUE'], icon: Wallet },

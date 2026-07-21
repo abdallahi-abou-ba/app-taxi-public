@@ -14,7 +14,7 @@ function formatCurrency(value) {
 const COLUMNS = [
   { key: 'requestedAt', label: 'Demandée le', render: (r) => new Date(r.requestedAt).toLocaleString('fr-FR') },
   { key: 'client', label: 'Client', render: (r) => r.client?.fullName || '—' },
-  { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
+  { key: 'driver', label: 'Capitaine', render: (r) => r.driver?.fullName || '—' },
   { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
   { key: 'paymentMethod', label: 'Paiement', render: (r) => formatPaymentMethod(r.paymentMethod) },
   { key: 'estimatedFare', label: 'Prix', render: (r) => formatCurrency(r.estimatedFare) },

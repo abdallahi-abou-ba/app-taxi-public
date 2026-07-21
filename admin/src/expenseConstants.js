@@ -2,7 +2,7 @@
 // <select>'s optgroups, matching spec 8.2's 3 expense groups.
 export const EXPENSE_CATEGORY_GROUPS = {
   DRIVER: {
-    label: 'Chauffeur',
+    label: 'Capitaine',
     categories: ['DRIVER_ADVANCE', 'PENALTY', 'UNIFORM', 'TRAINING', 'DOCUMENT_FEE', 'COMMUNICATION'],
   },
   VEHICLE: {

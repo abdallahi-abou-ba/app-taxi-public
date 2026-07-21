@@ -29,7 +29,7 @@ export default function ExpenseListPage() {
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'description', label: 'Description' },
     { key: 'vehicle', label: 'Véhicule', render: (r) => r.vehicle?.plate || '—' },
-    { key: 'driver', label: 'Chauffeur', render: (r) => r.driver?.fullName || '—' },
+    { key: 'driver', label: 'Capitaine', render: (r) => r.driver?.fullName || '—' },
     {
       key: 'bearer',
       label: 'Supporté par',

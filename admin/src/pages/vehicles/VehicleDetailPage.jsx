@@ -134,7 +134,7 @@ export default function VehicleDetailPage() {
       <div className="panel">
         <h3>
           <UserCheck size={16} />
-          Chauffeur actuel
+          Capitaine actuel
         </h3>
         {vehicle.currentDriver ? (
           <div className="btn-row" style={{ alignItems: 'center' }}>
@@ -146,12 +146,12 @@ export default function VehicleDetailPage() {
             </button>
           </div>
         ) : (
-          <p className="hint">Aucun chauffeur affecté.</p>
+          <p className="hint">Aucun capitaine affecté.</p>
         )}
 
         <form className="btn-row" style={{ marginTop: 12 }} onSubmit={handleAssign}>
           <select value={selectedDriver} onChange={(e) => setSelectedDriver(e.target.value)}>
-            <option value="">Affecter à un chauffeur…</option>
+            <option value="">Affecter à un capitaine…</option>
             {(drivers || [])
               .filter((d) => d.id !== vehicle.currentDriverId)
               .map((d) => (
@@ -176,7 +176,7 @@ export default function VehicleDetailPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Chauffeur</th>
+                  <th>Capitaine</th>
                   <th>Début</th>
                   <th>Fin</th>
                 </tr>

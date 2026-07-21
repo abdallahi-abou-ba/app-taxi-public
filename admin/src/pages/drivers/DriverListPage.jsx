@@ -76,10 +76,10 @@ export default function DriverListPage() {
   return (
     <div>
       <div className="page-header">
-        <h2>Chauffeurs</h2>
+        <h2>Capitaines</h2>
         <Link className="btn btn-primary" to="/drivers/new">
           <Plus size={14} strokeWidth={2.75} />
-          Ajouter un chauffeur
+          Ajouter un capitaine
         </Link>
       </div>
 
