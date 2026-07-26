@@ -80,13 +80,31 @@ describe('payments', () => {
       expect(res.body.data.paymentMethod).toBe('CASH');
     });
 
-    it('accepts an explicit CARD selection', async () => {
+    it('accepts an explicit BANKILY/SEDAD/MASRIVI selection', async () => {
+      const client = await registerUser({ role: 'CLIENT' });
+      const res = await request(app)
+        .post('/api/rides')
+        .set(authHeader(client.accessToken))
+        .send({ ...RIDE_PAYLOAD, paymentMethod: 'SEDAD' });
+      expect(res.body.data.paymentMethod).toBe('SEDAD');
+    });
+
+    it('rejects CARD (retired from client selection - Cash/Bankily/Sedad/Masrivi only)', async () => {
       const client = await registerUser({ role: 'CLIENT' });
       const res = await request(app)
         .post('/api/rides')
         .set(authHeader(client.accessToken))
         .send({ ...RIDE_PAYLOAD, paymentMethod: 'CARD' });
-      expect(res.body.data.paymentMethod).toBe('CARD');
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects CLICK and BIMBANK (retired from client selection)', async () => {
+      const client = await registerUser({ role: 'CLIENT' });
+      const res = await request(app)
+        .post('/api/rides')
+        .set(authHeader(client.accessToken))
+        .send({ ...RIDE_PAYLOAD, paymentMethod: 'CLICK' });
+      expect(res.status).toBe(400);
     });
 
     it('rejects an invalid payment method', async () => {

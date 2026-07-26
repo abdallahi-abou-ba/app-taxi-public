@@ -227,6 +227,13 @@ model User {
   // existing `creditBalance` field below, which this seeds at creation time.
   initialBalance  Float?    @default(0)
 
+  // This driver's own dedicated mobile-money phone number for wallet
+  // top-ups (see wallet.service.js), admin-assigned per driver rather than
+  // one company-wide code - the driver transfers to it via their
+  // Bankily/Sedad/Masrivi app's normal "send money" feature, then declares
+  // the payment (WalletTopUp). Null until an admin sets one.
+  topUpPhone String?
+
   // Verification documents (photo/ID/license) uploaded from the mobile app -
   // see DriverDocument. Deliberately NOT columns here: requireAuth
   // (auth.middleware.js) loads a full, unselected User row on every
@@ -529,15 +536,13 @@ model Settlement {
 
 // Driver self-service top-up of their own creditBalance (see User.creditBalance),
 // auto-applied against what they owe the next time a Settlement is generated
-// (see Settlement.creditApplied). Mobile-money only (Bankily/Sedad/Masrivi/
-// Click/Bimbank) via a merchant-code
-// payment: the driver pastes the company's registered merchant code (see
-// appSetting.service.js#getWalletTopupMerchantCode, one code shared across all
-// providers) into that app's own "Pay a merchant" feature, enters the amount
-// themselves there, and completes the transfer entirely outside this app -
+// (see Settlement.creditApplied). Mobile-money only (Bankily/Sedad/Masrivi -
+// see paymentMethod.util.js#SUPPORTED_MOBILE_MONEY_METHODS), sent to this driver's own
+// dedicated recharge number (see User.topUpPhone, admin-assigned per driver)
+// via that app's normal "send money" feature, entirely outside this app -
 // there's no gateway API for any of these Mauritanian mobile-money apps. This
 // row is the driver's own declaration of that payment (driverDeclaredAt set
-// at creation, same moment they see the merchant code) - an admin still
+// at creation, same moment they see their recharge number) - an admin still
 // confirms via confirmTopUp before the balance is actually credited, same
 // two-step shape as Settlement's driverMarkedPaidAt/markSettlementPaid.
 // payerPhone is the mobile-money account they paid from, for the admin's

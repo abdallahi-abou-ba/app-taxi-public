@@ -34,6 +34,7 @@ export default function WalletTopUpListPage() {
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'method', label: 'Application', render: (r) => formatPaymentMethod(r.method) },
     { key: 'payerPhone', label: 'Numéro utilisé', render: (r) => r.payerPhone || '—' },
+    { key: 'topUpPhone', label: 'Numéro de recharge attendu', render: (r) => r.driver?.topUpPhone || '—' },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {
       key: 'declaredAt',
@@ -71,8 +72,9 @@ export default function WalletTopUpListPage() {
       </div>
 
       <p className="hint">
-        Le capitaine paie le code marchand de l'entreprise via son application mobile money, puis le déclare ici -
-        vérifiez la réception avant de confirmer, ce qui crédite son solde.
+        Le capitaine transfère l'argent vers son numéro de recharge personnel (Bankily/Sedad/Masrivi, assigné dans sa
+        fiche capitaine) puis le déclare ici - vérifiez que le numéro utilisé correspond avant de confirmer, ce qui
+        crédite son solde.
       </p>
 
       <div className="filters">

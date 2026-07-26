@@ -1,11 +1,10 @@
 const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const env = require('../config/env');
-const appSettingService = require('./appSetting.service');
 const { sendPushToUser } = require('../utils/push.util');
 
 const TOPUP_INCLUDE = {
-  driver: { select: { id: true, fullName: true, phone: true } },
+  driver: { select: { id: true, fullName: true, phone: true, topUpPhone: true } },
   confirmedByUser: { select: { id: true, fullName: true } },
 };
 
@@ -17,18 +16,18 @@ async function findTopUpOrThrow(topUpId) {
   return topUp;
 }
 
-// Info a driver needs before starting a top-up - minimum amount, the
-// company's merchant code (null until an admin sets one from Settings; see
-// appSetting.service.js), and their own current balance (otherwise never
-// shown anywhere in the driver app - see User.creditBalance).
-async function getTopUpInfo(creditBalance) {
-  const merchantCode = await appSettingService.getWalletTopupMerchantCode();
-  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, merchantCode, creditBalance };
+// Info a driver needs before starting a top-up - minimum amount, this
+// specific driver's own dedicated recharge number (null until an admin
+// assigns one - see User.topUpPhone), and their current balance (otherwise
+// never shown anywhere in the driver app - see User.creditBalance).
+async function getTopUpInfo(driverId, creditBalance) {
+  const driver = await prisma.user.findUnique({ where: { id: driverId }, select: { topUpPhone: true } });
+  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, topUpPhone: driver.topUpPhone, creditBalance };
 }
 
 // No gateway API for any of these Mauritanian mobile-money apps - the driver
-// pays the company's merchant code via that app's own "pay a merchant"
-// feature, entirely outside this app. This row itself IS the driver's
+// transfers to their own dedicated topUpPhone via that app's normal "send
+// money" feature, entirely outside this app. This row itself IS the driver's
 // declaration of that payment (driverDeclaredAt defaults to now on the
 // model) - an admin still confirms via confirmTopUp before the balance is
 // actually credited, same two-step shape as a settlement's declare/confirm.

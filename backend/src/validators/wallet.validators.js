@@ -1,11 +1,11 @@
 const { z } = require('zod');
-const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
+const { SUPPORTED_MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 const TOPUP_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'];
 
 const createTopUpSchema = z.object({
   amount: z.coerce.number().positive(),
-  method: z.enum(MOBILE_MONEY_METHODS),
+  method: z.enum(SUPPORTED_MOBILE_MONEY_METHODS),
   payerPhone: z.string().trim().min(6).max(20),
 });
 

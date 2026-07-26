@@ -7,15 +7,33 @@ jest.mock('../src/utils/geocode.util', () => ({
 
 const request = require('supertest');
 const env = require('../src/config/env');
-const { app, registerUser, authHeader } = require('./helpers');
+const { app, prisma, registerUser, authHeader } = require('./helpers');
 
 describe('driver wallet top-up', () => {
-  it('exposes the minimum amount and (unset) merchant code', async () => {
+  it('exposes the minimum amount and (unset) recharge phone', async () => {
     const driver = await registerUser({ role: 'DRIVER' });
     const res = await request(app).get('/api/users/me/wallet/topup-info').set(authHeader(driver.accessToken));
     expect(res.status).toBe(200);
     expect(res.body.data.minAmount).toBe(env.WALLET_TOPUP_MIN_AMOUNT);
-    expect(res.body.data.merchantCode).toBeNull();
+    expect(res.body.data.topUpPhone).toBeNull();
+  });
+
+  it('reflects this driver\'s own admin-assigned recharge phone', async () => {
+    const driver = await registerUser({ role: 'DRIVER' });
+    await prisma.user.update({ where: { id: driver.user.id }, data: { topUpPhone: '+22233445566' } });
+
+    const res = await request(app).get('/api/users/me/wallet/topup-info').set(authHeader(driver.accessToken));
+    expect(res.status).toBe(200);
+    expect(res.body.data.topUpPhone).toBe('+22233445566');
+  });
+
+  it('rejects CLICK as a method (wallet top-up only allows Bankily/Sedad/Masrivi)', async () => {
+    const driver = await registerUser({ role: 'DRIVER' });
+    const res = await request(app)
+      .post('/api/users/me/wallet/topups')
+      .set(authHeader(driver.accessToken))
+      .send({ amount: 500, method: 'CLICK', payerPhone: '22233445566' });
+    expect(res.status).toBe(400);
   });
 
   it('rejects an amount below the minimum', async () => {

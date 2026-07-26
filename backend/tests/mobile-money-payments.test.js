@@ -70,7 +70,7 @@ describe('mobile-money declare/confirm payment flow', () => {
   });
 
   it('rejects declaring the same ride paid twice', async () => {
-    const { client, rideId } = await completeRide('CLICK');
+    const { client, rideId } = await completeRide('BANKILY');
     await request(app).patch(`/api/rides/${rideId}/declare-paid`).set(authHeader(client.accessToken));
     const res = await request(app).patch(`/api/rides/${rideId}/declare-paid`).set(authHeader(client.accessToken));
     expect(res.status).toBe(409);

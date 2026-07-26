@@ -39,22 +39,12 @@ export const PAYMENT_METHOD = {
   BIMBANK: 'BIMBANK',
 };
 
-// Shown in the client's payment picker, in this order. WALLET/COMPANY exist
-// in the backend enum but aren't user-selectable here.
-export const CLIENT_PAYMENT_METHODS = [
-  PAYMENT_METHOD.CASH,
-  PAYMENT_METHOD.CARD,
-  PAYMENT_METHOD.BANKILY,
-  PAYMENT_METHOD.SEDAD,
-  PAYMENT_METHOD.MASRIVI,
-  PAYMENT_METHOD.CLICK,
-  PAYMENT_METHOD.BIMBANK,
-];
-
 // No gateway API for these Mauritanian mobile-money apps (mirrors
-// backend/src/utils/paymentMethod.util.js) - the client transfers directly to
-// the driver's phone/account outside the app, then declares it paid; the
-// driver confirms receipt. See PaymentStatus.js.
+// backend/src/utils/paymentMethod.util.js) - kept as-is (including the
+// retired Click/Bimbank) only so any old ride still using them keeps
+// rendering as mobile money. See PaymentStatus.js's isMobileMoney check -
+// nothing new can be created with Click/Bimbank anymore, see
+// SUPPORTED_MOBILE_MONEY_METHODS below for what's actually selectable today.
 export const MOBILE_MONEY_METHODS = [
   PAYMENT_METHOD.BANKILY,
   PAYMENT_METHOD.SEDAD,
@@ -62,6 +52,17 @@ export const MOBILE_MONEY_METHODS = [
   PAYMENT_METHOD.CLICK,
   PAYMENT_METHOD.BIMBANK,
 ];
+
+// The only mobile-money apps a user can newly select today (mirrors
+// backend's paymentMethod.util.js#SUPPORTED_MOBILE_MONEY_METHODS) - a
+// driver's own wallet top-up, a driver declaring a settlement paid, or a
+// client's ride payment method.
+export const SUPPORTED_MOBILE_MONEY_METHODS = [PAYMENT_METHOD.BANKILY, PAYMENT_METHOD.SEDAD, PAYMENT_METHOD.MASRIVI];
+
+// Shown in the client's payment picker, in this order. CARD (Stripe), Click
+// and Bimbank are retired from selection; WALLET/COMPANY exist in the
+// backend enum but were never user-selectable here.
+export const CLIENT_PAYMENT_METHODS = [PAYMENT_METHOD.CASH, ...SUPPORTED_MOBILE_MONEY_METHODS];
 
 export const MAP_DEFAULTS = {
   // Casablanca - just a sane fallback center before a real GPS fix arrives.

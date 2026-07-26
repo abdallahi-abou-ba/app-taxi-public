@@ -75,17 +75,25 @@ describe('admin wallet top-up review', () => {
     expect(res.status).toBe(403);
   });
 
-  it('lets an admin set and read back the merchant code setting', async () => {
+  it('lets an admin assign a per-driver recharge phone, visible to that driver and in the top-up list', async () => {
     const admin = await createAdmin();
-    const patchRes = await request(app)
-      .patch('/api/admin/settings')
-      .set(authHeader(admin.accessToken))
-      .send({ walletTopupMerchantCode: 'TAXI-12345' });
-    expect(patchRes.status).toBe(200);
-    expect(patchRes.body.data.walletTopupMerchantCode).toBe('TAXI-12345');
-
     const driver = await registerUser({ role: 'DRIVER' });
+
+    const patchRes = await request(app)
+      .patch(`/api/admin/drivers/${driver.user.id}`)
+      .set(authHeader(admin.accessToken))
+      .send({ topUpPhone: '22233445566' });
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.data.topUpPhone).toBe('+22233445566');
+
     const infoRes = await request(app).get('/api/users/me/wallet/topup-info').set(authHeader(driver.accessToken));
-    expect(infoRes.body.data.merchantCode).toBe('TAXI-12345');
+    expect(infoRes.body.data.topUpPhone).toBe('+22233445566');
+
+    const topUp = await createTopUp(driver, 500);
+    const listRes = await request(app)
+      .get('/api/admin/wallet-topups?status=PENDING')
+      .set(authHeader(admin.accessToken));
+    const listed = listRes.body.data.find((t) => t.id === topUp.id);
+    expect(listed.driver.topUpPhone).toBe('+22233445566');
   });
 });

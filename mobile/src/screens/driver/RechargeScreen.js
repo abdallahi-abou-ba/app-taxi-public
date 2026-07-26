@@ -7,8 +7,9 @@ import * as Clipboard from 'expo-clipboard';
 import TextField from '../../components/TextField';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
+import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { getTopUpInfo, getMyTopUps, createTopUp } from '../../api/walletApi';
-import { MOBILE_MONEY_METHODS } from '../../config/constants';
+import { SUPPORTED_MOBILE_MONEY_METHODS } from '../../config/constants';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
@@ -63,8 +64,8 @@ export default function RechargeScreen({ navigation }) {
   };
 
   const handleCopyCode = async () => {
-    if (!info?.merchantCode) return;
-    await Clipboard.setStringAsync(info.merchantCode);
+    if (!info?.topUpPhone) return;
+    await Clipboard.setStringAsync(info.topUpPhone);
     setCopied(true);
   };
 
@@ -94,20 +95,20 @@ export default function RechargeScreen({ navigation }) {
         </Pressable>
       </View>
 
-      {info.merchantCode ? (
+      {info.topUpPhone ? (
         <View style={styles.codeCard}>
-          <Text style={styles.codeLabel}>{t('recharge.merchantCodeLabel')}</Text>
-          <Text style={styles.code}>{info.merchantCode}</Text>
+          <Text style={styles.codeLabel}>{t('recharge.topUpPhoneLabel')}</Text>
+          <Text style={styles.code}>{info.topUpPhone}</Text>
           <Pressable style={styles.copyButton} onPress={handleCopyCode}>
             <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={15} color={colors.onPrimary} />
-            <Text style={styles.copyButtonText}>{copied ? t('recharge.copied') : t('recharge.copyCode')}</Text>
+            <Text style={styles.copyButtonText}>{copied ? t('recharge.copied') : t('recharge.copyNumber')}</Text>
           </Pressable>
-          <Text style={styles.codeInstructions}>{t('recharge.codeInstructions')}</Text>
+          <Text style={styles.codeInstructions}>{t('recharge.topUpInstructions')}</Text>
         </View>
       ) : (
         <View style={styles.warningBox}>
           <Ionicons name="alert-circle-outline" size={18} color={colors.warning} />
-          <Text style={styles.warningText}>{t('recharge.noMerchantCode')}</Text>
+          <Text style={styles.warningText}>{t('recharge.noTopUpPhone')}</Text>
         </View>
       )}
 
@@ -131,12 +132,13 @@ export default function RechargeScreen({ navigation }) {
 
         <Text style={styles.label}>{t('recharge.chooseMethod')}</Text>
         <View style={styles.methodOptions}>
-          {MOBILE_MONEY_METHODS.map((m) => (
+          {SUPPORTED_MOBILE_MONEY_METHODS.map((m) => (
             <Pressable
               key={m}
               onPress={() => setMethod(m)}
               style={[styles.methodOption, method === m && styles.methodOptionActive]}
             >
+              <PaymentMethodIcon method={m} size={20} color={method === m ? colors.onPrimary : colors.textSecondary} />
               <Text style={[styles.methodOptionText, method === m && styles.methodOptionTextActive]}>
                 {formatPaymentMethod(m, t)}
               </Text>
@@ -148,7 +150,7 @@ export default function RechargeScreen({ navigation }) {
           title={t('recharge.submit')}
           onPress={handleSubmit}
           loading={busy}
-          disabled={!method || !numericAmount || !phone.trim() || belowMinimum || !info.merchantCode}
+          disabled={!method || !numericAmount || !phone.trim() || belowMinimum || !info.topUpPhone}
         />
       </View>
 
@@ -296,6 +298,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   methodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: radius.pill,

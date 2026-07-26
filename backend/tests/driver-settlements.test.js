@@ -6,16 +6,25 @@ jest.mock('../src/utils/geocode.util', () => ({
 }));
 
 const request = require('supertest');
-const { app, registerUser, createAdmin, authHeader } = require('./helpers');
+const { app, prisma, registerUser, createAdmin, authHeader } = require('./helpers');
 
 const RIDE_PAYLOAD = { pickupLat: 33.5731, pickupLng: -7.5898, destinationLat: 33.5931, destinationLng: -7.6098 };
+
+// CARD (and Click/Bimbank) are no longer client-selectable payment methods
+// (see ride.validators.js#REQUESTABLE_PAYMENT_METHODS) - created as CASH via
+// the API then patched directly in the DB for those, so settlement's
+// driver-collected-vs-company-collected netting logic stays exercised.
+const REQUESTABLE_METHODS = ['CASH', 'BANKILY', 'SEDAD', 'MASRIVI'];
 
 async function completeRide(client, driver, paymentMethod = 'CASH') {
   const created = await request(app)
     .post('/api/rides')
     .set(authHeader(client.accessToken))
-    .send({ ...RIDE_PAYLOAD, paymentMethod });
+    .send({ ...RIDE_PAYLOAD, ...(REQUESTABLE_METHODS.includes(paymentMethod) ? { paymentMethod } : {}) });
   const rideId = created.body.data.id;
+  if (!REQUESTABLE_METHODS.includes(paymentMethod)) {
+    await prisma.ride.update({ where: { id: rideId }, data: { paymentMethod } });
+  }
   await request(app).patch(`/api/rides/${rideId}/accept`).set(authHeader(driver.accessToken));
   await request(app).patch(`/api/rides/${rideId}/arrive`).set(authHeader(driver.accessToken));
   await request(app).patch(`/api/rides/${rideId}/start`).set(authHeader(driver.accessToken));

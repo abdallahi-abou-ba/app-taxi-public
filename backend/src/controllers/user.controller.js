@@ -89,7 +89,7 @@ const declareMySettlementPaid = asyncHandler(async (req, res) => {
 });
 
 const getWalletTopUpInfo = asyncHandler(async (req, res) => {
-  const info = await walletService.getTopUpInfo(req.user.creditBalance);
+  const info = await walletService.getTopUpInfo(req.user.id, req.user.creditBalance);
   sendSuccess(res, { data: info });
 });
 

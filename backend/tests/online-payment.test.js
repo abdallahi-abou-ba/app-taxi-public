@@ -19,7 +19,7 @@ jest.mock('stripe', () =>
 
 const request = require('supertest');
 const env = require('../src/config/env');
-const { app, registerUser, authHeader } = require('./helpers');
+const { app, prisma, registerUser, authHeader } = require('./helpers');
 
 const RIDE_PAYLOAD = { pickupLat: 33.5731, pickupLng: -7.5898, destinationLat: 33.5931, destinationLng: -7.6098 };
 const REDIRECT_URLS = { successUrl: 'https://example.com/success', cancelUrl: 'https://example.com/cancel' };
@@ -28,14 +28,19 @@ async function advance(rideId, action, accessToken) {
   return request(app).patch(`/api/rides/${rideId}/${action}`).set(authHeader(accessToken));
 }
 
+// CARD is no longer a client-selectable payment method (see
+// ride.validators.js#REQUESTABLE_PAYMENT_METHODS) - a ride is created CASH
+// then, for the CARD case, patched directly in the DB to simulate one that
+// already has it set, so the Stripe checkout/webhook mechanics below stay
+// exercised even though nothing can newly request CARD through the API.
 async function completeRideWithMethod(paymentMethod) {
   const client = await registerUser({ role: 'CLIENT' });
   const driver = await registerUser({ role: 'DRIVER' });
-  const created = await request(app)
-    .post('/api/rides')
-    .set(authHeader(client.accessToken))
-    .send({ ...RIDE_PAYLOAD, paymentMethod });
+  const created = await request(app).post('/api/rides').set(authHeader(client.accessToken)).send(RIDE_PAYLOAD);
   const rideId = created.body.data.id;
+  if (paymentMethod !== 'CASH') {
+    await prisma.ride.update({ where: { id: rideId }, data: { paymentMethod } });
+  }
   await advance(rideId, 'accept', driver.accessToken);
   await advance(rideId, 'arrive', driver.accessToken);
   await advance(rideId, 'start', driver.accessToken);

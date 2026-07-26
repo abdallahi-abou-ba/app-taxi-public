@@ -12,6 +12,7 @@ import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
+import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
@@ -20,12 +21,9 @@ const BOOKING_MODE = { NOW: 'now', LATER: 'later' };
 
 const PAYMENT_ICONS = {
   [PAYMENT_METHOD.CASH]: 'cash-outline',
-  [PAYMENT_METHOD.CARD]: 'card-outline',
   [PAYMENT_METHOD.BANKILY]: 'phone-portrait-outline',
   [PAYMENT_METHOD.SEDAD]: 'phone-portrait-outline',
   [PAYMENT_METHOD.MASRIVI]: 'phone-portrait-outline',
-  [PAYMENT_METHOD.CLICK]: 'phone-portrait-outline',
-  [PAYMENT_METHOD.BIMBANK]: 'phone-portrait-outline',
 };
 
 export default function ClientHomeScreen({ navigation }) {
@@ -256,9 +254,10 @@ export default function ClientHomeScreen({ navigation }) {
                     onPress={() => setPaymentMethod(method)}
                     style={[styles.paymentOption, paymentMethod === method && styles.paymentOptionActive]}
                   >
-                    <Ionicons
-                      name={PAYMENT_ICONS[method]}
-                      size={14}
+                    <PaymentMethodIcon
+                      method={method}
+                      ionIconName={PAYMENT_ICONS[method]}
+                      size={20}
                       color={paymentMethod === method ? colors.onPrimary : colors.textSecondary}
                     />
                     <Text style={[styles.paymentOptionText, paymentMethod === method && styles.paymentOptionTextActive]}>

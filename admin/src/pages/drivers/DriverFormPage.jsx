@@ -19,6 +19,7 @@ const EMPTY = {
   licenseNumber: '',
   licenseExpiryAt: '',
   contractType: '',
+  topUpPhone: '',
   initialBalance: '',
 };
 
@@ -146,6 +147,14 @@ export default function DriverFormPage() {
         </FormField>
         <FormField label="Type de contrat">
           <input type="text" value={form.contractType || ''} onChange={(e) => set('contractType', e.target.value)} />
+        </FormField>
+        <FormField label="Numéro de recharge (Bankily/Sedad/Masrivi)">
+          <input
+            type="text"
+            value={form.topUpPhone || ''}
+            onChange={(e) => set('topUpPhone', e.target.value)}
+            placeholder="Ex : 22233445566"
+          />
         </FormField>
         {!isEdit && (
           <FormField label="Solde initial">

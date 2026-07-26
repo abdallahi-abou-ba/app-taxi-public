@@ -5,17 +5,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
+import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { getMySettlements, declareSettlementPaid } from '../../api/userApi';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
-import { MOBILE_MONEY_METHODS } from '../../config/constants';
+import { SUPPORTED_MOBILE_MONEY_METHODS } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 const PAYMENT_ICONS = {
   BANKILY: 'phone-portrait-outline',
   SEDAD: 'phone-portrait-outline',
   MASRIVI: 'phone-portrait-outline',
-  CLICK: 'phone-portrait-outline',
-  BIMBANK: 'phone-portrait-outline',
 };
 
 export default function SettlementsScreen() {
@@ -123,15 +122,16 @@ function SettlementCard({ settlement, t, i18n, onChanged }) {
             <ErrorBanner message={cardError} />
             <Text style={styles.paymentLabel}>{t('settlements.chooseMethod')}</Text>
             <View style={styles.paymentOptions}>
-              {MOBILE_MONEY_METHODS.map((m) => (
+              {SUPPORTED_MOBILE_MONEY_METHODS.map((m) => (
                 <Pressable
                   key={m}
                   onPress={() => setMethod(m)}
                   style={[styles.paymentOption, method === m && styles.paymentOptionActive]}
                 >
-                  <Ionicons
-                    name={PAYMENT_ICONS[m]}
-                    size={14}
+                  <PaymentMethodIcon
+                    method={m}
+                    ionIconName={PAYMENT_ICONS[m]}
+                    size={20}
                     color={method === m ? colors.onPrimary : colors.textSecondary}
                   />
                   <Text style={[styles.paymentOptionText, method === m && styles.paymentOptionTextActive]}>

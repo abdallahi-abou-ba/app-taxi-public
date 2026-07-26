@@ -105,16 +105,15 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
 });
 
 const getSettings = asyncHandler(async (req, res) => {
-  const [defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline] = await Promise.all([
+  const [defaultCommissionRate, minBalanceToGoOnline] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
-    appSettingService.getWalletTopupMerchantCode(),
     appSettingService.getMinBalanceToGoOnline(),
   ]);
-  sendSuccess(res, { data: { defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline } });
+  sendSuccess(res, { data: { defaultCommissionRate, minBalanceToGoOnline } });
 });
 
 const updateSettings = asyncHandler(async (req, res) => {
-  const { defaultCommissionRate, walletTopupMerchantCode, minBalanceToGoOnline } = req.body;
+  const { defaultCommissionRate, minBalanceToGoOnline } = req.body;
 
   if (defaultCommissionRate !== undefined) {
     const oldValue = await appSettingService.getDefaultCommissionRate();
@@ -125,18 +124,6 @@ const updateSettings = asyncHandler(async (req, res) => {
       entityType: 'APP_SETTING',
       entityId: 'DEFAULT_COMMISSION_RATE',
       details: { oldValue, newValue: defaultCommissionRate },
-    });
-  }
-
-  if (walletTopupMerchantCode !== undefined) {
-    const oldValue = await appSettingService.getWalletTopupMerchantCode();
-    await appSettingService.setWalletTopupMerchantCode(walletTopupMerchantCode, req.user.id);
-    await activityLogService.logActivity({
-      adminUserId: req.user.id,
-      action: 'SETTINGS_UPDATED',
-      entityType: 'APP_SETTING',
-      entityId: 'WALLET_TOPUP_MERCHANT_CODE',
-      details: { oldValue, newValue: walletTopupMerchantCode },
     });
   }
 
@@ -152,13 +139,12 @@ const updateSettings = asyncHandler(async (req, res) => {
     });
   }
 
-  const [updatedRate, updatedCode, updatedMinBalance] = await Promise.all([
+  const [updatedRate, updatedMinBalance] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
-    appSettingService.getWalletTopupMerchantCode(),
     appSettingService.getMinBalanceToGoOnline(),
   ]);
   sendSuccess(res, {
-    data: { defaultCommissionRate: updatedRate, walletTopupMerchantCode: updatedCode, minBalanceToGoOnline: updatedMinBalance },
+    data: { defaultCommissionRate: updatedRate, minBalanceToGoOnline: updatedMinBalance },
   });
 });
 

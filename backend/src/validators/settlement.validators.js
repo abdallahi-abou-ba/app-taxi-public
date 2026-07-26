@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
+const { SUPPORTED_MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 const SETTLEMENT_STATUS_VALUES = ['PENDING', 'PAID', 'CANCELLED'];
 
@@ -22,7 +22,7 @@ const createSettlementSchema = z.object({
 });
 
 const declareSettlementPaidSchema = z.object({
-  paymentMethod: z.enum(MOBILE_MONEY_METHODS),
+  paymentMethod: z.enum(SUPPORTED_MOBILE_MONEY_METHODS),
 });
 
 module.exports = {

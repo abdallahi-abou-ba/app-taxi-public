@@ -1,4 +1,11 @@
 const { z } = require('zod');
+const { SUPPORTED_MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
+
+// What a client may newly pick when requesting/scheduling a ride - CARD
+// (Stripe), CLICK and BIMBANK are retired from selection (existing completed
+// rides that used them remain untouched and still display fine); WALLET/
+// COMPANY were never client-selectable inputs to begin with.
+const REQUESTABLE_PAYMENT_METHODS = ['CASH', ...SUPPORTED_MOBILE_MONEY_METHODS];
 
 const requestRideSchema = z.object({
   pickupLat: z.number().min(-90).max(90),
@@ -7,7 +14,7 @@ const requestRideSchema = z.object({
   destinationLat: z.number().min(-90).max(90),
   destinationLng: z.number().min(-180).max(180),
   destinationAddress: z.string().trim().min(1).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
 });
 
 const scheduleRideSchema = z.object({
@@ -17,7 +24,7 @@ const scheduleRideSchema = z.object({
   destinationLat: z.number().min(-90).max(90),
   destinationLng: z.number().min(-180).max(180),
   destinationAddress: z.string().trim().min(1).optional(),
-  paymentMethod: z.enum(['CASH', 'CARD', 'BANKILY', 'SEDAD', 'MASRIVI', 'CLICK', 'BIMBANK', 'WALLET', 'COMPANY']).optional(),
+  paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
   scheduledFor: z.string().datetime({ message: 'scheduledFor must be an ISO 8601 datetime' }),
 });
 
