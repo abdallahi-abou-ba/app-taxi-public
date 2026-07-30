@@ -64,6 +64,18 @@ export const SUPPORTED_MOBILE_MONEY_METHODS = [PAYMENT_METHOD.BANKILY, PAYMENT_M
 // backend enum but were never user-selectable here.
 export const CLIENT_PAYMENT_METHODS = [PAYMENT_METHOD.CASH, ...SUPPORTED_MOBILE_MONEY_METHODS];
 
+// Store listing IDs for each app, used to send a driver straight to its
+// App Store/Play Store page after declaring a wallet top-up (RechargeScreen)
+// - none of these publish a documented custom URL scheme (tried and
+// confirmed unreliable), but the store listing itself shows an "Open" button
+// when the app's already installed, or "Get/Install" otherwise - a real app
+// launch either way, just one tap further than a direct deep link.
+export const PAYMENT_APP_STORE_IDS = {
+  [PAYMENT_METHOD.BANKILY]: { ios: '1460115201', android: 'mr.bpm.digitalbanking.consumer' },
+  [PAYMENT_METHOD.SEDAD]: { ios: '1613951511', android: 'mr.digi.sedad' },
+  [PAYMENT_METHOD.MASRIVI]: { ios: '1540766096', android: 'com.tagpay.mwallet.masrvi' },
+};
+
 export const MAP_DEFAULTS = {
   // Casablanca - just a sane fallback center before a real GPS fix arrives.
   latitude: 33.5731,

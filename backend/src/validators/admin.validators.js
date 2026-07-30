@@ -31,7 +31,6 @@ const createDriverSchema = z.object({
   licenseExpiryAt: z.coerce.date().optional(),
   contractType: z.string().trim().optional(),
   initialBalance: z.coerce.number().nonnegative().optional(),
-  topUpPhone: phoneField.optional(),
 });
 
 const updateDriverSchema = z
@@ -46,7 +45,6 @@ const updateDriverSchema = z
     licenseNumber: z.string().trim(),
     licenseExpiryAt: z.coerce.date(),
     contractType: z.string().trim(),
-    topUpPhone: phoneField,
   })
   .partial();
 

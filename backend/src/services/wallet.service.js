@@ -4,7 +4,7 @@ const env = require('../config/env');
 const { sendPushToUser } = require('../utils/push.util');
 
 const TOPUP_INCLUDE = {
-  driver: { select: { id: true, fullName: true, phone: true, topUpPhone: true } },
+  driver: { select: { id: true, fullName: true, phone: true } },
   confirmedByUser: { select: { id: true, fullName: true } },
 };
 
@@ -16,18 +16,18 @@ async function findTopUpOrThrow(topUpId) {
   return topUp;
 }
 
-// Info a driver needs before starting a top-up - minimum amount, this
-// specific driver's own dedicated recharge number (null until an admin
-// assigns one - see User.topUpPhone), and their current balance (otherwise
-// never shown anywhere in the driver app - see User.creditBalance).
-async function getTopUpInfo(driverId, creditBalance) {
-  const driver = await prisma.user.findUnique({ where: { id: driverId }, select: { topUpPhone: true } });
-  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, topUpPhone: driver.topUpPhone, creditBalance };
+// Info a driver needs before starting a top-up - minimum amount, the single
+// company receiving number every driver sends to (see
+// env.WALLET_TOPUP_RECEIVE_PHONE - not per-driver, nothing for an admin to
+// configure here), and their current balance (otherwise never shown anywhere
+// in the driver app - see User.creditBalance).
+async function getTopUpInfo(creditBalance) {
+  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, receivePhone: env.WALLET_TOPUP_RECEIVE_PHONE || null, creditBalance };
 }
 
 // No gateway API for any of these Mauritanian mobile-money apps - the driver
-// transfers to their own dedicated topUpPhone via that app's normal "send
-// money" feature, entirely outside this app. This row itself IS the driver's
+// transfers to the company's receiving number via that app's normal "send
+// money" feature. This row itself IS the driver's
 // declaration of that payment (driverDeclaredAt defaults to now on the
 // model) - an admin still confirms via confirmTopUp before the balance is
 // actually credited, same two-step shape as a settlement's declare/confirm.

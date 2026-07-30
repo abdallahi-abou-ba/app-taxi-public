@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Linking, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -8,18 +8,23 @@ import TextField from '../../components/TextField';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
+import { useAuth } from '../../context/AuthContext';
 import { getTopUpInfo, getMyTopUps, createTopUp } from '../../api/walletApi';
-import { SUPPORTED_MOBILE_MONEY_METHODS } from '../../config/constants';
+import { SUPPORTED_MOBILE_MONEY_METHODS, PAYMENT_APP_STORE_IDS } from '../../config/constants';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function RechargeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [info, setInfo] = useState(null);
   const [topUps, setTopUps] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [amount, setAmount] = useState('');
-  const [phone, setPhone] = useState('');
+  // Pre-filled from the driver's own account phone - the number they'd
+  // normally use to pay with Bankily/Sedad/Masrivi anyway - but still
+  // editable in case they declare a top-up made from a different number.
+  const [phone, setPhone] = useState(user.phone || '');
   const [method, setMethod] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -52,10 +57,28 @@ export default function RechargeScreen({ navigation }) {
     setBusy(true);
     try {
       await createTopUp({ amount: numericAmount, method, payerPhone: phone.trim() });
+      const declaredMethod = method;
       setAmount('');
       setPhone('');
       setMethod(null);
       await load(true);
+      // Hand off to the app's own store listing to complete the real
+      // transfer - no verified direct deep-link scheme exists for any of
+      // these apps (tried and confirmed unreliable), but the store listing
+      // itself shows "Open" when the app's already installed, or
+      // "Get"/"Install" otherwise, so this always leads somewhere useful.
+      const storeIds = PAYMENT_APP_STORE_IDS[declaredMethod];
+      if (storeIds) {
+        const storeUrl =
+          Platform.OS === 'ios'
+            ? `https://apps.apple.com/app/id${storeIds.ios}`
+            : `https://play.google.com/store/apps/details?id=${storeIds.android}`;
+        try {
+          await Linking.openURL(storeUrl);
+        } catch {
+          navigation.navigate('DriverHome');
+        }
+      }
     } catch (err) {
       setError(err.message || t('recharge.submitError'));
     } finally {
@@ -64,8 +87,8 @@ export default function RechargeScreen({ navigation }) {
   };
 
   const handleCopyCode = async () => {
-    if (!info?.topUpPhone) return;
-    await Clipboard.setStringAsync(info.topUpPhone);
+    if (!info?.receivePhone) return;
+    await Clipboard.setStringAsync(info.receivePhone);
     setCopied(true);
   };
 
@@ -95,10 +118,10 @@ export default function RechargeScreen({ navigation }) {
         </Pressable>
       </View>
 
-      {info.topUpPhone ? (
+      {info.receivePhone ? (
         <View style={styles.codeCard}>
           <Text style={styles.codeLabel}>{t('recharge.topUpPhoneLabel')}</Text>
-          <Text style={styles.code}>{info.topUpPhone}</Text>
+          <Text style={styles.code}>{info.receivePhone}</Text>
           <Pressable style={styles.copyButton} onPress={handleCopyCode}>
             <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={15} color={colors.onPrimary} />
             <Text style={styles.copyButtonText}>{copied ? t('recharge.copied') : t('recharge.copyNumber')}</Text>
@@ -150,7 +173,7 @@ export default function RechargeScreen({ navigation }) {
           title={t('recharge.submit')}
           onPress={handleSubmit}
           loading={busy}
-          disabled={!method || !numericAmount || !phone.trim() || belowMinimum || !info.topUpPhone}
+          disabled={!method || !numericAmount || !phone.trim() || belowMinimum || !info.receivePhone}
         />
       </View>
 

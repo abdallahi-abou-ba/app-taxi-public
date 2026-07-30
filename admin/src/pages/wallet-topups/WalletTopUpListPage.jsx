@@ -34,7 +34,7 @@ export default function WalletTopUpListPage() {
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'method', label: 'Application', render: (r) => formatPaymentMethod(r.method) },
     { key: 'payerPhone', label: 'Numéro utilisé', render: (r) => r.payerPhone || '—' },
-    { key: 'topUpPhone', label: 'Numéro de recharge attendu', render: (r) => r.driver?.topUpPhone || '—' },
+    { key: 'driverPhone', label: 'Numéro du capitaine', render: (r) => r.driver?.phone || '—' },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {
       key: 'declaredAt',
@@ -72,9 +72,9 @@ export default function WalletTopUpListPage() {
       </div>
 
       <p className="hint">
-        Le capitaine transfère l'argent vers son numéro de recharge personnel (Bankily/Sedad/Masrivi, assigné dans sa
-        fiche capitaine) puis le déclare ici - vérifiez que le numéro utilisé correspond avant de confirmer, ce qui
-        crédite son solde.
+        Le capitaine transfère l'argent vers le numéro de recharge de l'entreprise (Bankily/Sedad/Masrivi) puis le
+        déclare ici - comparez le numéro utilisé au numéro de compte du capitaine avant de confirmer, ce qui crédite
+        son solde.
       </p>
 
       <div className="filters">

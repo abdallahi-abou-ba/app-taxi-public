@@ -200,10 +200,6 @@ export default function DriverDetailPage() {
             <div className="hint">{driver.contractType || '—'}</div>
           </div>
           <div>
-            <strong>Numéro de recharge</strong>
-            <div className="hint">{driver.topUpPhone || '—'}</div>
-          </div>
-          <div>
             <strong>Solde</strong>
             <div className="hint">{formatCurrency(driver.creditBalance)}</div>
           </div>

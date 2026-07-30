@@ -41,6 +41,14 @@ const envSchema = z.object({
   // can declare in one go.
   WALLET_TOPUP_MIN_AMOUNT: z.coerce.number().positive().default(100),
 
+  // The single company mobile-money number every driver sends a top-up to
+  // (Bankily/Sedad/Masrivi - one number covers all three in practice). Set
+  // once per deployment here, not per-driver and not through the admin UI -
+  // there's nothing for an admin to configure per driver for a recharge to
+  // work. Optional so the app still boots unconfigured; the driver app shows
+  // a "not configured yet" notice until this is set.
+  WALLET_TOPUP_RECEIVE_PHONE: z.string().optional(),
+
   // Fallback minimum creditBalance (see User.creditBalance) a driver needs to
   // go online / accept rides, overridable per-deployment via AppSetting (see
   // appSetting.service.js#getMinBalanceToGoOnline).

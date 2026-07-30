@@ -75,25 +75,16 @@ describe('admin wallet top-up review', () => {
     expect(res.status).toBe(403);
   });
 
-  it('lets an admin assign a per-driver recharge phone, visible to that driver and in the top-up list', async () => {
+  it('lists the driver\'s own account phone alongside the declared payer phone, for manual reconciliation', async () => {
     const admin = await createAdmin();
     const driver = await registerUser({ role: 'DRIVER' });
-
-    const patchRes = await request(app)
-      .patch(`/api/admin/drivers/${driver.user.id}`)
-      .set(authHeader(admin.accessToken))
-      .send({ topUpPhone: '22233445566' });
-    expect(patchRes.status).toBe(200);
-    expect(patchRes.body.data.topUpPhone).toBe('+22233445566');
-
-    const infoRes = await request(app).get('/api/users/me/wallet/topup-info').set(authHeader(driver.accessToken));
-    expect(infoRes.body.data.topUpPhone).toBe('+22233445566');
-
     const topUp = await createTopUp(driver, 500);
+
     const listRes = await request(app)
       .get('/api/admin/wallet-topups?status=PENDING')
       .set(authHeader(admin.accessToken));
     const listed = listRes.body.data.find((t) => t.id === topUp.id);
-    expect(listed.driver.topUpPhone).toBe('+22233445566');
+    expect(listed.driver.phone).toBe(driver.user.phone);
+    expect(listed.payerPhone).toBe('22233445566');
   });
 });
