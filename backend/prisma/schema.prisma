@@ -529,17 +529,16 @@ model Settlement {
 
 // Driver self-service top-up of their own creditBalance (see User.creditBalance),
 // auto-applied against what they owe the next time a Settlement is generated
-// (see Settlement.creditApplied). Mobile-money only (Bankily/Sedad/Masrivi -
-// see paymentMethod.util.js#SUPPORTED_MOBILE_MONEY_METHODS), sent to the
-// single company receiving number (see env.WALLET_TOPUP_RECEIVE_PHONE) via
-// that app's normal "send money" feature, entirely outside this app - there's
-// no gateway API for any of these Mauritanian mobile-money apps. This
-// row is the driver's own declaration of that payment (driverDeclaredAt set
-// at creation, same moment they see their recharge number) - an admin still
+// (see Settlement.creditApplied). Bankily only, via that app's B-Pay
+// merchant-code feature: the driver pastes the company's merchant code (see
+// appSetting.service.js#getMerchantCode) and pays the amount, entirely
+// outside this app - there's no gateway API for Bankily. This row is the
+// driver's own declaration of that payment (driverDeclaredAt set at
+// creation, same moment they see the merchant code) - an admin still
 // confirms via confirmTopUp before the balance is actually credited, same
 // two-step shape as Settlement's driverMarkedPaidAt/markSettlementPaid.
-// payerPhone is the mobile-money account they paid from, for the admin's
-// reconciliation - may differ from the driver's own login phone.
+// payerPhone is nullable, kept only for older rows declared before the
+// B-Pay switch - no longer collected from the driver.
 model WalletTopUp {
   id       String @id @default(uuid())
   driverId String
@@ -547,7 +546,7 @@ model WalletTopUp {
 
   amount     Float
   method     PaymentMethod
-  payerPhone String
+  payerPhone String?
   status     WalletTopUpStatus @default(PENDING)
 
   driverDeclaredAt DateTime @default(now())

@@ -61,10 +61,15 @@ const updateSettingsSchema = z
   .object({
     defaultCommissionRate: z.number().min(0).max(1).optional(),
     minBalanceToGoOnline: z.number().min(0).optional(),
+    walletTopupMerchantCode: z.string().regex(/^\d{6}$/, 'Must be exactly 6 digits').optional(),
   })
-  .refine((data) => data.defaultCommissionRate !== undefined || data.minBalanceToGoOnline !== undefined, {
-    message: 'At least one setting must be provided',
-  });
+  .refine(
+    (data) =>
+      data.defaultCommissionRate !== undefined ||
+      data.minBalanceToGoOnline !== undefined ||
+      data.walletTopupMerchantCode !== undefined,
+    { message: 'At least one setting must be provided' }
+  );
 
 const RIDE_STATUS_VALUES = ['SCHEDULED', 'REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 

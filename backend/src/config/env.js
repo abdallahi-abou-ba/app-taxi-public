@@ -41,13 +41,12 @@ const envSchema = z.object({
   // can declare in one go.
   WALLET_TOPUP_MIN_AMOUNT: z.coerce.number().positive().default(100),
 
-  // The single company mobile-money number every driver sends a top-up to
-  // (Bankily/Sedad/Masrivi - one number covers all three in practice). Set
-  // once per deployment here, not per-driver and not through the admin UI -
-  // there's nothing for an admin to configure per driver for a recharge to
-  // work. Optional so the app still boots unconfigured; the driver app shows
-  // a "not configured yet" notice until this is set.
-  WALLET_TOPUP_RECEIVE_PHONE: z.string().optional(),
+  // Fallback 6-digit Bankily B-Pay merchant code shown to a driver
+  // recharging their wallet, used only when no admin override has been saved
+  // (see appSetting.service.js#getMerchantCode). Optional so the app still
+  // boots unconfigured; the driver app shows a "not configured yet" notice
+  // until a code is set here or in the admin Settings page.
+  WALLET_TOPUP_MERCHANT_CODE: z.string().regex(/^\d{6}$/, 'WALLET_TOPUP_MERCHANT_CODE must be 6 digits').optional(),
 
   // Fallback minimum creditBalance (see User.creditBalance) a driver needs to
   // go online / accept rides, overridable per-deployment via AppSetting (see

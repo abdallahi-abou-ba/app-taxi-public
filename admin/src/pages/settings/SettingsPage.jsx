@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Percent, Wallet } from 'lucide-react';
+import { Percent, Wallet, CreditCard } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -15,6 +15,11 @@ export default function SettingsPage() {
   const [minBalanceError, setMinBalanceError] = useState('');
   const [minBalanceSuccess, setMinBalanceSuccess] = useState(false);
   const [minBalanceBusy, setMinBalanceBusy] = useState(false);
+
+  const [newMerchantCode, setNewMerchantCode] = useState('');
+  const [merchantCodeError, setMerchantCodeError] = useState('');
+  const [merchantCodeSuccess, setMerchantCodeSuccess] = useState(false);
+  const [merchantCodeBusy, setMerchantCodeBusy] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,6 +54,27 @@ export default function SettingsPage() {
       setMinBalanceError(err.message);
     } finally {
       setMinBalanceBusy(false);
+    }
+  }
+
+  async function handleMerchantCodeSubmit(e) {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(newMerchantCode)) {
+      setMerchantCodeError('Le code doit contenir exactement 6 chiffres.');
+      return;
+    }
+    setMerchantCodeBusy(true);
+    setMerchantCodeError('');
+    setMerchantCodeSuccess(false);
+    try {
+      await updateSettings({ walletTopupMerchantCode: newMerchantCode });
+      setNewMerchantCode('');
+      setMerchantCodeSuccess(true);
+      reload();
+    } catch (err) {
+      setMerchantCodeError(err.message);
+    } finally {
+      setMerchantCodeBusy(false);
     }
   }
 
@@ -112,6 +138,38 @@ export default function SettingsPage() {
           </label>
           <div style={{ alignSelf: 'end' }}>
             <button className="btn btn-primary" type="submit" disabled={minBalanceBusy || newMinBalance === ''}>
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {merchantCodeError && <p className="error">{merchantCodeError}</p>}
+      {merchantCodeSuccess && <p className="hint">Code marchand mis à jour.</p>}
+
+      <div className="panel">
+        <h3>
+          <CreditCard size={16} />
+          Code marchand Bankily B-Pay ({settings.walletTopupMerchantCode ?? '—'})
+        </h3>
+        <p className="hint">
+          Code à 6 chiffres que chaque capitaine copie et colle dans Bankily (option B-Pay) pour recharger son
+          compte. Un seul code pour toute l'entreprise.
+        </p>
+        <form className="form-grid" onSubmit={handleMerchantCodeSubmit}>
+          <label className="field">
+            Nouveau code marchand (6 chiffres)
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              value={newMerchantCode}
+              onChange={(e) => setNewMerchantCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            />
+          </label>
+          <div style={{ alignSelf: 'end' }}>
+            <button className="btn btn-primary" type="submit" disabled={merchantCodeBusy || newMerchantCode === ''}>
               Enregistrer
             </button>
           </div>

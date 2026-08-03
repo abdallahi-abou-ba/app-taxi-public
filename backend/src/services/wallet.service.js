@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const env = require('../config/env');
 const { sendPushToUser } = require('../utils/push.util');
+const { getMerchantCode } = require('./appSetting.service');
 
 const TOPUP_INCLUDE = {
   driver: { select: { id: true, fullName: true, phone: true } },
@@ -17,27 +18,29 @@ async function findTopUpOrThrow(topUpId) {
 }
 
 // Info a driver needs before starting a top-up - minimum amount, the single
-// company receiving number every driver sends to (see
-// env.WALLET_TOPUP_RECEIVE_PHONE - not per-driver, nothing for an admin to
-// configure here), and their current balance (otherwise never shown anywhere
-// in the driver app - see User.creditBalance).
+// company-wide Bankily B-Pay merchant code every driver pays into (see
+// appSetting.service.js#getMerchantCode - not per-driver, admin-editable via
+// the Settings page), and their current balance (otherwise never shown
+// anywhere in the driver app - see User.creditBalance).
 async function getTopUpInfo(creditBalance) {
-  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, receivePhone: env.WALLET_TOPUP_RECEIVE_PHONE || null, creditBalance };
+  const merchantCode = await getMerchantCode();
+  return { minAmount: env.WALLET_TOPUP_MIN_AMOUNT, merchantCode, creditBalance };
 }
 
-// No gateway API for any of these Mauritanian mobile-money apps - the driver
-// transfers to the company's receiving number via that app's normal "send
-// money" feature. This row itself IS the driver's
-// declaration of that payment (driverDeclaredAt defaults to now on the
-// model) - an admin still confirms via confirmTopUp before the balance is
-// actually credited, same two-step shape as a settlement's declare/confirm.
-async function createTopUp(driverId, { amount, method, payerPhone }) {
+// No gateway API for Bankily - the driver pays into the company's B-Pay
+// merchant code via Bankily's own B-Pay feature. Only Bankily is supported
+// for wallet top-ups now, so method is fixed rather than driver-chosen. This
+// row itself IS the driver's declaration of that payment (driverDeclaredAt
+// defaults to now on the model) - an admin still confirms via confirmTopUp
+// before the balance is actually credited, same two-step shape as a
+// settlement's declare/confirm.
+async function createTopUp(driverId, { amount }) {
   if (amount < env.WALLET_TOPUP_MIN_AMOUNT) {
     throw new AppError(`The minimum top-up amount is ${env.WALLET_TOPUP_MIN_AMOUNT}`, 422, 'VALIDATION_ERROR');
   }
 
   return prisma.walletTopUp.create({
-    data: { driverId, amount, method, payerPhone },
+    data: { driverId, amount, method: 'BANKILY' },
     include: TOPUP_INCLUDE,
   });
 }

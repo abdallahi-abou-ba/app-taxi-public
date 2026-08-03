@@ -12,7 +12,7 @@ async function createTopUp(driver, amount = 500) {
   const res = await request(app)
     .post('/api/users/me/wallet/topups')
     .set(authHeader(driver.accessToken))
-    .send({ amount, method: 'BANKILY', payerPhone: '22233445566' });
+    .send({ amount });
   return res.body.data;
 }
 
@@ -75,7 +75,7 @@ describe('admin wallet top-up review', () => {
     expect(res.status).toBe(403);
   });
 
-  it('lists the driver\'s own account phone alongside the declared payer phone, for manual reconciliation', async () => {
+  it('lists the driver\'s own account phone for manual reconciliation against the Bankily merchant statement', async () => {
     const admin = await createAdmin();
     const driver = await registerUser({ role: 'DRIVER' });
     const topUp = await createTopUp(driver, 500);
@@ -85,6 +85,6 @@ describe('admin wallet top-up review', () => {
       .set(authHeader(admin.accessToken));
     const listed = listRes.body.data.find((t) => t.id === topUp.id);
     expect(listed.driver.phone).toBe(driver.user.phone);
-    expect(listed.payerPhone).toBe('22233445566');
+    expect(listed.method).toBe('BANKILY');
   });
 });

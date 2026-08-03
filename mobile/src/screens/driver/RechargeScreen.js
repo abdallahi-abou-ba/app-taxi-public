@@ -7,25 +7,17 @@ import * as Clipboard from 'expo-clipboard';
 import TextField from '../../components/TextField';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
-import PaymentMethodIcon from '../../components/PaymentMethodIcon';
-import { useAuth } from '../../context/AuthContext';
 import { getTopUpInfo, getMyTopUps, createTopUp } from '../../api/walletApi';
-import { SUPPORTED_MOBILE_MONEY_METHODS, PAYMENT_APP_STORE_IDS } from '../../config/constants';
+import { PAYMENT_METHOD, PAYMENT_APP_STORE_IDS } from '../../config/constants';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function RechargeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
   const [info, setInfo] = useState(null);
   const [topUps, setTopUps] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [amount, setAmount] = useState('');
-  // Pre-filled from the driver's own account phone - the number they'd
-  // normally use to pay with Bankily/Sedad/Masrivi anyway - but still
-  // editable in case they declare a top-up made from a different number.
-  const [phone, setPhone] = useState(user.phone || '');
-  const [method, setMethod] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -53,31 +45,26 @@ export default function RechargeScreen({ navigation }) {
     const numericAmount = Number(amount);
     setError(null);
     setCopied(false);
-    if (!method || !numericAmount || !phone.trim()) return;
+    if (!numericAmount) return;
     setBusy(true);
     try {
-      await createTopUp({ amount: numericAmount, method, payerPhone: phone.trim() });
-      const declaredMethod = method;
+      await createTopUp({ amount: numericAmount });
       setAmount('');
-      setPhone('');
-      setMethod(null);
       await load(true);
-      // Hand off to the app's own store listing to complete the real
-      // transfer - no verified direct deep-link scheme exists for any of
-      // these apps (tried and confirmed unreliable), but the store listing
-      // itself shows "Open" when the app's already installed, or
-      // "Get"/"Install" otherwise, so this always leads somewhere useful.
-      const storeIds = PAYMENT_APP_STORE_IDS[declaredMethod];
-      if (storeIds) {
-        const storeUrl =
-          Platform.OS === 'ios'
-            ? `https://apps.apple.com/app/id${storeIds.ios}`
-            : `https://play.google.com/store/apps/details?id=${storeIds.android}`;
-        try {
-          await Linking.openURL(storeUrl);
-        } catch {
-          navigation.navigate('DriverHome');
-        }
+      // Hand off to Bankily's own store listing so the driver can complete
+      // the B-Pay transfer - no verified direct deep-link scheme exists
+      // (tried and confirmed unreliable), but the store listing itself
+      // shows "Open" when the app's already installed, or "Get"/"Install"
+      // otherwise, so this always leads somewhere useful.
+      const storeIds = PAYMENT_APP_STORE_IDS[PAYMENT_METHOD.BANKILY];
+      const storeUrl =
+        Platform.OS === 'ios'
+          ? `https://apps.apple.com/app/id${storeIds.ios}`
+          : `https://play.google.com/store/apps/details?id=${storeIds.android}`;
+      try {
+        await Linking.openURL(storeUrl);
+      } catch {
+        navigation.navigate('DriverHome');
       }
     } catch (err) {
       setError(err.message || t('recharge.submitError'));
@@ -87,8 +74,8 @@ export default function RechargeScreen({ navigation }) {
   };
 
   const handleCopyCode = async () => {
-    if (!info?.receivePhone) return;
-    await Clipboard.setStringAsync(info.receivePhone);
+    if (!info?.merchantCode) return;
+    await Clipboard.setStringAsync(info.merchantCode);
     setCopied(true);
   };
 
@@ -118,20 +105,20 @@ export default function RechargeScreen({ navigation }) {
         </Pressable>
       </View>
 
-      {info.receivePhone ? (
+      {info.merchantCode ? (
         <View style={styles.codeCard}>
-          <Text style={styles.codeLabel}>{t('recharge.topUpPhoneLabel')}</Text>
-          <Text style={styles.code}>{info.receivePhone}</Text>
+          <Text style={styles.codeLabel}>{t('recharge.merchantCodeLabel')}</Text>
+          <Text style={styles.code}>{info.merchantCode}</Text>
           <Pressable style={styles.copyButton} onPress={handleCopyCode}>
             <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={15} color={colors.onPrimary} />
-            <Text style={styles.copyButtonText}>{copied ? t('recharge.copied') : t('recharge.copyNumber')}</Text>
+            <Text style={styles.copyButtonText}>{copied ? t('recharge.copied') : t('recharge.copyCode')}</Text>
           </Pressable>
           <Text style={styles.codeInstructions}>{t('recharge.topUpInstructions')}</Text>
         </View>
       ) : (
         <View style={styles.warningBox}>
           <Ionicons name="alert-circle-outline" size={18} color={colors.warning} />
-          <Text style={styles.warningText}>{t('recharge.noTopUpPhone')}</Text>
+          <Text style={styles.warningText}>{t('recharge.noMerchantCode')}</Text>
         </View>
       )}
 
@@ -145,35 +132,11 @@ export default function RechargeScreen({ navigation }) {
         />
         {belowMinimum ? <Text style={styles.warning}>{t('recharge.belowMinimum', { min: info.minAmount })}</Text> : null}
 
-        <Text style={styles.label}>{t('recharge.phoneLabel')}</Text>
-        <TextField
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-          placeholder={t('recharge.phonePlaceholder')}
-        />
-
-        <Text style={styles.label}>{t('recharge.chooseMethod')}</Text>
-        <View style={styles.methodOptions}>
-          {SUPPORTED_MOBILE_MONEY_METHODS.map((m) => (
-            <Pressable
-              key={m}
-              onPress={() => setMethod(m)}
-              style={[styles.methodOption, method === m && styles.methodOptionActive]}
-            >
-              <PaymentMethodIcon method={m} size={20} color={method === m ? colors.onPrimary : colors.textSecondary} />
-              <Text style={[styles.methodOptionText, method === m && styles.methodOptionTextActive]}>
-                {formatPaymentMethod(m, t)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
         <PrimaryButton
           title={t('recharge.submit')}
           onPress={handleSubmit}
           loading={busy}
-          disabled={!method || !numericAmount || !phone.trim() || belowMinimum || !info.receivePhone}
+          disabled={!numericAmount || belowMinimum || !info.merchantCode}
         />
       </View>
 
@@ -314,31 +277,6 @@ const styles = StyleSheet.create({
     color: colors.warning,
     fontWeight: '600',
     marginTop: -8,
-  },
-  methodOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  methodOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
-  },
-  methodOptionActive: {
-    backgroundColor: colors.primary,
-  },
-  methodOptionText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  methodOptionTextActive: {
-    color: colors.onPrimary,
   },
   historyTitle: {
     fontSize: 15,

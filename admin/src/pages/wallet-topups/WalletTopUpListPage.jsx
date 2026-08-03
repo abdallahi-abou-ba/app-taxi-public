@@ -72,9 +72,8 @@ export default function WalletTopUpListPage() {
       </div>
 
       <p className="hint">
-        Le capitaine transfère l'argent vers le numéro de recharge de l'entreprise (Bankily/Sedad/Masrivi) puis le
-        déclare ici - comparez le numéro utilisé au numéro de compte du capitaine avant de confirmer, ce qui crédite
-        son solde.
+        Le capitaine paie via Bankily B-Pay en utilisant le code marchand de l'entreprise (voir Paramètres) puis le
+        déclare ici - vérifiez le montant reçu sur le relevé Bankily avant de confirmer, ce qui crédite son solde.
       </p>
 
       <div className="filters">

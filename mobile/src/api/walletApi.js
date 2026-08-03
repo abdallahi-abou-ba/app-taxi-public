@@ -8,6 +8,6 @@ export function getMyTopUps() {
   return api.get('/api/users/me/wallet/topups');
 }
 
-export function createTopUp({ amount, method, payerPhone }) {
-  return api.post('/api/users/me/wallet/topups', { amount, method, payerPhone });
+export function createTopUp({ amount }) {
+  return api.post('/api/users/me/wallet/topups', { amount });
 }

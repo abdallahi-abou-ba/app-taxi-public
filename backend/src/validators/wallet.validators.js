@@ -1,12 +1,12 @@
 const { z } = require('zod');
-const { SUPPORTED_MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 const TOPUP_STATUS_VALUES = ['PENDING', 'CONFIRMED', 'CANCELLED'];
 
+// Wallet top-ups only go through Bankily's B-Pay merchant code now (see
+// wallet.service.js#createTopUp, which hardcodes method: 'BANKILY') - the
+// driver no longer picks an app or declares a payer phone.
 const createTopUpSchema = z.object({
   amount: z.coerce.number().positive(),
-  method: z.enum(SUPPORTED_MOBILE_MONEY_METHODS),
-  payerPhone: z.string().trim().min(6).max(20),
 });
 
 const topUpIdParamSchema = z.object({

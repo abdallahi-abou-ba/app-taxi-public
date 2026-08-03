@@ -4,6 +4,7 @@ const env = require('../config/env');
 
 const DEFAULT_COMMISSION_RATE_KEY = 'DEFAULT_COMMISSION_RATE';
 const MIN_BALANCE_TO_GO_ONLINE_KEY = 'MIN_BALANCE_TO_GO_ONLINE';
+const WALLET_TOPUP_MERCHANT_CODE_KEY = 'WALLET_TOPUP_MERCHANT_CODE';
 
 // Falls back to env.DEFAULT_COMMISSION_RATE when no admin override has been
 // saved yet, so every existing read site keeps working unmigrated.
@@ -45,9 +46,32 @@ async function setMinBalanceToGoOnline(newAmount, adminUserId) {
   });
 }
 
+// Falls back to env.WALLET_TOPUP_MERCHANT_CODE when no admin override has
+// been saved yet, mirroring getMinBalanceToGoOnline above. Returns null (not
+// a bogus default) when neither is set - the driver app shows a "not
+// configured yet" notice in that case.
+async function getMerchantCode() {
+  const row = await prisma.appSetting.findUnique({ where: { key: WALLET_TOPUP_MERCHANT_CODE_KEY } });
+  return row?.value || env.WALLET_TOPUP_MERCHANT_CODE || null;
+}
+
+async function setMerchantCode(newCode, adminUserId) {
+  if (typeof newCode !== 'string' || !/^\d{6}$/.test(newCode)) {
+    throw new AppError('newCode must be exactly 6 digits', 422, 'VALIDATION_ERROR');
+  }
+
+  return prisma.appSetting.upsert({
+    where: { key: WALLET_TOPUP_MERCHANT_CODE_KEY },
+    create: { key: WALLET_TOPUP_MERCHANT_CODE_KEY, value: newCode, updatedByUserId: adminUserId },
+    update: { value: newCode, updatedByUserId: adminUserId },
+  });
+}
+
 module.exports = {
   getDefaultCommissionRate,
   setDefaultCommissionRate,
   getMinBalanceToGoOnline,
   setMinBalanceToGoOnline,
+  getMerchantCode,
+  setMerchantCode,
 };

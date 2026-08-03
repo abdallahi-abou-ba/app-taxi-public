@@ -105,15 +105,16 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
 });
 
 const getSettings = asyncHandler(async (req, res) => {
-  const [defaultCommissionRate, minBalanceToGoOnline] = await Promise.all([
+  const [defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getMinBalanceToGoOnline(),
+    appSettingService.getMerchantCode(),
   ]);
-  sendSuccess(res, { data: { defaultCommissionRate, minBalanceToGoOnline } });
+  sendSuccess(res, { data: { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode } });
 });
 
 const updateSettings = asyncHandler(async (req, res) => {
-  const { defaultCommissionRate, minBalanceToGoOnline } = req.body;
+  const { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode } = req.body;
 
   if (defaultCommissionRate !== undefined) {
     const oldValue = await appSettingService.getDefaultCommissionRate();
@@ -139,12 +140,29 @@ const updateSettings = asyncHandler(async (req, res) => {
     });
   }
 
-  const [updatedRate, updatedMinBalance] = await Promise.all([
+  if (walletTopupMerchantCode !== undefined) {
+    const oldValue = await appSettingService.getMerchantCode();
+    await appSettingService.setMerchantCode(walletTopupMerchantCode, req.user.id);
+    await activityLogService.logActivity({
+      adminUserId: req.user.id,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'APP_SETTING',
+      entityId: 'WALLET_TOPUP_MERCHANT_CODE',
+      details: { oldValue, newValue: walletTopupMerchantCode },
+    });
+  }
+
+  const [updatedRate, updatedMinBalance, updatedMerchantCode] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getMinBalanceToGoOnline(),
+    appSettingService.getMerchantCode(),
   ]);
   sendSuccess(res, {
-    data: { defaultCommissionRate: updatedRate, minBalanceToGoOnline: updatedMinBalance },
+    data: {
+      defaultCommissionRate: updatedRate,
+      minBalanceToGoOnline: updatedMinBalance,
+      walletTopupMerchantCode: updatedMerchantCode,
+    },
   });
 });
 
