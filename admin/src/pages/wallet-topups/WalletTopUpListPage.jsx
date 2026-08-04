@@ -33,7 +33,7 @@ export default function WalletTopUpListPage() {
     { key: 'driver', label: 'Capitaine', render: (r) => r.driver?.fullName || '—' },
     { key: 'amount', label: 'Montant', render: (r) => formatCurrency(r.amount) },
     { key: 'method', label: 'Application', render: (r) => formatPaymentMethod(r.method) },
-    { key: 'payerPhone', label: 'Numéro utilisé', render: (r) => r.payerPhone || '—' },
+    { key: 'confirmationCode', label: 'Code B-Pay reçu', render: (r) => r.confirmationCode || '—' },
     { key: 'driverPhone', label: 'Numéro du capitaine', render: (r) => r.driver?.phone || '—' },
     { key: 'status', label: 'Statut', render: (r) => <StatusBadge status={r.status} /> },
     {
@@ -72,8 +72,9 @@ export default function WalletTopUpListPage() {
       </div>
 
       <p className="hint">
-        Le capitaine paie via Bankily B-Pay en utilisant le code marchand de l'entreprise (voir Paramètres) puis le
-        déclare ici - vérifiez le montant reçu sur le relevé Bankily avant de confirmer, ce qui crédite son solde.
+        Le capitaine paie via Bankily B-Pay avec le code marchand de l'entreprise (voir Paramètres), reçoit un code de
+        confirmation par SMS de Bankily et le déclare ici - comparez ce code et le montant au SMS marchand reçu par
+        l'entreprise avant de confirmer, ce qui crédite son solde.
       </p>
 
       <div className="filters">

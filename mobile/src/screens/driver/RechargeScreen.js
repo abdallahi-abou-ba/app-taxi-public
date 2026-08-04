@@ -17,7 +17,8 @@ export default function RechargeScreen({ navigation }) {
   const [info, setInfo] = useState(null);
   const [topUps, setTopUps] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(null);
+  const [confirmationCode, setConfirmationCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -42,14 +43,14 @@ export default function RechargeScreen({ navigation }) {
   );
 
   const handleSubmit = async () => {
-    const numericAmount = Number(amount);
     setError(null);
     setCopied(false);
-    if (!numericAmount) return;
+    if (!amount || !confirmationCode.trim()) return;
     setBusy(true);
     try {
-      await createTopUp({ amount: numericAmount });
-      setAmount('');
+      await createTopUp({ amount, confirmationCode: confirmationCode.trim() });
+      setAmount(null);
+      setConfirmationCode('');
       await load(true);
       // Hand off to Bankily's own store listing so the driver can complete
       // the B-Pay transfer - no verified direct deep-link scheme exists
@@ -87,9 +88,6 @@ export default function RechargeScreen({ navigation }) {
     );
   }
 
-  const numericAmount = Number(amount);
-  const belowMinimum = amount !== '' && numericAmount < info.minAmount;
-
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -123,20 +121,34 @@ export default function RechargeScreen({ navigation }) {
       )}
 
       <View style={styles.card}>
-        <Text style={styles.label}>{t('recharge.amountLabel', { min: info.minAmount })}</Text>
+        <Text style={styles.label}>{t('recharge.chooseAmount')}</Text>
+        <View style={styles.amountOptions}>
+          {(info.presetAmounts || []).map((a) => (
+            <Pressable
+              key={a}
+              onPress={() => setAmount(a)}
+              style={[styles.amountOption, amount === a && styles.amountOptionActive]}
+            >
+              <Text style={[styles.amountOptionText, amount === a && styles.amountOptionTextActive]}>
+                {formatFare(a)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Text style={styles.label}>{t('recharge.confirmationCodeLabel')}</Text>
         <TextField
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          placeholder={t('recharge.amountPlaceholder')}
+          value={confirmationCode}
+          onChangeText={setConfirmationCode}
+          autoCapitalize="characters"
+          placeholder={t('recharge.confirmationCodePlaceholder')}
         />
-        {belowMinimum ? <Text style={styles.warning}>{t('recharge.belowMinimum', { min: info.minAmount })}</Text> : null}
 
         <PrimaryButton
           title={t('recharge.submit')}
           onPress={handleSubmit}
           loading={busy}
-          disabled={!numericAmount || belowMinimum || !info.merchantCode}
+          disabled={!amount || !confirmationCode.trim() || !info.merchantCode}
         />
       </View>
 
@@ -272,11 +284,27 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: '600',
   },
-  warning: {
-    fontSize: 12.5,
-    color: colors.warning,
+  amountOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  amountOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+  },
+  amountOptionActive: {
+    backgroundColor: colors.primary,
+  },
+  amountOptionText: {
+    fontSize: 13,
     fontWeight: '600',
-    marginTop: -8,
+    color: colors.textSecondary,
+  },
+  amountOptionTextActive: {
+    color: colors.onPrimary,
   },
   historyTitle: {
     fontSize: 15,

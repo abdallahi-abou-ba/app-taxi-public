@@ -6,13 +6,14 @@ jest.mock('../src/utils/geocode.util', () => ({
 }));
 
 const request = require('supertest');
+const { WALLET_TOPUP_PRESET_AMOUNTS } = require('../src/utils/walletTopup.util');
 const { app, registerUser, createAdmin, authHeader } = require('./helpers');
 
-async function createTopUp(driver, amount = 500) {
+async function createTopUp(driver, amount = WALLET_TOPUP_PRESET_AMOUNTS[0]) {
   const res = await request(app)
     .post('/api/users/me/wallet/topups')
     .set(authHeader(driver.accessToken))
-    .send({ amount });
+    .send({ amount, confirmationCode: 'BP123456' });
   return res.body.data;
 }
 
@@ -75,10 +76,10 @@ describe('admin wallet top-up review', () => {
     expect(res.status).toBe(403);
   });
 
-  it('lists the driver\'s own account phone for manual reconciliation against the Bankily merchant statement', async () => {
+  it('lists the driver\'s own account phone and B-Pay confirmation code for manual reconciliation against the Bankily merchant SMS', async () => {
     const admin = await createAdmin();
     const driver = await registerUser({ role: 'DRIVER' });
-    const topUp = await createTopUp(driver, 500);
+    const topUp = await createTopUp(driver);
 
     const listRes = await request(app)
       .get('/api/admin/wallet-topups?status=PENDING')
@@ -86,5 +87,6 @@ describe('admin wallet top-up review', () => {
     const listed = listRes.body.data.find((t) => t.id === topUp.id);
     expect(listed.driver.phone).toBe(driver.user.phone);
     expect(listed.method).toBe('BANKILY');
+    expect(listed.confirmationCode).toBe('BP123456');
   });
 });

@@ -7,14 +7,15 @@ jest.mock('../src/utils/geocode.util', () => ({
 
 const request = require('supertest');
 const env = require('../src/config/env');
+const { WALLET_TOPUP_PRESET_AMOUNTS } = require('../src/utils/walletTopup.util');
 const { app, registerUser, createAdmin, authHeader } = require('./helpers');
 
 describe('driver wallet top-up', () => {
-  it('exposes the minimum amount and the single company Bankily merchant code, same for every driver', async () => {
+  it('exposes the preset amounts and the single company Bankily merchant code, same for every driver', async () => {
     const driver = await registerUser({ role: 'DRIVER' });
     const res = await request(app).get('/api/users/me/wallet/topup-info').set(authHeader(driver.accessToken));
     expect(res.status).toBe(200);
-    expect(res.body.data.minAmount).toBe(env.WALLET_TOPUP_MIN_AMOUNT);
+    expect(res.body.data.presetAmounts).toEqual(WALLET_TOPUP_PRESET_AMOUNTS);
     expect(res.body.data.merchantCode).toBe(env.WALLET_TOPUP_MERCHANT_CODE);
 
     const otherDriver = await registerUser({ role: 'DRIVER' });
@@ -22,13 +23,22 @@ describe('driver wallet top-up', () => {
     expect(otherRes.body.data.merchantCode).toBe(res.body.data.merchantCode);
   });
 
-  it('rejects an amount below the minimum', async () => {
+  it('rejects an amount that is not one of the preset amounts', async () => {
     const driver = await registerUser({ role: 'DRIVER' });
     const res = await request(app)
       .post('/api/users/me/wallet/topups')
       .set(authHeader(driver.accessToken))
-      .send({ amount: env.WALLET_TOPUP_MIN_AMOUNT - 1 });
-    expect(res.status).toBe(422);
+      .send({ amount: 750, confirmationCode: 'BP123456' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a missing confirmation code', async () => {
+    const driver = await registerUser({ role: 'DRIVER' });
+    const res = await request(app)
+      .post('/api/users/me/wallet/topups')
+      .set(authHeader(driver.accessToken))
+      .send({ amount: WALLET_TOPUP_PRESET_AMOUNTS[0] });
+    expect(res.status).toBe(400);
   });
 
   it('rejects a client trying to top up (driver-only feature)', async () => {
@@ -36,7 +46,7 @@ describe('driver wallet top-up', () => {
     const res = await request(app)
       .post('/api/users/me/wallet/topups')
       .set(authHeader(client.accessToken))
-      .send({ amount: 500 });
+      .send({ amount: WALLET_TOPUP_PRESET_AMOUNTS[0], confirmationCode: 'BP123456' });
     expect(res.status).toBe(403);
   });
 
@@ -45,11 +55,12 @@ describe('driver wallet top-up', () => {
     const res = await request(app)
       .post('/api/users/me/wallet/topups')
       .set(authHeader(driver.accessToken))
-      .send({ amount: 500 });
+      .send({ amount: WALLET_TOPUP_PRESET_AMOUNTS[0], confirmationCode: 'BP123456' });
 
     expect(res.status).toBe(200);
     expect(res.body.data.status).toBe('PENDING');
     expect(res.body.data.method).toBe('BANKILY');
+    expect(res.body.data.confirmationCode).toBe('BP123456');
     expect(res.body.data.driverDeclaredAt).not.toBeNull();
 
     const listRes = await request(app).get('/api/users/me/wallet/topups').set(authHeader(driver.accessToken));

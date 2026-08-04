@@ -531,23 +531,27 @@ model Settlement {
 // auto-applied against what they owe the next time a Settlement is generated
 // (see Settlement.creditApplied). Bankily only, via that app's B-Pay
 // merchant-code feature: the driver pastes the company's merchant code (see
-// appSetting.service.js#getMerchantCode) and pays the amount, entirely
-// outside this app - there's no gateway API for Bankily. This row is the
-// driver's own declaration of that payment (driverDeclaredAt set at
-// creation, same moment they see the merchant code) - an admin still
-// confirms via confirmTopUp before the balance is actually credited, same
-// two-step shape as Settlement's driverMarkedPaidAt/markSettlementPaid.
-// payerPhone is nullable, kept only for older rows declared before the
-// B-Pay switch - no longer collected from the driver.
+// appSetting.service.js#getMerchantCode), picks one of a fixed set of preset
+// amounts (see wallet.validators.js#WALLET_TOPUP_PRESET_AMOUNTS) and pays -
+// entirely outside this app, there's no gateway API for Bankily. Bankily
+// then SMS's the driver a confirmation code, which they paste back as
+// confirmationCode - the company independently receives its own merchant SMS
+// with the same reference and the amount, which an admin cross-checks before
+// confirming (see confirmTopUp). This row is the driver's own declaration of
+// that payment (driverDeclaredAt set at creation) - same two-step
+// declare/confirm shape as Settlement's driverMarkedPaidAt/markSettlementPaid.
+// payerPhone is nullable, kept only for older rows declared before the B-Pay
+// switch - no longer collected from the driver.
 model WalletTopUp {
   id       String @id @default(uuid())
   driverId String
   driver   User   @relation("WalletTopUpDriver", fields: [driverId], references: [id])
 
-  amount     Float
-  method     PaymentMethod
-  payerPhone String?
-  status     WalletTopUpStatus @default(PENDING)
+  amount           Float
+  method           PaymentMethod
+  payerPhone       String?
+  confirmationCode String?
+  status           WalletTopUpStatus @default(PENDING)
 
   driverDeclaredAt DateTime @default(now())
 

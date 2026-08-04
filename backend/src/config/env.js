@@ -37,10 +37,6 @@ const envSchema = z.object({
   // friend once the friend completes their first ride.
   REFERRAL_REWARD_AMOUNT: z.coerce.number().nonnegative().default(20),
 
-  // Driver wallet top-ups (see wallet.service.js) - smallest amount a driver
-  // can declare in one go.
-  WALLET_TOPUP_MIN_AMOUNT: z.coerce.number().positive().default(100),
-
   // Fallback 6-digit Bankily B-Pay merchant code shown to a driver
   // recharging their wallet, used only when no admin override has been saved
   // (see appSetting.service.js#getMerchantCode). Optional so the app still
