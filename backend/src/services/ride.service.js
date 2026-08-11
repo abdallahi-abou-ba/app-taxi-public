@@ -6,9 +6,9 @@ const { haversineDistanceKm } = require('../utils/geo.util');
 const { getRoute } = require('../utils/osrm.util');
 const { reverseGeocode } = require('../utils/geocode.util');
 const { estimateFare } = require('../utils/fare.util');
-const { getIO } = require('../lib/socket');
-const rideTracker = require('../sockets/rideTracker');
+const { publishToUser } = require('../lib/realtime');
 const { sendPushToUser } = require('../utils/push.util');
+const { safeWaitUntil } = require('../lib/waitUntil');
 const paymentService = require('./payment.service');
 const { getDefaultCommissionRate, getMinBalanceToGoOnline } = require('./appSetting.service');
 const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
@@ -36,8 +36,7 @@ const TRANSITIONS = {
 };
 
 function emitToUser(userId, event, payload) {
-  const io = getIO();
-  if (io && userId) io.to(`user:${userId}`).emit(event, payload);
+  if (userId) publishToUser(userId, event, payload);
 }
 
 function emitRideStatus(ride) {
@@ -91,8 +90,14 @@ async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destina
 // after the ride row already exists, rather than blocking ride creation (and
 // doubling the synchronous French lookup's latency) on it. Never throws, and
 // silently does nothing if both lookups come back null (same failure
-// contract as reverseGeocode itself).
-async function enrichRideAddressesInArabic(ride) {
+// contract as reverseGeocode itself). Callers below don't await this - on
+// Vercel the function can freeze right after the response is sent, so the
+// work is registered with waitUntil() here rather than at every call site.
+function enrichRideAddressesInArabic(ride) {
+  return safeWaitUntil(doEnrichRideAddressesInArabic(ride));
+}
+
+async function doEnrichRideAddressesInArabic(ride) {
   try {
     const [pickupAddressAr, destinationAddressAr] = await Promise.all([
       reverseGeocode(ride.pickupLat, ride.pickupLng, 'ar'),
@@ -275,7 +280,6 @@ async function acceptRide(driverId, rideId) {
   }
 
   const ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
-  rideTracker.setActiveRide(driverId, { rideId: ride.id, clientId: ride.clientId });
   emitToUser(ride.clientId, 'ride:accepted', ride);
   sendPushToUser(ride.clientId, { title: 'Driver on the way', body: `${ride.driver.fullName} accepted your ride`, data: { rideId: ride.id, type: 'ride:accepted' } });
   return ride;
@@ -388,7 +392,6 @@ async function transitionRide(driverId, rideId, action) {
 
   let ride = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
   if (to === 'COMPLETED') {
-    rideTracker.clearActiveRide(driverId);
     ride = await snapshotCommission(ride);
     ride = await applyCreditAndReferralReward(ride);
   }
@@ -421,9 +424,6 @@ async function cancelRide(userId, role, rideId, reason) {
   }
 
   const updated = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
-  if (updated.driverId) {
-    rideTracker.clearActiveRide(updated.driverId);
-  }
 
   emitRideStatus(updated);
   const counterpartId = updated.clientId === userId ? updated.driverId : updated.clientId;
@@ -722,8 +722,28 @@ async function getStats(userId, role) {
   };
 }
 
+// Replaces the old Socket.io 'location:update' handler now that the backend
+// is stateless (see lib/realtime.js) - the in-memory rideTracker Map it used
+// to consult is gone, so the driver's active ride is looked up straight from
+// the DB instead (cheap enough at this app's driver volume/ping cadence).
+async function updateDriverLocation(driverId, lat, lng) {
+  await prisma.user.update({
+    where: { id: driverId },
+    data: { currentLat: lat, currentLng: lng, lastLocationUpdatedAt: new Date() },
+  });
+
+  const activeRide = await prisma.ride.findFirst({
+    where: { driverId, status: { in: ACTIVE_STATUSES } },
+    select: { id: true, clientId: true },
+  });
+  if (activeRide) {
+    emitToUser(activeRide.clientId, 'driver:location', { rideId: activeRide.id, lat, lng });
+  }
+}
+
 module.exports = {
   computeRouteAndFare,
+  updateDriverLocation,
   requestRide,
   scheduleRide,
   listScheduledRides,

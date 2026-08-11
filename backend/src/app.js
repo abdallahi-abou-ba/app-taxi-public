@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -24,7 +23,11 @@ app.set('trust proxy', 1);
 // first, with every fetch() failing with no visible error. Only enable it
 // where the site is actually served over HTTPS.
 app.use(helmet({ hsts: env.NODE_ENV === 'production' }));
-app.use(cors({ origin: env.CORS_ORIGIN }));
+// CORS_ORIGIN is a single string ('*' or one origin) or a comma-separated
+// list - needed now that the admin SPA is a separate Vercel project instead
+// of being served same-origin (see the removed /admin static mount below).
+const corsOrigins = env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+app.use(cors({ origin: corsOrigins }));
 
 // Stripe needs the exact raw request body to verify the webhook signature,
 // so this is registered before the global express.json() below (which would
@@ -39,16 +42,6 @@ app.use(
 );
 
 app.use('/api', routes);
-
-// Internal admin dashboard: a built React SPA (see admin/, built via
-// `npm run build:deploy` into public/admin), served same origin so no CORS
-// setup is needed. All script/style lives in separate files, not inline, so
-// it works under helmet's default Content-Security-Policy unchanged.
-app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
-// express.static only serves exact file matches, so a client-side route
-// (e.g. /admin/drivers/123) 404s on a hard reload without this fallback -
-// let React Router's <BrowserRouter basename="/admin"> handle the path.
-app.get(/^\/admin(\/.*)?$/, (req, res) => res.sendFile(path.join(__dirname, '../public/admin/index.html')));
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

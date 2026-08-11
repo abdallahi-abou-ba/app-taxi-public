@@ -7,6 +7,9 @@ const userRoutes = require('./user.routes');
 const rideRoutes = require('./ride.routes');
 const adminRoutes = require('./admin.routes');
 const complaintRoutes = require('./complaint.routes');
+const realtimeRoutes = require('./realtime.routes');
+const locationRoutes = require('./location.routes');
+const cronRoutes = require('./cron.routes');
 
 const router = Router();
 
@@ -27,5 +30,8 @@ router.use('/users', userRoutes);
 router.use('/rides', rideRoutes);
 router.use('/admin', adminRoutes);
 router.use('/complaints', complaintRoutes);
+router.use('/realtime', realtimeRoutes);
+router.use('/location', locationRoutes);
+router.use('/cron', cronRoutes);
 
 module.exports = router;

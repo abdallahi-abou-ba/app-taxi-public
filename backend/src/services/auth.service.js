@@ -13,8 +13,13 @@ const REGISTRATION_TOKEN_PURPOSE = 'PHONE_VERIFIED';
 const REFRESH_TOKEN_BYTES = 48;
 
 function toPublicUser(user) {
-  const { passwordHash, pushToken, ...publicUser } = user; // eslint-disable-line no-unused-vars
-  return publicUser;
+  const { passwordHash, pushToken, ...publicUser } = user;
+  // Whether this account confirms sensitive actions (e.g. deletion, see
+  // user.service.js#deleteAccount) with a password or a fresh OTP code -
+  // derived from passwordHash here since a phone+password account (see
+  // registerByPhone below) has one but no email, so callers can't infer
+  // this from email presence alone.
+  return { ...publicUser, hasPassword: !!passwordHash };
 }
 
 function signToken(user) {

@@ -1,12 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// base: '/admin/' is required because the production build is served by the
-// Express backend under app.use('/admin', express.static(...)) - without
-// it, built asset URLs would resolve against the site root instead.
+// Deployed as its own standalone Vercel project (see VITE_API_BASE_URL in
+// src/api/client.js), so it's served from its own domain root rather than
+// same-origin under the backend's old /admin mount - base stays the default.
 export default defineConfig({
   plugins: [react()],
-  base: '/admin/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

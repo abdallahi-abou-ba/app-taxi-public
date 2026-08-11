@@ -89,8 +89,3 @@ export const LOCATION_TRACKING_OPTIONS = {
 };
 
 export const RIDE_POLL_INTERVAL_MS = 6000;
-
-// Refresh the access token a bit before its real 15-minute expiry so an
-// idle-but-connected socket doesn't sit on a token that would fail to
-// reconnect after a network blip.
-export const PROACTIVE_TOKEN_REFRESH_MS = 14 * 60 * 1000;

@@ -93,7 +93,9 @@ export default function EditProfileScreen({ navigation }) {
   const [deleting, setDeleting] = useState(false);
   // A phone-only (phone+OTP) account has no email; used purely to pick which
   // confirmation UI to show - the server itself decides which check applies.
-  const hasPassword = !!user.email;
+  // Backend-computed (see auth.service.js#toPublicUser) - a phone+password
+  // account has no email, so email presence alone can't tell us this.
+  const hasPassword = !!user.hasPassword;
 
   const nameInvalid = fullName.trim().length > 0 && fullName.trim().length < 2;
   const canSubmit = fullName.trim().length >= 2 && !loading;

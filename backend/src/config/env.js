@@ -89,17 +89,29 @@ const envSchema = z.object({
   // completion (see auth.service.js#signRegistrationToken), so a new user
   // doesn't have to re-enter their OTP code between the two steps.
   REGISTRATION_TOKEN_TTL_MIN: z.coerce.number().positive().default(15),
+
+  // Ably (see lib/realtime.js) - replaces the old Socket.io server now that
+  // the backend runs as stateless Vercel functions instead of one persistent
+  // process. Server-side REST/token-issuing key from the Ably dashboard.
+  ABLY_API_KEY: z.string().min(1, 'ABLY_API_KEY is required'),
+
+  // Shared secret the external cron pinger (cron-job.org) sends as the
+  // X-Cron-Secret header to authenticate calls to /api/cron/* (see
+  // middleware/cronAuth.middleware.js) - these replace the old in-process
+  // setInterval jobs, which have no equivalent on serverless.
+  CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters'),
 });
 
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('Invalid environment configuration:');
-  for (const issue of parsed.error.issues) {
-    console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
-  }
-  console.error('\nCheck backend/.env against backend/.env.example');
-  process.exit(1);
+  const details = parsed.error.issues.map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`).join('\n');
+  // A persistent process could afford to exit(1) and let the platform
+  // restart it; a serverless invocation has no "process" to restart, so
+  // throwing (500s this one request, doesn't affect the next) is the
+  // serverless-safe failure mode. See backend/.env.example for the full var
+  // list.
+  throw new Error(`Invalid environment configuration:\n${details}\n\nCheck backend/.env against backend/.env.example`);
 }
 
 module.exports = parsed.data;

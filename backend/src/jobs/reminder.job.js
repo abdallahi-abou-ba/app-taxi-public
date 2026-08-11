@@ -84,9 +84,4 @@ async function runReminderChecks() {
   }
 }
 
-function startReminderJob() {
-  runReminderChecks();
-  return setInterval(runReminderChecks, env.REMINDER_CHECK_INTERVAL_MIN * MINUTE_MS);
-}
-
-module.exports = { startReminderJob, runReminderChecks, remindStillSearching, remindUnratedRides };
+module.exports = { runReminderChecks, remindStillSearching, remindUnratedRides };

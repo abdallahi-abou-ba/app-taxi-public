@@ -27,7 +27,7 @@ import SettingsPage from './pages/settings/SettingsPage';
 
 export default function App() {
   return (
-    <BrowserRouter basename="/admin">
+    <BrowserRouter>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

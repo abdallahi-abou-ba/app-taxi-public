@@ -2,14 +2,22 @@ const { Expo } = require('expo-server-sdk');
 const prisma = require('../lib/prisma');
 const logger = require('../config/logger');
 const notificationService = require('../services/notification.service');
+const { safeWaitUntil } = require('../lib/waitUntil');
 
 const expo = new Expo();
 
 /**
  * Best-effort push notification, never throws - a failure here should never
  * break the ride action that triggered it (mirrors utils/osrm.util.js).
+ * Callers deliberately don't await this (ride.service.js, jobs/*) - on
+ * Vercel the function can freeze right after the response is sent, so the
+ * work is registered with waitUntil() here rather than at every call site.
  */
-async function sendPushToUser(userId, { title, body, data } = {}) {
+function sendPushToUser(userId, { title, body, data } = {}) {
+  return safeWaitUntil(doSendPushToUser(userId, { title, body, data }));
+}
+
+async function doSendPushToUser(userId, { title, body, data } = {}) {
   if (!userId) return;
 
   // Persisted independently of whether an Expo push actually goes out (no

@@ -6,6 +6,13 @@
 // token) - this just avoids loading the real dependency at all.
 jest.mock('../src/utils/push.util', () => ({ sendPushToUser: jest.fn() }));
 
+// Without this, ride.service.js's emitToUser (accept/status/etc.) fires a
+// real HTTP publish to Ably on every test using the dummy ABLY_API_KEY (see
+// .env.test) - it fails harmlessly (safeWaitUntil swallows it) but the
+// request can resolve after its test has already finished, tripping Jest's
+// "Cannot log after tests are done" warning.
+jest.mock('../src/lib/realtime', () => ({ publishToUser: jest.fn(), getAbly: jest.fn() }));
+
 const request = require('supertest');
 const app = require('../src/app');
 const prisma = require('../src/lib/prisma');
