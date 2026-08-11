@@ -1,10 +1,19 @@
-const { Expo } = require('expo-server-sdk');
 const prisma = require('../lib/prisma');
 const logger = require('../config/logger');
 const notificationService = require('../services/notification.service');
 const { safeWaitUntil } = require('../lib/waitUntil');
 
-const expo = new Expo();
+// expo-server-sdk publishes as an ES module - require() of it crashes on
+// Vercel's Node runtime (works locally only because an older cached install
+// happened to still be CommonJS). Load it lazily via dynamic import instead.
+let expoSingleton;
+async function getExpo() {
+  if (!expoSingleton) {
+    const { Expo } = await import('expo-server-sdk');
+    expoSingleton = { Expo, expo: new Expo() };
+  }
+  return expoSingleton;
+}
 
 /**
  * Best-effort push notification, never throws - a failure here should never
@@ -28,6 +37,7 @@ async function doSendPushToUser(userId, { title, body, data } = {}) {
     .catch((err) => logger.warn(`Notification persist for user ${userId} failed: ${err.message}`));
 
   try {
+    const { Expo, expo } = await getExpo();
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { pushToken: true } });
     const token = user?.pushToken;
     if (!token || !Expo.isExpoPushToken(token)) return;
@@ -45,6 +55,7 @@ async function doSendPushToUser(userId, { title, body, data } = {}) {
 // own batching so a broadcast to many users doesn't blow past its per-request
 // limits, with the same DeviceNotRegistered cleanup as the single-user path.
 async function sendPushToTokens(tokens, { title, body, data } = {}) {
+  const { Expo, expo } = await getExpo();
   const validTokens = tokens.filter((token) => token && Expo.isExpoPushToken(token));
   if (validTokens.length === 0) return { sent: 0, invalid: 0 };
 
