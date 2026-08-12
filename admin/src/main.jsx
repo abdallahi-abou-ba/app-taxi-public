@@ -1,4 +1,3 @@
-// test: verifying Vercel auto-deploy on git push
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
