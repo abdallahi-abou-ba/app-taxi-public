@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Trash2 } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
-import { listAdmins, createAdminUser, updateAdminRole } from '../../api/admins';
+import { listAdmins, createAdminUser, updateAdminRole, deleteAdmin } from '../../api/admins';
 import DataTable from '../../components/DataTable';
 import FormField from '../../components/FormField';
 import { useAuth } from '../../context/AuthContext';
@@ -41,6 +41,18 @@ export default function AdminListPage() {
     }
   }
 
+  async function handleDelete(id, fullName) {
+    if (!window.confirm(`Supprimer l'administrateur "${fullName}" ? Cette action est irréversible.`)) {
+      return;
+    }
+    try {
+      await deleteAdmin(id);
+      reload();
+    } catch (err) {
+      window.alert(err.message);
+    }
+  }
+
   const columns = [
     { key: 'fullName', label: 'Nom' },
     { key: 'email', label: 'E-mail' },
@@ -61,6 +73,21 @@ export default function AdminListPage() {
         ),
     },
     { key: 'createdAt', label: 'Créé le', render: (r) => new Date(r.createdAt).toLocaleDateString('fr-FR') },
+    {
+      key: 'actions',
+      label: '',
+      render: (r) =>
+        r.id === currentUser.id ? null : (
+          <button
+            className="btn btn-danger"
+            type="button"
+            title="Supprimer"
+            onClick={() => handleDelete(r.id, r.fullName)}
+          >
+            <Trash2 size={16} />
+          </button>
+        ),
+    },
   ];
 
   return (

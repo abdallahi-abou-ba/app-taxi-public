@@ -84,8 +84,8 @@ export const MAP_DEFAULTS = {
 };
 
 export const LOCATION_TRACKING_OPTIONS = {
-  timeInterval: 4000,
-  distanceInterval: 25,
+  timeInterval: 3000,
+  distanceInterval: 10,
 };
 
 export const RIDE_POLL_INTERVAL_MS = 6000;

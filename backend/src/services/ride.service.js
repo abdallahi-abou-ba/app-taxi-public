@@ -10,7 +10,7 @@ const { publishToUser } = require('../lib/realtime');
 const { sendPushToUser } = require('../utils/push.util');
 const { safeWaitUntil } = require('../lib/waitUntil');
 const paymentService = require('./payment.service');
-const { getDefaultCommissionRate, getMinBalanceToGoOnline } = require('./appSetting.service');
+const { getDefaultCommissionRate, getMinBalanceToGoOnline, getDriverAutoSuspendHours } = require('./appSetting.service');
 const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
 
 // Real road-network distance/duration come from OSRM when reachable (see
@@ -20,6 +20,10 @@ const AVG_SPEED_KMH = 30;
 const MAX_MATCHED_DRIVERS = 10;
 
 const ACTIVE_STATUSES = ['REQUESTED', 'ACCEPTED', 'ARRIVED', 'IN_PROGRESS'];
+
+// Consecutive driver-initiated cancellations (see cancelRide) that trigger an
+// automatic, time-bounded suspension - see User.cancelStreak/autoSuspendedUntil.
+const AUTO_SUSPEND_CANCEL_THRESHOLD = 5;
 
 // Public counterpart info attached to every ride returned to a client - just
 // enough for each side to know who they're dealing with (name/phone/rating),
@@ -42,6 +46,24 @@ function emitToUser(userId, event, payload) {
 function emitRideStatus(ride) {
   emitToUser(ride.clientId, 'ride:status', ride);
   emitToUser(ride.driverId, 'ride:status', ride);
+}
+
+// Shared by acceptRide and user.service.js#updateAvailability - both are
+// "can this driver work right now" gates, so one message/threshold source
+// keeps them from drifting apart over time.
+function assertNotAutoSuspended(driver) {
+  if (driver.autoSuspendedUntil && driver.autoSuspendedUntil > new Date()) {
+    const remainingMs = driver.autoSuspendedUntil.getTime() - Date.now();
+    const remainingMin = Math.max(1, Math.ceil(remainingMs / 60000));
+    const hours = Math.floor(remainingMin / 60);
+    const minutes = remainingMin % 60;
+    const remainingLabel = hours > 0 ? `${hours}h${String(minutes).padStart(2, '0')}` : `${minutes}min`;
+    throw new AppError(
+      `Your account is temporarily suspended for ${AUTO_SUSPEND_CANCEL_THRESHOLD} consecutive cancellations. Try again in ${remainingLabel}.`,
+      403,
+      'FORBIDDEN'
+    );
+  }
 }
 
 async function findNearbyAvailableDrivers(pickupLat, pickupLng) {
@@ -262,6 +284,7 @@ async function acceptRide(driverId, rideId) {
   if (driver.creditBalance < minBalance) {
     throw new AppError(`You need at least ${minBalance} in your balance to accept rides`, 403, 'FORBIDDEN');
   }
+  assertNotAutoSuspended(driver);
 
   const existingActive = await prisma.ride.findFirst({ where: { driverId, status: { in: ACTIVE_STATUSES } } });
   if (existingActive) {
@@ -394,6 +417,9 @@ async function transitionRide(driverId, rideId, action) {
   if (to === 'COMPLETED') {
     ride = await snapshotCommission(ride);
     ride = await applyCreditAndReferralReward(ride);
+    // A normal completion breaks any streak of consecutive cancellations -
+    // see cancelRide, which is the only place cancelStreak is incremented.
+    await prisma.user.update({ where: { id: ride.driverId }, data: { cancelStreak: 0 } });
   }
 
   emitRideStatus(ride);
@@ -424,6 +450,20 @@ async function cancelRide(userId, role, rideId, reason) {
   }
 
   const updated = await prisma.ride.findUnique({ where: { id: rideId }, include: RIDE_INCLUDE });
+
+  if (role === 'DRIVER') {
+    const driver = await prisma.user.update({
+      where: { id: userId },
+      data: { cancelStreak: { increment: 1 } },
+    });
+    if (driver.cancelStreak >= AUTO_SUSPEND_CANCEL_THRESHOLD) {
+      const hours = await getDriverAutoSuspendHours();
+      await prisma.user.update({
+        where: { id: userId },
+        data: { cancelStreak: 0, autoSuspendedUntil: new Date(Date.now() + hours * 3600000) },
+      });
+    }
+  }
 
   emitRideStatus(updated);
   const counterpartId = updated.clientId === userId ? updated.driverId : updated.clientId;
@@ -768,4 +808,5 @@ module.exports = {
   adminListRides,
   adminGetRideById,
   ACTIVE_STATUSES,
+  assertNotAutoSuspended,
 };

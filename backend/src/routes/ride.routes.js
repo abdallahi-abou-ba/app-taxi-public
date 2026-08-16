@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const rideController = require('../controllers/ride.controller');
+const messageController = require('../controllers/message.controller');
 const validate = require('../middleware/validate.middleware');
 const {
   requestRideSchema,
@@ -10,6 +11,7 @@ const {
   createCheckoutSessionSchema,
   estimateRideSchema,
 } = require('../validators/ride.validators');
+const { sendMessageSchema } = require('../validators/message.validators');
 const { requireAuth, requireRole } = require('../middleware/auth.middleware');
 
 const router = Router();
@@ -70,6 +72,17 @@ router.delete(
   '/:id/history',
   validate(rideIdParamSchema, 'params'),
   rideController.hideFromHistory
+);
+router.get(
+  '/:id/messages',
+  validate(rideIdParamSchema, 'params'),
+  messageController.listMessages
+);
+router.post(
+  '/:id/messages',
+  validate(rideIdParamSchema, 'params'),
+  validate(sendMessageSchema),
+  messageController.sendMessage
 );
 
 module.exports = router;

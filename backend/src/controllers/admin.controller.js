@@ -105,16 +105,17 @@ const getCommissionHistory = asyncHandler(async (req, res) => {
 });
 
 const getSettings = asyncHandler(async (req, res) => {
-  const [defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode] = await Promise.all([
+  const [defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode, driverAutoSuspendHours] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getMinBalanceToGoOnline(),
     appSettingService.getMerchantCode(),
+    appSettingService.getDriverAutoSuspendHours(),
   ]);
-  sendSuccess(res, { data: { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode } });
+  sendSuccess(res, { data: { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode, driverAutoSuspendHours } });
 });
 
 const updateSettings = asyncHandler(async (req, res) => {
-  const { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode } = req.body;
+  const { defaultCommissionRate, minBalanceToGoOnline, walletTopupMerchantCode, driverAutoSuspendHours } = req.body;
 
   if (defaultCommissionRate !== undefined) {
     const oldValue = await appSettingService.getDefaultCommissionRate();
@@ -152,16 +153,30 @@ const updateSettings = asyncHandler(async (req, res) => {
     });
   }
 
-  const [updatedRate, updatedMinBalance, updatedMerchantCode] = await Promise.all([
+  if (driverAutoSuspendHours !== undefined) {
+    const oldValue = await appSettingService.getDriverAutoSuspendHours();
+    await appSettingService.setDriverAutoSuspendHours(driverAutoSuspendHours, req.user.id);
+    await activityLogService.logActivity({
+      adminUserId: req.user.id,
+      action: 'SETTINGS_UPDATED',
+      entityType: 'APP_SETTING',
+      entityId: 'DRIVER_AUTO_SUSPEND_HOURS',
+      details: { oldValue, newValue: driverAutoSuspendHours },
+    });
+  }
+
+  const [updatedRate, updatedMinBalance, updatedMerchantCode, updatedAutoSuspendHours] = await Promise.all([
     appSettingService.getDefaultCommissionRate(),
     appSettingService.getMinBalanceToGoOnline(),
     appSettingService.getMerchantCode(),
+    appSettingService.getDriverAutoSuspendHours(),
   ]);
   sendSuccess(res, {
     data: {
       defaultCommissionRate: updatedRate,
       minBalanceToGoOnline: updatedMinBalance,
       walletTopupMerchantCode: updatedMerchantCode,
+      driverAutoSuspendHours: updatedAutoSuspendHours,
     },
   });
 });

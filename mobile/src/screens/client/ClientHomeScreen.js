@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useAuth } from '../../context/AuthContext';
 import { requestRide, scheduleRide, estimateRide } from '../../api/rideApi';
 import useActiveRide from '../../hooks/useActiveRide';
@@ -142,6 +142,15 @@ export default function ClientHomeScreen({ navigation }) {
     }
   };
 
+  const combineDateAndTime = (datePart, timePart) => {
+    const combined = new Date(datePart);
+    combined.setHours(timePart.getHours(), timePart.getMinutes(), 0, 0);
+    return combined;
+  };
+
+  // iOS only - its <DateTimePicker> is a real inline/modal view that behaves
+  // correctly when rendered declaratively. See openSchedulePicker below for
+  // why Android goes through a different path entirely.
   const handleDateChange = (event, selected) => {
     setShowDatePicker(false);
     if (event.type === 'dismissed' || !selected) return;
@@ -152,9 +161,38 @@ export default function ClientHomeScreen({ navigation }) {
   const handleTimeChange = (event, selected) => {
     setShowTimePicker(false);
     if (event.type === 'dismissed' || !selected || !pendingDate) return;
-    const combined = new Date(pendingDate);
-    combined.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
-    setScheduledDate(combined);
+    setScheduledDate(combineDateAndTime(pendingDate, selected));
+  };
+
+  // Android's native pickers are modal dialogs, not inline views - rendering
+  // <DateTimePicker> declaratively (the iOS-appropriate pattern above) is
+  // unreliable here: the dialog can fail to reopen or silently reset the
+  // picked time back to 00:00 when the surrounding state-driven re-render
+  // removes/re-adds it from the tree. DateTimePickerAndroid.open() drives the
+  // native dialog imperatively instead, which is the pattern the library
+  // itself recommends for Android.
+  const openSchedulePicker = () => {
+    if (Platform.OS !== 'android') {
+      setShowDatePicker(true);
+      return;
+    }
+    DateTimePickerAndroid.open({
+      value: scheduledDate || minDate,
+      mode: 'date',
+      minimumDate: minDate,
+      maximumDate: maxDate,
+      onChange: (dateEvent, pickedDate) => {
+        if (dateEvent.type !== 'set' || !pickedDate) return;
+        DateTimePickerAndroid.open({
+          value: scheduledDate || minDate,
+          mode: 'time',
+          onChange: (timeEvent, pickedTime) => {
+            if (timeEvent.type !== 'set' || !pickedTime) return;
+            setScheduledDate(combineDateAndTime(pickedDate, pickedTime));
+          },
+        });
+      },
+    });
   };
 
   if (activeRideLoading) {
@@ -242,7 +280,7 @@ export default function ClientHomeScreen({ navigation }) {
               <PrimaryButton
                 title={scheduledDate ? t('client.scheduledFor', { date: formatDateTime(scheduledDate.toISOString(), i18n.language) }) : t('client.chooseDateTime')}
                 variant="secondary"
-                onPress={() => setShowDatePicker(true)}
+                onPress={openSchedulePicker}
               />
             ) : null}
             <View style={styles.paymentRow}>

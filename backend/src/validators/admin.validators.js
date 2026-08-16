@@ -62,12 +62,14 @@ const updateSettingsSchema = z
     defaultCommissionRate: z.number().min(0).max(1).optional(),
     minBalanceToGoOnline: z.number().min(0).optional(),
     walletTopupMerchantCode: z.string().regex(/^\d{6}$/, 'Must be exactly 6 digits').optional(),
+    driverAutoSuspendHours: z.number().positive().optional(),
   })
   .refine(
     (data) =>
       data.defaultCommissionRate !== undefined ||
       data.minBalanceToGoOnline !== undefined ||
-      data.walletTopupMerchantCode !== undefined,
+      data.walletTopupMerchantCode !== undefined ||
+      data.driverAutoSuspendHours !== undefined,
     { message: 'At least one setting must be provided' }
   );
 

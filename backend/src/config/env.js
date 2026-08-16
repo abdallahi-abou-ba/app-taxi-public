@@ -54,6 +54,12 @@ const envSchema = z.object({
   // completed for a driver with no rate set.
   DEFAULT_COMMISSION_RATE: z.coerce.number().min(0).max(1).default(0.2),
 
+  // Fallback duration (hours) a driver is auto-suspended for after
+  // AUTO_SUSPEND_CANCEL_THRESHOLD (see ride.service.js) consecutive
+  // cancellations, overridable per-deployment via AppSetting (see
+  // appSetting.service.js#getDriverAutoSuspendHours).
+  DRIVER_AUTO_SUSPEND_HOURS: z.coerce.number().positive().default(24),
+
   // Max size for a driver-uploaded verification document (photo/ID/license),
   // stored as a Postgres bytea - see upload.middleware.js. A real phone
   // camera photo of a printed document (sharp text/edges compress worse than

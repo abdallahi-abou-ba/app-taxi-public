@@ -16,6 +16,7 @@ import {
   Landmark,
   HandCoins,
   ShieldCheck,
+  UserX,
 } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import {
@@ -130,6 +131,8 @@ export default function DriverDetailPage() {
   if (loading) return <p className="hint">Chargement…</p>;
   if (error) return <p className="error">{error.message}</p>;
   if (!driver) return null;
+
+  const isAutoSuspended = driver.autoSuspendedUntil && new Date(driver.autoSuspendedUntil) > new Date();
 
   return (
     <div>
@@ -261,6 +264,7 @@ export default function DriverDetailPage() {
         <div className="stats-grid">
           <StatCard label="Courses terminées" value={driver.stats.completedRides} icon={CheckCircle2} tone="success" />
           <StatCard label="Courses annulées" value={driver.stats.cancelledRides} icon={XCircle} tone="danger" />
+          <StatCard label="Annulations consécutives" value={driver.cancelStreak ?? 0} icon={UserX} tone="danger" />
           <StatCard label="Recette totale" value={formatCurrency(driver.stats.totalRevenue)} icon={Wallet} tone="primary" />
           <StatCard label="Commission société" value={formatCurrency(driver.stats.totalCommission)} icon={Landmark} tone="info" />
           <StatCard label="Net capitaine" value={formatCurrency(driver.stats.totalNetEarnings)} icon={HandCoins} tone="success" />
@@ -272,6 +276,12 @@ export default function DriverDetailPage() {
           <ShieldCheck size={16} />
           Statut
         </h3>
+        {isAutoSuspended && (
+          <p className="error">
+            Suspension automatique en cours (5 annulations consécutives) jusqu'au{' '}
+            {new Date(driver.autoSuspendedUntil).toLocaleString('fr-FR')}.
+          </p>
+        )}
         {driver.approvalStatus === 'PENDING' ? (
           <>
             <p className="hint">Nouvelle inscription en attente de validation. Vérifiez le profil ci-dessus avant de statuer.</p>

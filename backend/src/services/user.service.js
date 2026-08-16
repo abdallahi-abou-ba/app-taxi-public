@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const AppError = require('../utils/appError');
 const { toPublicUser } = require('./auth.service');
-const { ACTIVE_STATUSES } = require('./ride.service');
+const { ACTIVE_STATUSES, assertNotAutoSuspended } = require('./ride.service');
 const phoneOtpService = require('./phoneOtp.service');
 const appSettingService = require('./appSetting.service');
 
@@ -22,6 +22,7 @@ async function updateAvailability(requester, { isAvailable, currentLat, currentL
     throw new AppError('Your driver account is not yet approved', 403, 'FORBIDDEN');
   }
   if (isAvailable) {
+    assertNotAutoSuspended(requester);
     const minBalance = await appSettingService.getMinBalanceToGoOnline();
     if (requester.creditBalance < minBalance) {
       throw new AppError(`You need at least ${minBalance} in your balance to go online`, 403, 'FORBIDDEN');

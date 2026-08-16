@@ -10,6 +10,7 @@
     "reservations": "Réservations",
     "referral": "Parrainage",
     "call": "Appeler",
+    "chat": "Discussion",
     "client": "Client",
     "driver": "Capitaine",
     "documents": "Documents",
@@ -32,7 +33,8 @@
     "documents": "Mes documents",
     "settlements": "Mes règlements",
     "recharge": "Recharger mon compte",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "chat": "Discussion"
   },
   "splash": {
     "loading": "Chargement..."
@@ -161,6 +163,7 @@
     "pendingApproval": "Votre compte est en attente de validation par l'administrateur. Vous pourrez passer en ligne une fois votre compte validé.",
     "rejectedApproval": "Votre compte capitaine n'a pas été validé. Contactez l'assistance pour plus d'informations.",
     "suspendedApproval": "Votre compte capitaine a été suspendu. Contactez l'assistance pour plus d'informations.",
+    "autoSuspended": "Compte temporairement suspendu suite à 5 annulations consécutives. Réessayez après {{time}}.",
     "uploadDocumentsCta": "Envoyer mes documents"
   },
   "driverDocuments": {
@@ -221,6 +224,13 @@
     "cancelConfirm": "Annuler la réservation",
     "cancelKeep": "Garder",
     "cancelError": "Impossible d'annuler la réservation"
+  },
+  "chat": {
+    "empty": "Aucun message pour le moment",
+    "placeholder": "Écrivez un message...",
+    "send": "Envoyer",
+    "loadError": "Impossible de charger la conversation",
+    "sendError": "Impossible d'envoyer le message"
   },
   "referral": {
     "yourCode": "Votre code de parrainage",

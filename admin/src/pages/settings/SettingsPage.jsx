@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Percent, Wallet, CreditCard } from 'lucide-react';
+import { Percent, Wallet, CreditCard, UserX } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { getSettings, updateSettings } from '../../api/settings';
 
@@ -20,6 +20,11 @@ export default function SettingsPage() {
   const [merchantCodeError, setMerchantCodeError] = useState('');
   const [merchantCodeSuccess, setMerchantCodeSuccess] = useState(false);
   const [merchantCodeBusy, setMerchantCodeBusy] = useState(false);
+
+  const [newAutoSuspendHours, setNewAutoSuspendHours] = useState('');
+  const [autoSuspendHoursError, setAutoSuspendHoursError] = useState('');
+  const [autoSuspendHoursSuccess, setAutoSuspendHoursSuccess] = useState(false);
+  const [autoSuspendHoursBusy, setAutoSuspendHoursBusy] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -75,6 +80,27 @@ export default function SettingsPage() {
       setMerchantCodeError(err.message);
     } finally {
       setMerchantCodeBusy(false);
+    }
+  }
+
+  async function handleAutoSuspendHoursSubmit(e) {
+    e.preventDefault();
+    if (newAutoSuspendHours === '' || Number(newAutoSuspendHours) <= 0) {
+      setAutoSuspendHoursError('La durée doit être un nombre positif.');
+      return;
+    }
+    setAutoSuspendHoursBusy(true);
+    setAutoSuspendHoursError('');
+    setAutoSuspendHoursSuccess(false);
+    try {
+      await updateSettings({ driverAutoSuspendHours: Number(newAutoSuspendHours) });
+      setNewAutoSuspendHours('');
+      setAutoSuspendHoursSuccess(true);
+      reload();
+    } catch (err) {
+      setAutoSuspendHoursError(err.message);
+    } finally {
+      setAutoSuspendHoursBusy(false);
     }
   }
 
@@ -170,6 +196,38 @@ export default function SettingsPage() {
           </label>
           <div style={{ alignSelf: 'end' }}>
             <button className="btn btn-primary" type="submit" disabled={merchantCodeBusy || newMerchantCode === ''}>
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {autoSuspendHoursError && <p className="error">{autoSuspendHoursError}</p>}
+      {autoSuspendHoursSuccess && <p className="hint">Durée de suspension mise à jour.</p>}
+
+      <div className="panel">
+        <h3>
+          <UserX size={16} />
+          Suspension après 5 annulations ({settings.driverAutoSuspendHours ?? '—'} h)
+        </h3>
+        <p className="hint">
+          Un capitaine qui annule 5 courses consécutives est automatiquement suspendu (bloqué du passage en ligne et
+          de l'acceptation de courses) pendant cette durée. Le compteur repart à zéro dès qu'il termine une course
+          normalement.
+        </p>
+        <form className="form-grid" onSubmit={handleAutoSuspendHoursSubmit}>
+          <label className="field">
+            Nouvelle durée (heures)
+            <input
+              type="number"
+              min="0.1"
+              step="0.5"
+              value={newAutoSuspendHours}
+              onChange={(e) => setNewAutoSuspendHours(e.target.value)}
+            />
+          </label>
+          <div style={{ alignSelf: 'end' }}>
+            <button className="btn btn-primary" type="submit" disabled={autoSuspendHoursBusy || newAutoSuspendHours === ''}>
               Enregistrer
             </button>
           </div>

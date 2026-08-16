@@ -11,3 +11,7 @@ export function createAdminUser(payload) {
 export function updateAdminRole(id, adminRole) {
   return api.patch(`/api/admin/admins/${id}/role`, { adminRole });
 }
+
+export function deleteAdmin(id) {
+  return api.delete(`/api/admin/admins/${id}`);
+}

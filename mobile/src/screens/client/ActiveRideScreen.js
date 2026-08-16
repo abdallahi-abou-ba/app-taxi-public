@@ -142,12 +142,21 @@ export default function ActiveRideScreen({ route, navigation }) {
         <ErrorBanner message={error} />
         <RideStatusBadge status={ride.status} />
         <RideSummaryCard ride={ride} viewerRole={ROLE.CLIENT} />
-        <PrimaryButton
-          title={t('common.call')}
-          variant="secondary"
-          onPress={() => callPhone(ride.driver?.phone)}
-          disabled={!ride.driver?.phone}
-        />
+        <View style={styles.buttonRow}>
+          <PrimaryButton
+            title={t('common.call')}
+            variant="secondary"
+            onPress={() => callPhone(ride.driver?.phone)}
+            disabled={!ride.driver?.phone}
+            style={styles.buttonRowItem}
+          />
+          <PrimaryButton
+            title={t('common.chat')}
+            variant="secondary"
+            onPress={() => navigation.navigate('Chat', { rideId })}
+            style={styles.buttonRowItem}
+          />
+        </View>
         <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={cancelling} />
       </View>
     </View>
@@ -175,6 +184,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     alignSelf: 'center',
     marginBottom: 2,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  buttonRowItem: {
+    flex: 1,
   },
   endedContainer: {
     flexGrow: 1,

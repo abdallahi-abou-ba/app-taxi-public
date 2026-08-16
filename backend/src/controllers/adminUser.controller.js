@@ -32,4 +32,15 @@ const updateAdminRole = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: admin });
 });
 
-module.exports = { listAdmins, createAdminUser, updateAdminRole };
+const deleteAdmin = asyncHandler(async (req, res) => {
+  await adminUserService.deleteAdmin(req.params.id, req.user.id);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'ADMIN_DELETED',
+    entityType: 'ADMIN',
+    entityId: req.params.id,
+  });
+  sendSuccess(res, { data: null });
+});
+
+module.exports = { listAdmins, createAdminUser, updateAdminRole, deleteAdmin };

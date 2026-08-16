@@ -5,6 +5,7 @@ const env = require('../config/env');
 const DEFAULT_COMMISSION_RATE_KEY = 'DEFAULT_COMMISSION_RATE';
 const MIN_BALANCE_TO_GO_ONLINE_KEY = 'MIN_BALANCE_TO_GO_ONLINE';
 const WALLET_TOPUP_MERCHANT_CODE_KEY = 'WALLET_TOPUP_MERCHANT_CODE';
+const DRIVER_AUTO_SUSPEND_HOURS_KEY = 'DRIVER_AUTO_SUSPEND_HOURS';
 
 // Falls back to env.DEFAULT_COMMISSION_RATE when no admin override has been
 // saved yet, so every existing read site keeps working unmigrated.
@@ -67,6 +68,26 @@ async function setMerchantCode(newCode, adminUserId) {
   });
 }
 
+// Falls back to env.DRIVER_AUTO_SUSPEND_HOURS when no admin override has
+// been saved yet, mirroring getMinBalanceToGoOnline above.
+async function getDriverAutoSuspendHours() {
+  const row = await prisma.appSetting.findUnique({ where: { key: DRIVER_AUTO_SUSPEND_HOURS_KEY } });
+  const parsed = row ? Number(row.value) : NaN;
+  return Number.isFinite(parsed) ? parsed : env.DRIVER_AUTO_SUSPEND_HOURS;
+}
+
+async function setDriverAutoSuspendHours(newHours, adminUserId) {
+  if (typeof newHours !== 'number' || Number.isNaN(newHours) || newHours <= 0) {
+    throw new AppError('newHours must be a positive number', 422, 'VALIDATION_ERROR');
+  }
+
+  return prisma.appSetting.upsert({
+    where: { key: DRIVER_AUTO_SUSPEND_HOURS_KEY },
+    create: { key: DRIVER_AUTO_SUSPEND_HOURS_KEY, value: String(newHours), updatedByUserId: adminUserId },
+    update: { value: String(newHours), updatedByUserId: adminUserId },
+  });
+}
+
 module.exports = {
   getDefaultCommissionRate,
   setDefaultCommissionRate,
@@ -74,4 +95,6 @@ module.exports = {
   setMinBalanceToGoOnline,
   getMerchantCode,
   setMerchantCode,
+  getDriverAutoSuspendHours,
+  setDriverAutoSuspendHours,
 };

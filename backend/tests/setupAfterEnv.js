@@ -15,6 +15,7 @@ beforeEach(async () => {
   await prisma.expense.deleteMany();
   await prisma.settlement.deleteMany();
   await prisma.walletTopUp.deleteMany();
+  await prisma.message.deleteMany();
   await prisma.ride.deleteMany();
   await prisma.refreshToken.deleteMany();
   await prisma.vehicle.deleteMany();

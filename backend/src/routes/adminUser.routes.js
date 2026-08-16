@@ -18,5 +18,6 @@ router.patch(
   validate(updateAdminRoleSchema, 'body'),
   controller.updateAdminRole
 );
+router.delete('/:id', validate(adminIdParamSchema, 'params'), controller.deleteAdmin);
 
 module.exports = router;

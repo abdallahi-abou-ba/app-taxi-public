@@ -212,6 +212,14 @@ model User {
   approvalStatus DriverApprovalStatus?
   approvedAt     DateTime?
 
+  // Automatic, time-bounded suspension after AUTO_SUSPEND_CANCEL_THRESHOLD
+  // (see ride.service.js) consecutive driver cancellations - orthogonal to
+  // approvalStatus/SUSPENDED above (that one is admin-set and indefinite;
+  // this one is system-set and expires on its own). cancelStreak resets to 0
+  // on any ride this driver completes normally.
+  cancelStreak       Int       @default(0)
+  autoSuspendedUntil DateTime?
+
   // Extended driver profile (admin back office, Phase 1). All optional -
   // existing rows get null until an admin fills them in.
   // Only set when different from `phone` (spec 4.1's "numéro WhatsApp si
@@ -279,6 +287,7 @@ model User {
   ridesAsClient Ride[]         @relation("ClientRides")
   ridesAsDriver Ride[]         @relation("DriverRides")
   refreshTokens RefreshToken[]
+  messages      Message[]
 
   commissionChangesReceived CommissionChange[]  @relation("CommissionChangeDriver")
   commissionChangesMade     CommissionChange[]  @relation("CommissionChangeAdmin")
@@ -784,10 +793,28 @@ model Ride {
   updatedAt DateTime @updatedAt
 
   complaints Complaint[]
+  messages   Message[]
 
   @@index([status])
   @@index([clientId])
   @@index([driverId])
   @@index([driverId, completedAt])
   @@map("rides")
+}
+
+// In-ride chat. Scoped to a single ride rather than a standalone DM system -
+// either participant can message any ride they're part of, regardless of its
+// current status (a completed ride can still get a follow-up message).
+model Message {
+  id       String @id @default(uuid())
+  rideId   String
+  ride     Ride   @relation(fields: [rideId], references: [id])
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+  body     String
+
+  createdAt DateTime @default(now())
+
+  @@index([rideId])
+  @@map("messages")
 }

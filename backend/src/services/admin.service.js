@@ -16,6 +16,8 @@ const DRIVER_SELECT = {
   vehicleModel: true,
   approvalStatus: true,
   approvedAt: true,
+  cancelStreak: true,
+  autoSuspendedUntil: true,
   address: true,
   nationalId: true,
   licenseNumber: true,

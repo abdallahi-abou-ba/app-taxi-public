@@ -61,12 +61,21 @@ export default function RideDetailScreen({ route, navigation }) {
     <ScrollView contentContainerStyle={styles.container}>
       <RideStatusBadge status={ride.status} />
       <RideSummaryCard ride={ride} viewerRole={user.role} />
-      <PrimaryButton
-        title={t('common.call')}
-        variant="secondary"
-        onPress={() => callPhone(counterpart?.phone)}
-        disabled={!counterpart?.phone}
-      />
+      <View style={styles.buttonRow}>
+        <PrimaryButton
+          title={t('common.call')}
+          variant="secondary"
+          onPress={() => callPhone(counterpart?.phone)}
+          disabled={!counterpart?.phone}
+          style={styles.buttonRowItem}
+        />
+        <PrimaryButton
+          title={t('common.chat')}
+          variant="secondary"
+          onPress={() => navigation.navigate('Chat', { rideId: ride.id })}
+          style={styles.buttonRowItem}
+        />
+      </View>
       <View style={styles.timestamps}>
         <Text style={styles.label}>{t('rideDetail.requested', { date: formatDateTime(ride.requestedAt, i18n.language) })}</Text>
         {ride.completedAt ? (
@@ -100,6 +109,13 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.lg,
     backgroundColor: colors.background,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  buttonRowItem: {
+    flex: 1,
   },
   timestamps: {
     gap: 4,

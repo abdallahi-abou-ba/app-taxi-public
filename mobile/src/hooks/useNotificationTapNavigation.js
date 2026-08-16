@@ -30,6 +30,8 @@ export function navigate(data, role) {
     navigationRef.navigate('Settlements');
   } else if (data.type === 'wallet:confirmed') {
     navigationRef.navigate('Recharge');
+  } else if (data.type === 'chat:message') {
+    navigationRef.navigate('Chat', { rideId: data.rideId });
   } else if (data.rideId) {
     navigationRef.navigate('ActiveRide', { rideId: data.rideId });
   }

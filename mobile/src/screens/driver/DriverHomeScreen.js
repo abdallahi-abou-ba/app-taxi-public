@@ -21,7 +21,7 @@ import { MAP_DEFAULTS } from '../../config/constants';
 import { colors, radius, shadow, spacing } from '../../theme/theme';
 
 export default function DriverHomeScreen({ navigation }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, logout, updateUser } = useAuth();
   const socket = useSocket();
   const { isAvailable, setIsAvailable, setHasActiveRide } = useDriverLocationStatus();
@@ -139,6 +139,7 @@ export default function DriverHomeScreen({ navigation }) {
   }
 
   const isApproved = user.approvalStatus === 'APPROVED';
+  const isAutoSuspended = !!user.autoSuspendedUntil && new Date(user.autoSuspendedUntil) > new Date();
 
   const initialRegion = location ? { ...location, zoom: 14 } : MAP_DEFAULTS;
   const markers = location ? [{ id: 'me', latitude: location.latitude, longitude: location.longitude, label: t('map.you') }] : [];
@@ -190,6 +191,17 @@ export default function DriverHomeScreen({ navigation }) {
               />
             ) : null}
           </>
+        ) : isAutoSuspended ? (
+          <Text style={styles.hint}>
+            {t('driver.autoSuspended', {
+              time: new Date(user.autoSuspendedUntil).toLocaleString(i18n.language, {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            })}
+          </Text>
         ) : null}
 
         <QuickActionsGrid items={quickActions} />
@@ -199,7 +211,7 @@ export default function DriverHomeScreen({ navigation }) {
           variant={isAvailable ? 'danger' : 'primary'}
           onPress={handleToggle}
           loading={toggling}
-          disabled={!isApproved}
+          disabled={!isApproved || isAutoSuspended}
         />
       </View>
 
