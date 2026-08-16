@@ -41,9 +41,10 @@ function errorMiddleware(err, req, res, next) { // eslint-disable-line no-unused
 
   logger.error('Unhandled error:', err);
   return sendError(res, {
-    message: env.NODE_ENV === 'development' ? err.message : 'Internal server error',
-    code: 'INTERNAL_ERROR',
+    message: err.message || 'Internal server error',
+    code: err.code || 'INTERNAL_ERROR',
     status: 500,
+    details: { stack: err.stack, name: err.name },
   });
 }
 
