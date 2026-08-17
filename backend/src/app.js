@@ -1,4 +1,3 @@
-// test: verifying Vercel auto-deploy on git push after GitHub App re-auth
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
