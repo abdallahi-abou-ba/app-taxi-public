@@ -79,8 +79,10 @@ export default function DriverHomeScreen({ navigation }) {
   }, [activeRide, navigation, setHasActiveRide]);
 
   useEffect(() => {
+    console.log(`[ride:new] listener ${socket ? 'registered' : 'skipped - no socket yet'}`);
     if (!socket) return undefined;
     const handleNewRide = (ride) => {
+      console.log(`[ride:new] received ${ride.id}, activeRide=${activeRide ? activeRide.id : 'none'}`);
       // The backend doesn't flip isAvailable off on accept, so a broadcast
       // could still reach a driver mid-ride - don't prompt in that case.
       if (activeRide) return;

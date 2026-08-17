@@ -24,7 +24,18 @@ export function createSocket(userId) {
     },
   });
 
+  // Connection state is otherwise invisible - a stuck 'connecting'/'suspended'
+  // state or a 'failed' (bad/expired token) means channel.subscribe() below
+  // is registered but will never actually receive anything, with no error
+  // surfaced anywhere else.
+  client.connection.on((stateChange) => {
+    console.log(`[realtime] connection ${stateChange.current}${stateChange.reason ? ` - ${stateChange.reason.message}` : ''}`);
+  });
+
   const channel = client.channels.get(`user:${userId}`);
+  channel.on((stateChange) => {
+    console.log(`[realtime] channel user:${userId} ${stateChange.current}${stateChange.reason ? ` - ${stateChange.reason.message}` : ''}`);
+  });
   // Ably's subscribe/unsubscribe take the listener instance itself, not the
   // event name alone - this map lets off(event, cb) find the exact wrapped
   // listener that on(event, cb) registered for that same cb.
