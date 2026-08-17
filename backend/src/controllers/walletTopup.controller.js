@@ -11,6 +11,19 @@ const listTopUps = asyncHandler(async (req, res) => {
   });
 });
 
+const createTopUpAsAdmin = asyncHandler(async (req, res) => {
+  const { driverId, amount } = req.body;
+  const topUp = await walletService.createTopUpAsAdmin(driverId, amount, req.user.id);
+  await activityLogService.logActivity({
+    adminUserId: req.user.id,
+    action: 'WALLET_TOPUP_ADMIN_CREATED',
+    entityType: 'WALLET_TOPUP',
+    entityId: topUp.id,
+    details: { driverId: topUp.driverId, amount: topUp.amount },
+  });
+  sendSuccess(res, { data: topUp });
+});
+
 const confirmTopUp = asyncHandler(async (req, res) => {
   const topUp = await walletService.confirmTopUp(req.params.id, req.user.id);
   await activityLogService.logActivity({
@@ -34,4 +47,4 @@ const cancelTopUp = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: topUp });
 });
 
-module.exports = { listTopUps, confirmTopUp, cancelTopUp };
+module.exports = { listTopUps, createTopUpAsAdmin, confirmTopUp, cancelTopUp };

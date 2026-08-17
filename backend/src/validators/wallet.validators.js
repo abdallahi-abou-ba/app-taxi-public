@@ -21,6 +21,15 @@ const topUpIdParamSchema = z.object({
   id: z.string().uuid('Invalid top-up id'),
 });
 
+// Admin crediting a driver's balance directly (e.g. the driver's own
+// bank/mobile-money account is temporarily unusable) - no preset amounts,
+// no confirmationCode, since there's no real mobile-money payment to
+// cross-check. See wallet.service.js#createTopUpAsAdmin.
+const adminCreateTopUpSchema = z.object({
+  driverId: z.string().uuid('Invalid driver id'),
+  amount: z.coerce.number().positive('amount must be greater than 0'),
+});
+
 const listTopUpsQuerySchema = z.object({
   status: z.enum(TOPUP_STATUS_VALUES).optional(),
   page: z.coerce.number().int().positive().optional(),
@@ -31,6 +40,7 @@ module.exports = {
   TOPUP_STATUS_VALUES,
   WALLET_TOPUP_PRESET_AMOUNTS,
   createTopUpSchema,
+  adminCreateTopUpSchema,
   topUpIdParamSchema,
   listTopUpsQuerySchema,
 };

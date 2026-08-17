@@ -76,6 +76,45 @@ describe('admin wallet top-up review', () => {
     expect(res.status).toBe(403);
   });
 
+  it('lets an admin credit a driver\'s balance directly, confirmed immediately', async () => {
+    const admin = await createAdmin();
+    const driver = await registerUser({ role: 'DRIVER' });
+
+    const res = await request(app)
+      .post('/api/admin/wallet-topups')
+      .set(authHeader(admin.accessToken))
+      .send({ driverId: driver.user.id, amount: 300 });
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('CONFIRMED');
+    expect(res.body.data.method).toBe('COMPANY');
+    expect(res.body.data.confirmedByUser.id).toBe(admin.user.id);
+
+    const me = await request(app).get('/api/users/me').set(authHeader(driver.accessToken));
+    expect(me.body.data.creditBalance).toBe(300);
+  });
+
+  it('rejects a non-FINANCE admin creating a direct top-up', async () => {
+    const supportAdmin = await createAdmin({ adminRole: 'SUPPORT' });
+    const driver = await registerUser({ role: 'DRIVER' });
+
+    const res = await request(app)
+      .post('/api/admin/wallet-topups')
+      .set(authHeader(supportAdmin.accessToken))
+      .send({ driverId: driver.user.id, amount: 300 });
+    expect(res.status).toBe(403);
+  });
+
+  it('rejects a direct top-up for a non-driver account', async () => {
+    const admin = await createAdmin();
+    const client = await registerUser({ role: 'CLIENT' });
+
+    const res = await request(app)
+      .post('/api/admin/wallet-topups')
+      .set(authHeader(admin.accessToken))
+      .send({ driverId: client.user.id, amount: 300 });
+    expect(res.status).toBe(404);
+  });
+
   it('lists the driver\'s own account phone and B-Pay confirmation code for manual reconciliation against the Bankily merchant SMS', async () => {
     const admin = await createAdmin();
     const driver = await registerUser({ role: 'DRIVER' });

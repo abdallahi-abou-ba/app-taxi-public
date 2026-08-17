@@ -92,6 +92,41 @@ async function confirmTopUp(topUpId, adminUserId) {
   return updated;
 }
 
+// Admin-initiated top-up, credited immediately with no driver declaration
+// step - used when the driver can't do a normal mobile-money top-up
+// themselves (e.g. their bank/mobile-money account is down). method
+// 'COMPANY' distinguishes these from real Bankily/Sedad/Masrivi transfers
+// in the top-ups list/reports.
+async function createTopUpAsAdmin(driverId, amount, adminUserId) {
+  const driver = await prisma.user.findUnique({ where: { id: driverId } });
+  if (!driver || driver.role !== 'DRIVER') {
+    throw new AppError('Driver not found', 404, 'NOT_FOUND');
+  }
+
+  const [topUp] = await prisma.$transaction([
+    prisma.walletTopUp.create({
+      data: {
+        driverId,
+        amount,
+        method: 'COMPANY',
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
+        confirmedByUserId: adminUserId,
+      },
+      include: TOPUP_INCLUDE,
+    }),
+    prisma.user.update({ where: { id: driverId }, data: { creditBalance: { increment: amount } } }),
+  ]);
+
+  sendPushToUser(driverId, {
+    title: 'Recharge confirmée',
+    body: 'Votre solde a été rechargé par l’administration.',
+    data: { topUpId: topUp.id, type: 'wallet:confirmed' },
+  });
+
+  return topUp;
+}
+
 async function cancelTopUp(topUpId) {
   const topUp = await findTopUpOrThrow(topUpId);
   if (topUp.status !== 'PENDING') {
@@ -103,6 +138,7 @@ async function cancelTopUp(topUpId) {
 module.exports = {
   getTopUpInfo,
   createTopUp,
+  createTopUpAsAdmin,
   listMyTopUps,
   listTopUps,
   confirmTopUp,

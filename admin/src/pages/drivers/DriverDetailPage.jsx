@@ -27,6 +27,7 @@ import {
   setDriverStatus,
   viewDriverDocument,
 } from '../../api/drivers';
+import { createWalletTopUp } from '../../api/walletTopups';
 import StatusBadge from '../../components/StatusBadge';
 import StatCard from '../../components/StatCard';
 
@@ -55,6 +56,7 @@ export default function DriverDetailPage() {
   const [actionError, setActionError] = useState('');
   const [busy, setBusy] = useState(false);
   const [viewingType, setViewingType] = useState(null);
+  const [topUpAmount, setTopUpAmount] = useState('');
 
   async function handleStatusChange(e) {
     e.preventDefault();
@@ -96,6 +98,23 @@ export default function DriverDetailPage() {
       setReason('');
       reload();
       reloadHistory();
+    } catch (err) {
+      setActionError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleTopUp(e) {
+    e.preventDefault();
+    if (!topUpAmount || Number(topUpAmount) <= 0) return;
+    if (!window.confirm(`Créditer ${topUpAmount} MRU directement sur le solde de ${driver.fullName} ?`)) return;
+    setBusy(true);
+    setActionError('');
+    try {
+      await createWalletTopUp(id, Number(topUpAmount));
+      setTopUpAmount('');
+      reload();
     } catch (err) {
       setActionError(err.message);
     } finally {
@@ -205,6 +224,21 @@ export default function DriverDetailPage() {
           <div>
             <strong>Solde</strong>
             <div className="hint">{formatCurrency(driver.creditBalance)}</div>
+            <form className="btn-row" style={{ marginTop: 6 }} onSubmit={handleTopUp}>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Montant (MRU)"
+                value={topUpAmount}
+                onChange={(e) => setTopUpAmount(e.target.value)}
+                style={{ width: 110 }}
+              />
+              <button className="btn btn-secondary btn-sm" type="submit" disabled={busy || !topUpAmount}>
+                <Wallet size={13} strokeWidth={2.5} />
+                Recharger
+              </button>
+            </form>
           </div>
         </div>
       </div>
