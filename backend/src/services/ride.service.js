@@ -187,6 +187,11 @@ function ringDriverForRide(driverId, ride) {
 
 async function broadcastToNearbyDrivers(ride) {
   const nearbyDrivers = await findNearbyAvailableDrivers(ride.pickupLat, ride.pickupLng);
+  logger.info(
+    `Ride ${ride.id}: matched ${nearbyDrivers.length} nearby driver(s) - ${nearbyDrivers
+      .map(({ driver, distanceKm }) => `${driver.id.slice(0, 8)}@${distanceKm.toFixed(1)}km`)
+      .join(', ') || 'none'}`
+  );
   for (const { driver } of nearbyDrivers) {
     emitToUser(driver.id, 'ride:new', ride);
     ringDriverForRide(driver.id, ride);
