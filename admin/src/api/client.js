@@ -101,16 +101,28 @@ export async function downloadFile(path, { query, filename } = {}) {
 // instead of forcing a download - used to preview a driver document
 // (image/PDF) inline. The object URL is revoked after a delay long enough
 // for the new tab to have loaded it.
+//
+// The tab is opened synchronously (before any await) so it still carries the
+// click's user-activation flag; its location is set later once the blob is
+// ready. Opening it after the awaits instead gets silently killed by popup
+// blockers in most browsers - no error, the button just appears to do nothing.
 export async function openFile(path) {
+  const tab = window.open('', '_blank');
+
   const res = await doFetch('GET', path);
   if (!res.ok) {
     const json = await res.json().catch(() => null);
     const error = json?.error || {};
+    tab?.close();
     throw new ApiError(res.status, error.code || 'UNKNOWN_ERROR', error.message || 'Could not load file');
   }
 
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  if (tab) {
+    tab.location.href = url;
+  } else {
+    window.open(url, '_blank');
+  }
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
