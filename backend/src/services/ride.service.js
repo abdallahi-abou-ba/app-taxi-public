@@ -145,13 +145,51 @@ async function doEnrichRideAddressesInArabic(ride) {
   }
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// A single push is easy to miss while driving with the phone in a pocket -
+// re-sends at +8s/+16s make it feel closer to a phone ringing, stopping
+// early if the ride's been taken (by this driver or another) or cancelled.
+// Runs past the HTTP response via waitUntil (see lib/waitUntil.js), so the
+// whole ~16s sequence must stay well under the function's 30s maxDuration
+// (backend/vercel.json).
+const RING_REPEAT_DELAYS_MS = [8000, 16000];
+
+function ringDriverForRide(driverId, ride) {
+  const push = () =>
+    sendPushToUser(driverId, {
+      title: 'Nouvelle course',
+      body: `${ride.client.fullName} a besoin d'être pris en charge`,
+      data: { rideId: ride.id, type: 'ride:new' },
+      priority: 'high',
+      interruptionLevel: 'time-sensitive',
+      channelId: 'ride-alerts',
+    });
+
+  // Skip the delayed repeats in tests - real setTimeout()s of up to 16s
+  // would dangle past each test's assertions and slow down/hang the suite.
+  // A single immediate push is enough to cover the send-with-priority-
+  // fields behavior; the repeat scheduling itself has no separate test.
+  if (env.NODE_ENV === 'test') return push();
+
+  return safeWaitUntil(
+    (async () => {
+      push();
+      for (const delay of RING_REPEAT_DELAYS_MS) {
+        await sleep(delay);
+        const current = await prisma.ride.findUnique({ where: { id: ride.id }, select: { status: true } });
+        if (!current || current.status !== 'REQUESTED') return;
+        push();
+      }
+    })()
+  );
+}
+
 async function broadcastToNearbyDrivers(ride) {
   const nearbyDrivers = await findNearbyAvailableDrivers(ride.pickupLat, ride.pickupLng);
   for (const { driver } of nearbyDrivers) {
     emitToUser(driver.id, 'ride:new', ride);
-    // Fire-and-forget: never awaited, so a slow/failed push to one driver
-    // can't delay the response or block notifying the rest.
-    sendPushToUser(driver.id, { title: 'New ride request', body: `${ride.client.fullName} needs a pickup nearby`, data: { rideId: ride.id, type: 'ride:new' } });
+    ringDriverForRide(driver.id, ride);
   }
 }
 

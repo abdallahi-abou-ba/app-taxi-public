@@ -22,11 +22,11 @@ async function getExpo() {
  * Vercel the function can freeze right after the response is sent, so the
  * work is registered with waitUntil() here rather than at every call site.
  */
-function sendPushToUser(userId, { title, body, data } = {}) {
-  return safeWaitUntil(doSendPushToUser(userId, { title, body, data }));
+function sendPushToUser(userId, { title, body, data, priority, interruptionLevel, channelId } = {}) {
+  return safeWaitUntil(doSendPushToUser(userId, { title, body, data, priority, interruptionLevel, channelId }));
 }
 
-async function doSendPushToUser(userId, { title, body, data } = {}) {
+async function doSendPushToUser(userId, { title, body, data, priority, interruptionLevel, channelId } = {}) {
   if (!userId) return;
 
   // Persisted independently of whether an Expo push actually goes out (no
@@ -42,7 +42,9 @@ async function doSendPushToUser(userId, { title, body, data } = {}) {
     const token = user?.pushToken;
     if (!token || !Expo.isExpoPushToken(token)) return;
 
-    const [ticket] = await expo.sendPushNotificationsAsync([{ to: token, sound: 'default', title, body, data }]);
+    const [ticket] = await expo.sendPushNotificationsAsync([
+      { to: token, sound: 'default', title, body, data, priority, interruptionLevel, channelId },
+    ]);
     if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {
       await prisma.user.update({ where: { id: userId }, data: { pushToken: null } }).catch(() => {});
     }
