@@ -1,3 +1,4 @@
+// test: verifying Vercel backend auto-deploy after git reconnect
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
