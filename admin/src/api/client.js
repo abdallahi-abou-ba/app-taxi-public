@@ -79,7 +79,11 @@ export const api = {
 // api.get expects - so this bypasses parseResponse and triggers a browser
 // download directly from the fetched blob instead of returning JSON.
 export async function downloadFile(path, { query, filename } = {}) {
-  const res = await doFetch('GET', path, { query });
+  let res = await doFetch('GET', path, { query });
+  if (res.status === 401) {
+    const shouldRetry = await onUnauthorized();
+    if (shouldRetry) res = await doFetch('GET', path, { query });
+  }
   if (!res.ok) {
     const json = await res.json().catch(() => null);
     const error = json?.error || {};
@@ -109,7 +113,11 @@ export async function downloadFile(path, { query, filename } = {}) {
 export async function openFile(path) {
   const tab = window.open('', '_blank');
 
-  const res = await doFetch('GET', path);
+  let res = await doFetch('GET', path);
+  if (res.status === 401) {
+    const shouldRetry = await onUnauthorized();
+    if (shouldRetry) res = await doFetch('GET', path);
+  }
   if (!res.ok) {
     const json = await res.json().catch(() => null);
     const error = json?.error || {};
