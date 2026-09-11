@@ -10,7 +10,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://backend-production-1b1b.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://backend-seven-nu-93.vercel.app",
+        "EXPO_PUBLIC_USE_RN_FETCH": "1"
       }
     }
   }

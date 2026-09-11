@@ -27,6 +27,8 @@ module.exports = ({ config }) => ({
       favicon: './assets/favicon.png',
     },
     plugins: [
+      'expo-font',
+      'expo-asset',
       'expo-secure-store',
       'expo-notifications',
       'expo-web-browser',
