@@ -146,12 +146,8 @@ export default function DriverHomeScreen({ navigation }) {
 
   const quickActions = [
     { key: 'profile', icon: 'person-outline', label: t('common.profile'), onPress: () => navigation.navigate('EditProfile') },
-    { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
-    { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
-    { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
     { key: 'documents', icon: 'document-attach-outline', label: t('common.documents'), onPress: () => navigation.navigate('DriverDocuments') },
-    { key: 'notifications', icon: 'notifications-outline', label: t('common.notifications'), onPress: () => navigation.navigate('Notifications') },
-    { key: 'recharge', icon: 'card-outline', label: t('common.recharge'), onPress: () => navigation.navigate('Recharge') },
+    { key: 'more', icon: 'ellipsis-horizontal', label: t('common.more'), onPress: () => navigation.navigate('DriverMore') },
   ];
 
   return (

@@ -16,7 +16,8 @@
     "documents": "المستندات",
     "settlements": "التسويات",
     "recharge": "شحن الرصيد",
-    "notifications": "الإشعارات"
+    "notifications": "الإشعارات",
+    "more": "المزيد"
   },
   "nav": {
     "ride": "رحلة",
@@ -34,7 +35,8 @@
     "settlements": "تسوياتي",
     "recharge": "شحن رصيد حسابي",
     "notifications": "الإشعارات",
-    "chat": "المحادثة"
+    "chat": "المحادثة",
+    "more": "المزيد من الخيارات"
   },
   "splash": {
     "loading": "جارٍ التحميل..."

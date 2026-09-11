@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import ClientHomeScreen from '../screens/client/ClientHomeScreen';
+import ClientMoreScreen from '../screens/client/ClientMoreScreen';
 import WaitingForDriverScreen from '../screens/client/WaitingForDriverScreen';
 import ActiveRideScreen from '../screens/client/ActiveRideScreen';
 import RideHistoryScreen from '../screens/common/RideHistoryScreen';
@@ -27,6 +28,7 @@ export default function ClientNavigator() {
       }}
     >
       <Stack.Screen name="ClientHome" component={ClientHomeScreen} options={{ title: t('nav.ride') }} />
+      <Stack.Screen name="ClientMore" component={ClientMoreScreen} options={{ title: t('nav.more') }} />
       <Stack.Screen
         name="WaitingForDriver"
         component={WaitingForDriverScreen}

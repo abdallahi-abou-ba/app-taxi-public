@@ -212,9 +212,7 @@ export default function ClientHomeScreen({ navigation }) {
   const quickActions = [
     { key: 'profile', icon: 'person-outline', label: t('common.profile'), onPress: () => navigation.navigate('EditProfile') },
     { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
-    { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
-    { key: 'reservations', icon: 'calendar-outline', label: t('common.reservations'), onPress: () => navigation.navigate('ScheduledRides') },
-    { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+    { key: 'more', icon: 'ellipsis-horizontal', label: t('common.more'), onPress: () => navigation.navigate('ClientMore') },
   ];
 
   return (

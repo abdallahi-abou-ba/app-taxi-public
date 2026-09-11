@@ -16,7 +16,8 @@
     "documents": "Documents",
     "settlements": "Règlements",
     "recharge": "Recharger",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "more": "Plus"
   },
   "nav": {
     "ride": "Course",
@@ -34,7 +35,8 @@
     "settlements": "Mes règlements",
     "recharge": "Recharger mon compte",
     "notifications": "Notifications",
-    "chat": "Discussion"
+    "chat": "Discussion",
+    "more": "Plus d'options"
   },
   "splash": {
     "loading": "Chargement..."

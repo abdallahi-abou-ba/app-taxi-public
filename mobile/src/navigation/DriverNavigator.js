@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { DriverLocationProvider, useDriverLocationStatus } from '../context/DriverLocationContext';
 import useDriverLocationTracking from '../hooks/useDriverLocationTracking';
 import DriverHomeScreen from '../screens/driver/DriverHomeScreen';
+import DriverMoreScreen from '../screens/driver/DriverMoreScreen';
 import DriverActiveRideScreen from '../screens/driver/ActiveRideScreen';
 import RideHistoryScreen from '../screens/common/RideHistoryScreen';
 import RideDetailScreen from '../screens/common/RideDetailScreen';
@@ -41,6 +42,7 @@ export default function DriverNavigator() {
         }}
       >
         <Stack.Screen name="DriverHome" component={DriverHomeScreen} options={{ title: t('nav.drive') }} />
+        <Stack.Screen name="DriverMore" component={DriverMoreScreen} options={{ title: t('nav.more') }} />
         <Stack.Screen
           name="ActiveRide"
           component={DriverActiveRideScreen}
