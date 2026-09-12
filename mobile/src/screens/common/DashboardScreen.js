@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import DashboardStats from '../../components/DashboardStats';
+import DriverPerformanceStats from '../../components/DriverPerformanceStats';
+import { ROLE } from '../../config/constants';
 import { spacing } from '../../theme/theme';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -13,6 +15,7 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       <DashboardStats role={user.role} />
+      {user.role === ROLE.DRIVER ? <DriverPerformanceStats /> : null}
     </View>
   );
 }

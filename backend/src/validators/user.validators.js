@@ -12,6 +12,7 @@ const phoneField = z
 // (requestPhoneOtpSchema/verifyPhoneOtpSchema), not a raw unverified PATCH.
 const updateProfileSchema = z.object({
   fullName: z.string().trim().min(2).optional(),
+  weeklyRevenueGoal: z.number().min(0).optional(),
 });
 
 const updateAvailabilitySchema = z.object({

@@ -272,7 +272,17 @@
     "rides": "الرحلات",
     "earned": "الأرباح",
     "spent": "المصروف",
-    "thisMonth": "هذا الشهر"
+    "thisMonth": "هذا الشهر",
+    "today": "اليوم",
+    "thisWeek": "هذا الأسبوع",
+    "acceptanceRate": "معدل القبول",
+    "cancellationRate": "معدل الإلغاء",
+    "rating": "التقييم",
+    "noRatingYet": "لا يوجد تقييم بعد",
+    "weeklyGoal": "الهدف: {{amount}}",
+    "setGoal": "تحديد هدف أسبوعي",
+    "goalPlaceholder": "الهدف بالأوقية",
+    "save": "حفظ"
   },
   "editProfile": {
     "fullNameLabel": "الاسم الكامل",

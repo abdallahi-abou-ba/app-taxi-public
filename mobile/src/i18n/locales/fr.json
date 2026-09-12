@@ -272,7 +272,17 @@
     "rides": "Courses",
     "earned": "Gagné",
     "spent": "Dépensé",
-    "thisMonth": "Ce mois-ci"
+    "thisMonth": "Ce mois-ci",
+    "today": "Aujourd'hui",
+    "thisWeek": "Cette semaine",
+    "acceptanceRate": "Taux d'acceptation",
+    "cancellationRate": "Taux d'annulation",
+    "rating": "Note",
+    "noRatingYet": "Pas encore noté",
+    "weeklyGoal": "Objectif : {{amount}}",
+    "setGoal": "Définir un objectif hebdomadaire",
+    "goalPlaceholder": "Objectif en MRU",
+    "save": "Enregistrer"
   },
   "editProfile": {
     "fullNameLabel": "Nom complet",

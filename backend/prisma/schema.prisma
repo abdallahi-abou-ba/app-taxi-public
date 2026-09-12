@@ -284,6 +284,10 @@ model User {
   // granted, so it's never granted twice even across many later rides.
   referralRewardGrantedAt DateTime?
 
+  // Driver-set weekly earnings target, shown with a progress bar on their own
+  // dashboard (see ride.service.js#getStats). Null until the driver sets one.
+  weeklyRevenueGoal Float?
+
   ridesAsClient Ride[]         @relation("ClientRides")
   ridesAsDriver Ride[]         @relation("DriverRides")
   refreshTokens RefreshToken[]

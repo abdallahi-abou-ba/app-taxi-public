@@ -66,7 +66,7 @@ describe('GET /api/rides/stats', () => {
     const client = await registerUser({ role: 'CLIENT' });
     const res = await request(app).get('/api/rides/stats').set(authHeader(client.accessToken));
     expect(res.status).toBe(200);
-    expect(res.body.data).toEqual({ completedRides: 0, totalAmount: 0, ridesThisMonth: 0 });
+    expect(res.body.data).toEqual({ completedRides: 0, totalAmount: 0, ridesThisMonth: 0, dailyAmount: 0, weeklyAmount: 0 });
   });
 
   it('counts a completed ride toward both participants stats', async () => {

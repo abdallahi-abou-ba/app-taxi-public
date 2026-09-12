@@ -872,7 +872,17 @@ async function getStats(userId, role) {
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [completedAgg, ridesThisMonth] = await Promise.all([
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  // No week-start convention exists elsewhere in this app - Monday, plain
+  // local-time Date, no timezone handling (mirrors startOfMonth above).
+  const startOfWeek = new Date();
+  const day = startOfWeek.getDay();
+  startOfWeek.setDate(startOfWeek.getDate() + (day === 0 ? -6 : 1 - day));
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const [completedAgg, ridesThisMonth, dayAgg, weekAgg, driverExtras] = await Promise.all([
     prisma.ride.aggregate({
       where: { [field]: userId, status: 'COMPLETED' },
       _count: { _all: true },
@@ -881,13 +891,47 @@ async function getStats(userId, role) {
     prisma.ride.count({
       where: { [field]: userId, status: 'COMPLETED', completedAt: { gte: startOfMonth } },
     }),
+    prisma.ride.aggregate({
+      where: { [field]: userId, status: 'COMPLETED', completedAt: { gte: startOfDay } },
+      _sum: { estimatedFare: true },
+    }),
+    prisma.ride.aggregate({
+      where: { [field]: userId, status: 'COMPLETED', completedAt: { gte: startOfWeek } },
+      _sum: { estimatedFare: true },
+    }),
+    role === 'DRIVER'
+      ? Promise.all([
+          // driverId is only ever set via acceptRide, so this is "times this
+          // driver accepted" - any status, not just COMPLETED.
+          prisma.ride.count({ where: { driverId: userId } }),
+          prisma.ride.count({ where: { driverId: userId, cancelledBy: 'DRIVER' } }),
+          prisma.ride.count({ where: { declinedByDriverIds: { has: userId } } }),
+          prisma.user.findUnique({
+            where: { id: userId },
+            select: { ratingAverage: true, ratingCount: true, weeklyRevenueGoal: true },
+          }),
+        ])
+      : Promise.resolve(null),
   ]);
 
-  return {
+  const stats = {
     completedRides: completedAgg._count._all,
     totalAmount: completedAgg._sum.estimatedFare || 0,
     ridesThisMonth,
+    dailyAmount: dayAgg._sum.estimatedFare || 0,
+    weeklyAmount: weekAgg._sum.estimatedFare || 0,
   };
+
+  if (driverExtras) {
+    const [totalAssigned, driverCancelled, declinedCount, userExtra] = driverExtras;
+    stats.acceptanceRate = totalAssigned + declinedCount > 0 ? totalAssigned / (totalAssigned + declinedCount) : null;
+    stats.cancellationRate = totalAssigned > 0 ? driverCancelled / totalAssigned : null;
+    stats.ratingAverage = userExtra?.ratingAverage ?? null;
+    stats.ratingCount = userExtra?.ratingCount ?? 0;
+    stats.weeklyRevenueGoal = userExtra?.weeklyRevenueGoal ?? null;
+  }
+
+  return stats;
 }
 
 // Replaces the old Socket.io 'location:update' handler now that the backend
