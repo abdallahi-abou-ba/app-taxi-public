@@ -19,6 +19,10 @@ export const RIDE_STATUS = {
 export const MIN_SCHEDULE_LEAD_MIN = 30;
 export const MAX_SCHEDULE_LEAD_DAYS = 7;
 
+// Mirrors the backend's MAX_STOPS (ride.validators.js) - each extra stop
+// costs another OSRM waypoint and, later, two more reverse-geocode calls.
+export const MAX_STOPS = 3;
+
 export const ACTIVE_RIDE_STATUSES = [
   RIDE_STATUS.REQUESTED,
   RIDE_STATUS.ACCEPTED,

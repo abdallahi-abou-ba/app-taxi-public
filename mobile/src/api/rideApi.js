@@ -80,7 +80,7 @@ export function getRideStats() {
   return api.get('/api/rides/stats');
 }
 
-export function estimateRide({ pickupLat, pickupLng, destinationLat, destinationLng }) {
-  const query = new URLSearchParams({ pickupLat, pickupLng, destinationLat, destinationLng }).toString();
+export function estimateRide({ pickupLat, pickupLng, destinationLat, destinationLng, stops = [] }) {
+  const query = new URLSearchParams({ pickupLat, pickupLng, destinationLat, destinationLng, stops: JSON.stringify(stops) }).toString();
   return api.get(`/api/rides/estimate?${query}`);
 }

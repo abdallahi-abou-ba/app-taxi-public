@@ -83,13 +83,19 @@ function buildHtml(initialRegion, isArabic) {
           iconAnchor: [17, 17],
         });
       }
-      var color = id === 'destination' ? '#FFC629' : '#1C1C1E';
+      var isStop = id.indexOf('stop-') === 0;
+      var color = id === 'destination' ? '#FFC629' : (isStop ? '#3478F6' : '#1C1C1E');
+      var stopNumber = isStop ? (parseInt(id.slice(5), 10) + 1) : null;
+      var innerDot = stopNumber
+        ? '<div style="position:absolute;left:8px;top:7px;width:14px;height:14px;border-radius:50%;background:#fff;' +
+          'display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:' + color + ';">' + stopNumber + '</div>'
+        : '<div style="position:absolute;left:10px;top:10px;width:10px;height:10px;border-radius:50%;background:#fff;"></div>';
       return L.divIcon({
         className: '',
         html: '<div style="position:relative;width:30px;height:40px;">' +
           '<div style="position:absolute;left:1px;top:1px;width:28px;height:28px;border-radius:50% 50% 50% 0;' +
           'background:' + color + ';transform:rotate(-45deg);box-shadow:0 3px 6px rgba(0,0,0,0.35);border:2px solid #fff;"></div>' +
-          '<div style="position:absolute;left:10px;top:10px;width:10px;height:10px;border-radius:50%;background:#fff;"></div></div>',
+          innerDot + '</div>',
         iconSize: [30, 40],
         iconAnchor: [15, 40],
       });

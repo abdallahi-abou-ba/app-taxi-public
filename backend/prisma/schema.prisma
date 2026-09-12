@@ -707,6 +707,14 @@ model Ride {
   // was requested (distance/duration then fall back to a straight-line estimate).
   routeGeometry Json?
 
+  // Ordered intermediate stops between pickup and destination, capped at
+  // MAX_STOPS (ride.validators.js). Each element is { lat, lng, address,
+  // addressAr } - address/addressAr start null and are backfilled by the same
+  // background pass that fills in pickupAddressAr/destinationAddressAr (see
+  // ride.service.js#doEnrichRideAddressesInArabic). No separate child table -
+  // order is just array position, mirroring routeGeometry's shape above.
+  stops Json?
+
   // Set only for a booked-ahead ride (status starts at SCHEDULED). Null for
   // an immediate request. The scheduling job (src/jobs/scheduling.job.js)
   // flips SCHEDULED -> REQUESTED (and resets requestedAt to that moment) once

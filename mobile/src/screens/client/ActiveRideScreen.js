@@ -143,6 +143,12 @@ export default function ActiveRideScreen({ route, navigation }) {
 
   const markers = [
     { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: t('map.pickup') },
+    ...(ride.stops || []).map((stop, i) => ({
+      id: `stop-${i}`,
+      latitude: stop.lat,
+      longitude: stop.lng,
+      label: t('client.stopLabel', { n: i + 1 }),
+    })),
     { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: t('map.destination') },
     ...(driverLocation ? [{ id: 'driver', latitude: driverLocation.latitude, longitude: driverLocation.longitude, label: t('map.driver') }] : []),
   ];

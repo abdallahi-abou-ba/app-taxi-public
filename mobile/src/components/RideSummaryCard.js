@@ -18,6 +18,15 @@ export default function RideSummaryCard({ ride, viewerRole }) {
   const isArabic = i18n.language === 'ar';
   const pickupAddress = (isArabic && ride.pickupAddressAr) || ride.pickupAddress;
   const destinationAddress = (isArabic && ride.destinationAddressAr) || ride.destinationAddress;
+  const stops = ride.stops || [];
+  const routePoints = [
+    { key: 'pickup', label: pickupAddress || `${ride.pickupLat.toFixed(4)}, ${ride.pickupLng.toFixed(4)}` },
+    ...stops.map((s, i) => ({
+      key: `stop-${i}`,
+      label: ((isArabic && s.addressAr) || s.address) || `${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}`,
+    })),
+    { key: 'destination', label: destinationAddress || `${ride.destinationLat.toFixed(4)}, ${ride.destinationLng.toFixed(4)}` },
+  ];
 
   return (
     <View style={styles.card}>
@@ -38,19 +47,17 @@ export default function RideSummaryCard({ ride, viewerRole }) {
       ) : null}
 
       <View style={styles.routeBlock}>
-        <View style={styles.routeLine}>
-          <View style={styles.dotPickup} />
-          <View style={styles.connector} />
-          <View style={styles.dotDestination} />
-        </View>
-        <View style={styles.routeAddresses}>
-          <Text style={styles.address} numberOfLines={1}>
-            {pickupAddress || `${ride.pickupLat.toFixed(4)}, ${ride.pickupLng.toFixed(4)}`}
-          </Text>
-          <Text style={styles.address} numberOfLines={1}>
-            {destinationAddress || `${ride.destinationLat.toFixed(4)}, ${ride.destinationLng.toFixed(4)}`}
-          </Text>
-        </View>
+        {routePoints.map((point, i) => (
+          <View key={point.key} style={styles.routePointRow}>
+            <View style={styles.routeDotColumn}>
+              <View style={i === 0 ? styles.dotPickup : i === routePoints.length - 1 ? styles.dotDestination : styles.dotStop} />
+              {i < routePoints.length - 1 ? <View style={styles.connector} /> : null}
+            </View>
+            <Text style={[styles.address, i === routePoints.length - 1 && styles.addressLast]} numberOfLines={1}>
+              {point.label}
+            </Text>
+          </View>
+        ))}
       </View>
 
       <View style={styles.row}>
@@ -113,10 +120,13 @@ const createStyles = (colors) => StyleSheet.create({
     marginTop: 1,
   },
   routeBlock: {
+    gap: 2,
+  },
+  routePointRow: {
     flexDirection: 'row',
     gap: spacing.md,
   },
-  routeLine: {
+  routeDotColumn: {
     alignItems: 'center',
     width: 12,
     paddingTop: 4,
@@ -127,10 +137,15 @@ const createStyles = (colors) => StyleSheet.create({
     borderRadius: 5,
     backgroundColor: colors.charcoal,
   },
+  dotStop: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.info,
+  },
   connector: {
     width: 2,
-    flex: 1,
-    minHeight: 14,
+    height: 16,
     backgroundColor: colors.border,
     marginVertical: 3,
   },
@@ -140,15 +155,15 @@ const createStyles = (colors) => StyleSheet.create({
     borderRadius: 3,
     backgroundColor: colors.primary,
   },
-  routeAddresses: {
-    flex: 1,
-    justifyContent: 'space-between',
-    gap: 14,
-  },
   address: {
+    flex: 1,
     fontSize: 14,
     color: colors.textPrimary,
     fontWeight: '500',
+    paddingBottom: 10,
+  },
+  addressLast: {
+    paddingBottom: 0,
   },
   row: {
     flexDirection: 'row',

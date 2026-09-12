@@ -89,9 +89,23 @@ const BOOKED_STATUSES = [...ACTIVE_STATUSES, 'SCHEDULED'];
 // (e.g. a future client-supplied value), and never blocks ride creation on
 // failure - see geocode.util.js's null-on-failure contract (which also
 // internally paces these two calls to respect Nominatim's rate limit).
-async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, existingPickupAddress, existingDestinationAddress) {
+// Stops are never geocoded here (only pickup/destination are, synchronously) -
+// with Nominatim's ~1.1s inter-call throttle, geocoding up to MAX_STOPS more
+// points would add several seconds to ride creation. Stop addresses are
+// instead backfilled by the same fire-and-forget pass that already handles
+// the Arabic pickup/destination addresses - see doEnrichRideAddressesInArabic.
+async function computeRouteAndFare(
+  pickupLat,
+  pickupLng,
+  destinationLat,
+  destinationLng,
+  existingPickupAddress,
+  existingDestinationAddress,
+  stops = []
+) {
+  const points = [{ lat: pickupLat, lng: pickupLng }, ...stops, { lat: destinationLat, lng: destinationLng }];
   const [route, pickupAddress, destinationAddress] = await Promise.all([
-    getRoute(pickupLat, pickupLng, destinationLat, destinationLng),
+    getRoute(points),
     existingPickupAddress ? Promise.resolve(existingPickupAddress) : reverseGeocode(pickupLat, pickupLng),
     existingDestinationAddress ? Promise.resolve(existingDestinationAddress) : reverseGeocode(destinationLat, destinationLng),
   ]);
@@ -105,6 +119,7 @@ async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destina
     routeGeometry: route ? route.geometry : undefined,
     pickupAddress: pickupAddress || undefined,
     destinationAddress: destinationAddress || undefined,
+    ...(stops.length > 0 && { stops: stops.map((s) => ({ lat: s.lat, lng: s.lng, address: null, addressAr: null })) }),
   };
 }
 
@@ -116,17 +131,31 @@ async function computeRouteAndFare(pickupLat, pickupLng, destinationLat, destina
 // contract as reverseGeocode itself). Callers below don't await this - on
 // Vercel the function can freeze right after the response is sent, so the
 // work is registered with waitUntil() here rather than at every call site.
+//
+// Also backfills stop addresses (both French and Arabic) - stops skip
+// synchronous geocoding entirely in computeRouteAndFare, so this pass is the
+// only place they ever get an address at all.
 function enrichRideAddressesInArabic(ride) {
   return safeWaitUntil(doEnrichRideAddressesInArabic(ride));
 }
 
 async function doEnrichRideAddressesInArabic(ride) {
   try {
-    const [pickupAddressAr, destinationAddressAr] = await Promise.all([
+    const [pickupAddressAr, destinationAddressAr, enrichedStops] = await Promise.all([
       reverseGeocode(ride.pickupLat, ride.pickupLng, 'ar'),
       reverseGeocode(ride.destinationLat, ride.destinationLng, 'ar'),
+      Promise.all(
+        (ride.stops || []).map(async (stop) => {
+          const [address, addressAr] = await Promise.all([
+            reverseGeocode(stop.lat, stop.lng, 'fr'),
+            reverseGeocode(stop.lat, stop.lng, 'ar'),
+          ]);
+          return { ...stop, address: address || stop.address, addressAr: addressAr || stop.addressAr };
+        })
+      ),
     ]);
-    if (!pickupAddressAr && !destinationAddressAr) return;
+    const stopsChanged = (ride.stops || []).length > 0;
+    if (!pickupAddressAr && !destinationAddressAr && !stopsChanged) return;
 
     // updateMany (not update) so a since-deleted/cancelled-and-purged ride
     // doesn't throw here.
@@ -135,6 +164,7 @@ async function doEnrichRideAddressesInArabic(ride) {
       data: {
         ...(pickupAddressAr && { pickupAddressAr }),
         ...(destinationAddressAr && { destinationAddressAr }),
+        ...(stopsChanged && { stops: enrichedStops }),
       },
     });
     if (count === 0) return;
@@ -205,8 +235,8 @@ async function requestRide(clientId, input) {
     throw new AppError('You already have an active ride', 409, 'CONFLICT');
   }
 
-  const { pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress } = input;
-  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress);
+  const { pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress, stops } = input;
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress, stops);
 
   const ride = await prisma.ride.create({
     data: { clientId, ...input, ...routeData },
@@ -224,14 +254,14 @@ async function scheduleRide(clientId, input) {
     throw new AppError('You already have an active ride', 409, 'CONFLICT');
   }
 
-  const { pickupLat, pickupLng, destinationLat, destinationLng, scheduledFor, pickupAddress, destinationAddress } = input;
+  const { pickupLat, pickupLng, destinationLat, destinationLng, scheduledFor, pickupAddress, destinationAddress, stops } = input;
   const scheduledDate = new Date(scheduledFor);
   const minLeadMs = env.SCHEDULED_RIDE_MIN_LEAD_MIN * 60 * 1000;
   if (scheduledDate.getTime() < Date.now() + minLeadMs) {
     throw new AppError(`Scheduled rides must be booked at least ${env.SCHEDULED_RIDE_MIN_LEAD_MIN} minutes in advance`, 422, 'VALIDATION_ERROR');
   }
 
-  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress);
+  const routeData = await computeRouteAndFare(pickupLat, pickupLng, destinationLat, destinationLng, pickupAddress, destinationAddress, stops);
 
   const ride = await prisma.ride.create({
     data: { clientId, ...input, scheduledFor: scheduledDate, status: 'SCHEDULED', ...routeData },

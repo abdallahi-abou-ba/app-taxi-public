@@ -103,12 +103,15 @@ const createShareLink = asyncHandler(async (req, res) => {
 });
 
 const estimateRide = asyncHandler(async (req, res) => {
-  const { pickupLat, pickupLng, destinationLat, destinationLng } = req.query;
+  const { pickupLat, pickupLng, destinationLat, destinationLng, stops } = req.query;
   const { distanceKm, durationMin, estimatedFare } = await rideService.computeRouteAndFare(
     pickupLat,
     pickupLng,
     destinationLat,
-    destinationLng
+    destinationLng,
+    undefined,
+    undefined,
+    stops
   );
   sendSuccess(res, { data: { distanceKm, durationMin, estimatedFare } });
 });

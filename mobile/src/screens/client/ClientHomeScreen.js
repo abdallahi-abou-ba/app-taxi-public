@@ -14,7 +14,7 @@ import LoadingOverlay from '../../components/LoadingOverlay';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
-import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
+import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS, MAX_STOPS } from '../../config/constants';
 import { radius, shadow, spacing } from '../../theme/theme';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -37,6 +37,8 @@ export default function ClientHomeScreen({ navigation }) {
 
   const [pickup, setPickup] = useState(null);
   const [destination, setDestination] = useState(null);
+  const [stops, setStops] = useState([]);
+  const [addingStop, setAddingStop] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHOD.CASH);
   const [bookingMode, setBookingMode] = useState(BOOKING_MODE.NOW);
   const [scheduledDate, setScheduledDate] = useState(null);
@@ -85,6 +87,7 @@ export default function ClientHomeScreen({ navigation }) {
           pickupLng: pickup.longitude,
           destinationLat: destination.latitude,
           destinationLng: destination.longitude,
+          stops: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
         });
         setEstimate(result);
       } catch (err) {
@@ -93,7 +96,7 @@ export default function ClientHomeScreen({ navigation }) {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [pickup, destination]);
+  }, [pickup, destination, stops]);
 
   // Resume an in-flight ride if one exists (e.g. the app was restarted mid-ride).
   useEffect(() => {
@@ -116,6 +119,7 @@ export default function ClientHomeScreen({ navigation }) {
         destinationLat: destination.latitude,
         destinationLng: destination.longitude,
         paymentMethod,
+        stops: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
       });
       navigation.replace('WaitingForDriver', { rideId: ride.id, ride });
     } catch (err) {
@@ -136,6 +140,7 @@ export default function ClientHomeScreen({ navigation }) {
         destinationLng: destination.longitude,
         paymentMethod,
         scheduledFor: scheduledDate.toISOString(),
+        stops: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
       });
       navigation.navigate('ScheduledRides');
     } catch (err) {
@@ -205,6 +210,13 @@ export default function ClientHomeScreen({ navigation }) {
   const initialRegion = pickup ? { ...pickup, zoom: 15 } : MAP_DEFAULTS;
   const markers = [
     ...(pickup ? [{ id: 'pickup', latitude: pickup.latitude, longitude: pickup.longitude, label: t('map.pickup'), draggable: true }] : []),
+    ...stops.map((stop, i) => ({
+      id: `stop-${i}`,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      label: t('client.stopLabel', { n: i + 1 }),
+      draggable: true,
+    })),
     ...(destination
       ? [{ id: 'destination', latitude: destination.latitude, longitude: destination.longitude, label: t('map.destination'), draggable: true }]
       : []),
@@ -225,9 +237,12 @@ export default function ClientHomeScreen({ navigation }) {
         initialRegion={initialRegion}
         markers={markers}
         onMapPress={(lat, lng) => {
-          // No GPS pickup yet (permission denied, no fix, ...)? First tap sets
-          // pickup manually instead of leaving the user stuck with a disabled button.
-          if (!pickup) {
+          if (addingStop) {
+            setStops((prev) => [...prev, { latitude: lat, longitude: lng }]);
+            setAddingStop(false);
+            // No GPS pickup yet (permission denied, no fix, ...)? First tap sets
+            // pickup manually instead of leaving the user stuck with a disabled button.
+          } else if (!pickup) {
             setPickup({ latitude: lat, longitude: lng });
           } else {
             setDestination({ latitude: lat, longitude: lng });
@@ -236,6 +251,10 @@ export default function ClientHomeScreen({ navigation }) {
         onMarkerDragEnd={(id, lat, lng) => {
           if (id === 'pickup') setPickup({ latitude: lat, longitude: lng });
           if (id === 'destination') setDestination({ latitude: lat, longitude: lng });
+          if (id.startsWith('stop-')) {
+            const index = Number(id.slice(5));
+            setStops((prev) => prev.map((s, i) => (i === index ? { latitude: lat, longitude: lng } : s)));
+          }
         }}
       />
 
@@ -245,9 +264,26 @@ export default function ClientHomeScreen({ navigation }) {
         {locationLoading && !pickup ? <Text style={styles.hint}>{t('client.gettingLocation')}</Text> : null}
         {locationError && !pickup ? <Text style={styles.hint}>{t('client.locationError', { error: locationError })}</Text> : null}
         {pickup && !destination ? <Text style={styles.hint}>{t('client.tapDestination')}</Text> : null}
-        {pickup && destination ? <Text style={styles.hint}>{t('client.dragToFineTune')}</Text> : null}
+        {addingStop ? <Text style={styles.hint}>{t('client.tapToPlaceStop')}</Text> : null}
+        {!addingStop && pickup && destination ? <Text style={styles.hint}>{t('client.dragToFineTune')}</Text> : null}
         {pickup && destination ? (
           <>
+            <View style={styles.stopsRow}>
+              {stops.map((stop, i) => (
+                <View key={i} style={styles.stopChip}>
+                  <Text style={styles.stopChipText}>{t('client.stopLabel', { n: i + 1 })}</Text>
+                  <Pressable onPress={() => setStops((prev) => prev.filter((_, idx) => idx !== i))} hitSlop={8}>
+                    <Ionicons name="close-circle" size={16} color={colors.textSecondary} />
+                  </Pressable>
+                </View>
+              ))}
+              {stops.length < MAX_STOPS ? (
+                <Pressable onPress={() => setAddingStop(true)} style={styles.addStopChip}>
+                  <Ionicons name="add" size={14} color={colors.textSecondary} />
+                  <Text style={styles.addStopText}>{t('client.addStop')}</Text>
+                </Pressable>
+              ) : null}
+            </View>
             {estimate ? (
               <View style={styles.estimateRow}>
                 <View style={styles.estimateChip}>
@@ -356,6 +392,39 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  stopsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  stopChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.infoSoft,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+  },
+  stopChipText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: colors.info,
+  },
+  addStopChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+  },
+  addStopText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   estimateRow: {
     flexDirection: 'row',

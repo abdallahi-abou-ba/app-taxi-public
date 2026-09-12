@@ -153,6 +153,12 @@ export default function DriverActiveRideScreen({ route, navigation }) {
 
   const markers = [
     { id: 'pickup', latitude: ride.pickupLat, longitude: ride.pickupLng, label: t('map.pickup') },
+    ...(ride.stops || []).map((stop, i) => ({
+      id: `stop-${i}`,
+      latitude: stop.lat,
+      longitude: stop.lng,
+      label: t('client.stopLabel', { n: i + 1 }),
+    })),
     { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: t('map.destination') },
   ];
 

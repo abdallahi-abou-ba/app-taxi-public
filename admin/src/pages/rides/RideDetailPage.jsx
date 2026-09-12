@@ -65,6 +65,16 @@ export default function RideDetailPage() {
             <strong>Destination</strong>
             <div className="hint">{ride.destinationAddress || `${ride.destinationLat}, ${ride.destinationLng}`}</div>
           </div>
+          {ride.stops?.length > 0 && (
+            <div>
+              <strong>Arrêts</strong>
+              {ride.stops.map((stop, i) => (
+                <div className="hint" key={i}>
+                  {i + 1}. {stop.address || `${stop.lat}, ${stop.lng}`}
+                </div>
+              ))}
+            </div>
+          )}
           <div>
             <strong>Distance</strong>
             <div className="hint">{ride.distanceKm ? `${ride.distanceKm.toFixed(1)} km` : '—'}</div>

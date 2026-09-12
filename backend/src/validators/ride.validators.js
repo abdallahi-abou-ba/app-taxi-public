@@ -7,6 +7,16 @@ const { SUPPORTED_MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util'
 // COMPANY were never client-selectable inputs to begin with.
 const REQUESTABLE_PAYMENT_METHODS = ['CASH', ...SUPPORTED_MOBILE_MONEY_METHODS];
 
+// Kept small deliberately - each stop costs an extra OSRM waypoint and,
+// later, two more Nominatim reverse-geocode calls in the background
+// enrichment pass (see ride.service.js#doEnrichRideAddressesInArabic).
+const MAX_STOPS = 3;
+
+const stopSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
+
 const requestRideSchema = z.object({
   pickupLat: z.number().min(-90).max(90),
   pickupLng: z.number().min(-180).max(180),
@@ -15,6 +25,7 @@ const requestRideSchema = z.object({
   destinationLng: z.number().min(-180).max(180),
   destinationAddress: z.string().trim().min(1).optional(),
   paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
+  stops: z.array(stopSchema).max(MAX_STOPS).optional(),
 });
 
 const scheduleRideSchema = z.object({
@@ -26,6 +37,7 @@ const scheduleRideSchema = z.object({
   destinationAddress: z.string().trim().min(1).optional(),
   paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
   scheduledFor: z.string().datetime({ message: 'scheduledFor must be an ISO 8601 datetime' }),
+  stops: z.array(stopSchema).max(MAX_STOPS).optional(),
 });
 
 const cancelRideSchema = z.object({
@@ -43,11 +55,32 @@ const rideIdParamSchema = z.object({
 
 // Query params always arrive as strings, so coerce to number before the
 // same lat/lng bounds used at request time.
+// stops arrives as a JSON-encoded string, like every other query param -
+// parsed and validated against the same shape the body schemas use.
 const estimateRideSchema = z.object({
   pickupLat: z.coerce.number().min(-90).max(90),
   pickupLng: z.coerce.number().min(-180).max(180),
   destinationLat: z.coerce.number().min(-90).max(90),
   destinationLng: z.coerce.number().min(-180).max(180),
+  stops: z
+    .string()
+    .optional()
+    .transform((val, ctx) => {
+      if (!val) return undefined;
+      let parsed;
+      try {
+        parsed = JSON.parse(val);
+      } catch {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'stops must be a JSON-encoded array' });
+        return z.NEVER;
+      }
+      const result = z.array(stopSchema).max(MAX_STOPS).safeParse(parsed);
+      if (!result.success) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid stops' });
+        return z.NEVER;
+      }
+      return result.data;
+    }),
 });
 
 // successUrl/cancelUrl come from the mobile client (see rideApi.js) since only
