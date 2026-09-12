@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,15 +8,18 @@ import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { isValidEmail } from '../../utils/validators';
-import { colors, spacing } from '../../theme/theme';
+import { spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function LoginScreen({ navigation }) {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const emailInvalid = email.trim().length > 0 && !isValidEmail(email);
   const canSubmit = isValidEmail(email) && password.length > 0 && !loading;
@@ -71,7 +74,7 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,

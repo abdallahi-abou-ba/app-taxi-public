@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Linking, Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,10 +10,13 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { getTopUpInfo, getMyTopUps, createTopUp } from '../../api/walletApi';
 import { PAYMENT_METHOD, PAYMENT_APP_STORE_IDS } from '../../config/constants';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function RechargeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [info, setInfo] = useState(null);
   const [topUps, setTopUps] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -170,6 +173,8 @@ export default function RechargeScreen({ navigation }) {
 }
 
 function StatusPill({ status, t }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const style =
     status === 'CONFIRMED' ? [styles.pill, styles.pillConfirmed] : status === 'CANCELLED' ? [styles.pill, styles.pillCancelled] : [styles.pill, styles.pillPending];
   const textStyle =
@@ -181,7 +186,7 @@ function StatusPill({ status, t }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   centered: {
     flex: 1,
     alignItems: 'center',

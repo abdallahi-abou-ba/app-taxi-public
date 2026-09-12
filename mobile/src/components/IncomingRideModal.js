@@ -1,13 +1,17 @@
+import { useMemo } from 'react';
 import { Modal, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import RideSummaryCard from './RideSummaryCard';
 import PrimaryButton from './PrimaryButton';
 import { ROLE } from '../config/constants';
-import { colors, radius, shadow, spacing } from '../theme/theme';
+import { radius, shadow, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function IncomingRideModal({ ride, loading, onAccept, onDecline }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <Modal visible={!!ride} transparent animationType="slide">
@@ -31,7 +35,7 @@ export default function IncomingRideModal({ ride, loading, onAccept, onDecline }
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(28,28,30,0.55)',

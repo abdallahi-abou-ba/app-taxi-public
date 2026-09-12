@@ -11,6 +11,9 @@
     "referral": "Parrainage",
     "call": "Appeler",
     "chat": "Discussion",
+    "shareTrip": "Partager le trajet",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair",
     "client": "Client",
     "driver": "Capitaine",
     "documents": "Documents",
@@ -242,6 +245,10 @@
     "referralCount": "Amis parrainés",
     "howItWorks": "Ton ami gagne un crédit après sa première course terminée, et toi aussi.",
     "loadError": "Impossible de charger vos informations de parrainage"
+  },
+  "shareTrip": {
+    "message": "Suis mon trajet en direct : {{url}}",
+    "error": "Impossible de créer le lien de partage"
   },
   "rideSummary": {
     "from": "Départ : {{address}}",

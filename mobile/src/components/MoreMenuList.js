@@ -1,8 +1,13 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, shadow, spacing } from '../theme/theme';
+import { radius, shadow, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function MoreMenuList({ items }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.list}>
       {items.map((item) => (
@@ -11,14 +16,16 @@ export default function MoreMenuList({ items }) {
             <Ionicons name={item.icon} size={20} color={colors.charcoal} />
           </View>
           <Text style={styles.label}>{item.label}</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          {item.showChevron === false ? null : (
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          )}
         </Pressable>
       ))}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   list: {
     padding: spacing.lg,
     gap: spacing.sm,

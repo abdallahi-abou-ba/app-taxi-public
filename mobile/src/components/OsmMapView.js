@@ -1,11 +1,12 @@
-import { forwardRef, useImperativeHandle, useRef, useEffect } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { MAP_DEFAULTS } from '../config/constants';
 import { LANDMARKS } from '../config/landmarks';
-import { colors, shadow } from '../theme/theme';
+import { shadow } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // Material "directions_car" glyph, reused for both the driver marker and the recenter button.
 const CAR_SVG_PATH =
@@ -165,6 +166,8 @@ function buildHtml(initialRegion, isArabic) {
 
 const OsmMapView = forwardRef(function OsmMapView({ initialRegion, markers = [], polyline = [], onMapPress, onMarkerDragEnd, style }, ref) {
   const { i18n } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const webviewRef = useRef(null);
   const htmlRef = useRef(buildHtml(initialRegion, i18n.language === 'ar'));
   const readyRef = useRef(false);
@@ -246,7 +249,7 @@ const OsmMapView = forwardRef(function OsmMapView({ initialRegion, markers = [],
 
 export default OsmMapView;
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
   },

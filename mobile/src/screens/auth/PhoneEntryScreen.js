@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,15 +7,18 @@ import { useAuth } from '../../context/AuthContext';
 import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
-import { colors, spacing } from '../../theme/theme';
+import { spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function PhoneEntryScreen({ navigation }) {
   const { t } = useTranslation();
   const { loginByPhone } = useAuth();
+  const { colors } = useTheme();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const canSubmit = phone.trim().length >= 8 && password.length > 0 && !loading;
 
@@ -71,7 +74,7 @@ export default function PhoneEntryScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,

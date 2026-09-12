@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,8 @@ import QuickActionsGrid from '../../components/QuickActionsGrid';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS } from '../../config/constants';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const BOOKING_MODE = { NOW: 'now', LATER: 'later' };
 
@@ -29,6 +30,8 @@ const PAYMENT_ICONS = {
 export default function ClientHomeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const { logout } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { activeRide, loading: activeRideLoading, error: activeRideError } = useActiveRide();
   const { location, error: locationError, loading: locationLoading } = useCurrentLocation();
 
@@ -324,7 +327,7 @@ export default function ClientHomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -11,12 +11,13 @@ import DashboardScreen from '../screens/common/DashboardScreen';
 import ScheduledRidesScreen from '../screens/client/ScheduledRidesScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
 import ChatScreen from '../screens/common/ChatScreen';
-import { colors } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function ClientNavigator() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   return (
     <Stack.Navigator

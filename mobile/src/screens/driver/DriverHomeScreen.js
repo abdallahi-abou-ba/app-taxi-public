@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,12 +18,15 @@ import LoadingOverlay from '../../components/LoadingOverlay';
 import IncomingRideModal from '../../components/IncomingRideModal';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
 import { MAP_DEFAULTS } from '../../config/constants';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function DriverHomeScreen({ navigation }) {
   const { t, i18n } = useTranslation();
   const { user, logout, updateUser } = useAuth();
   const socket = useSocket();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { isAvailable, setIsAvailable, setHasActiveRide } = useDriverLocationStatus();
   const { activeRide, loading: activeRideLoading } = useActiveRide();
   const { location } = useCurrentLocation();
@@ -216,7 +219,7 @@ export default function DriverHomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Text, ScrollView, View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Linking from 'expo-linking';
@@ -13,11 +13,14 @@ import { rateRide, markRidePaid, getRide, createCheckoutSession, declareRidePaid
 import { formatDateTime } from '../../utils/formatters';
 import { callPhone } from '../../utils/call.util';
 import { RIDE_STATUS, ROLE } from '../../config/constants';
-import { colors, spacing } from '../../theme/theme';
+import { spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function RideDetailScreen({ route, navigation }) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [ride, setRide] = useState(route.params.ride);
   const counterpart = user.role === ROLE.DRIVER ? ride.client : ride.driver;
 
@@ -103,7 +106,7 @@ export default function RideDetailScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: spacing.lg,

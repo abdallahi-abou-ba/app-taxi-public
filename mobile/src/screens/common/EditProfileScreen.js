@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Image, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,10 +11,13 @@ import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { LANGUAGES, setLanguage, restartApp } from '../../i18n/languageManager';
-import { colors, radius, spacing } from '../../theme/theme';
+import { radius, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function EditProfileScreen({ navigation }) {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { user, updateUser, logout, getAccessToken } = useAuth();
   const [fullName, setFullName] = useState(user.fullName);
   const [error, setError] = useState(null);
@@ -385,7 +388,7 @@ export default function EditProfileScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,

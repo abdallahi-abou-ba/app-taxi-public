@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,8 @@ import { navigate as navigateForNotification } from '../../hooks/useNotification
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import { formatDateTime } from '../../utils/formatters';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 function iconForType(type) {
   if (type === 'driver:approval') return 'shield-checkmark-outline';
@@ -23,6 +24,8 @@ function iconForType(type) {
 export default function NotificationsScreen() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [notifications, setNotifications] = useState(null);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -89,7 +92,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

@@ -1,7 +1,11 @@
+import { useMemo } from 'react';
 import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { colors, radius } from '../theme/theme';
+import { radius } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function PrimaryButton({ title, onPress, disabled, loading, variant = 'primary', style }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isDisabled = disabled || loading;
   const spinnerColor = variant === 'primary' ? colors.charcoal : variant === 'danger' ? colors.surface : colors.textPrimary;
 
@@ -29,7 +33,7 @@ export default function PrimaryButton({ title, onPress, disabled, loading, varia
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   base: {
     backgroundColor: colors.primary,
     borderRadius: radius.pill,

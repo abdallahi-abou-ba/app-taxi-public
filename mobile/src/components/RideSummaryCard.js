@@ -1,12 +1,16 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { formatDistance, formatDuration, formatFare, formatPaymentMethod, getAmountDue } from '../utils/formatters';
 import { ROLE } from '../config/constants';
-import { colors, radius, shadow, spacing } from '../theme/theme';
+import { radius, shadow, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function RideSummaryCard({ ride, viewerRole }) {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const counterpart = viewerRole === ROLE.DRIVER ? ride.client : ride.driver;
   const counterpartLabel = t(viewerRole === ROLE.DRIVER ? 'common.client' : 'common.driver');
   const hasCredit = ride.creditApplied > 0;
@@ -69,7 +73,7 @@ export default function RideSummaryCard({ ride, viewerRole }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

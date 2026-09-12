@@ -72,6 +72,10 @@ export function hideRideFromHistory(id) {
   return api.delete(`/api/rides/${id}/history`);
 }
 
+export function getShareLink(id) {
+  return api.post(`/api/rides/${id}/share-link`);
+}
+
 export function getRideStats() {
   return api.get('/api/rides/stats');
 }

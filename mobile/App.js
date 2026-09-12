@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { SocketProvider } from './src/context/SocketContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import usePushRegistration from './src/hooks/usePushRegistration';
 import useNotificationTapNavigation from './src/hooks/useNotificationTapNavigation';
 import { navigationRef } from './src/navigation/navigationRef';
@@ -45,9 +46,15 @@ export default function App() {
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' });
   }, []);
 
-  if (!languageReady) {
-    return <SplashScreen />;
-  }
+  return (
+    <ThemeProvider>
+      {languageReady ? <AppContent /> : <SplashScreen />}
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { theme } = useTheme();
 
   return (
     <SafeAreaProvider>
@@ -59,7 +66,7 @@ export default function App() {
           </NavigationContainer>
         </SocketProvider>
       </AuthProvider>
-      <StatusBar style="light" />
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </SafeAreaProvider>
   );
 }

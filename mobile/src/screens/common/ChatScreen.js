@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, FlatList, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
@@ -6,13 +6,16 @@ import { useAuth } from '../../context/AuthContext';
 import { listMessages, sendMessage } from '../../api/messageApi';
 import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
-import { colors, radius, spacing, typography } from '../../theme/theme';
+import { radius, spacing, typography } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ChatScreen({ route }) {
   const { t, i18n } = useTranslation();
   const { rideId } = route.params;
   const { user } = useAuth();
   const socket = useSocket();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [messages, setMessages] = useState(null);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState(null);
@@ -106,7 +109,7 @@ export default function ChatScreen({ route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,

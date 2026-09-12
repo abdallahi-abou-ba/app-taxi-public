@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,8 @@ import ErrorBanner from './ErrorBanner';
 import { ROLE, PAYMENT_METHOD, MOBILE_MONEY_METHODS } from '../config/constants';
 import { formatPaymentMethod, formatFare, getAmountDue } from '../utils/formatters';
 import { callPhone } from '../utils/call.util';
-import { colors, radius, spacing } from '../theme/theme';
+import { radius, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // CASH: the driver still confirms collection in person (onMarkPaid). CARD:
 // the client pays through a Stripe Checkout Session (onPay) - the driver has
@@ -18,6 +19,8 @@ import { colors, radius, spacing } from '../theme/theme';
 // (onConfirmPayment) before isPaid ever flips.
 export default function PaymentStatus({ ride, viewerRole, onMarkPaid, onPay, onDeclarePaid, onConfirmPayment }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -94,6 +97,8 @@ export default function PaymentStatus({ ride, viewerRole, onMarkPaid, onPay, onD
 
 function MobileMoneyPaymentStatus({ ride, isDriver, busy, setBusy, error, setError, onDeclarePaid, onConfirmPayment }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const declared = !!ride.clientMarkedPaidAt;
 
   if (!declared && isDriver) {
@@ -155,7 +160,7 @@ function MobileMoneyPaymentStatus({ ride, isDriver, busy, setBusy, error, setErr
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     gap: spacing.sm,
   },

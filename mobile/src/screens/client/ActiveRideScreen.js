@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useSocket } from '../../context/SocketContext';
-import { getRide, cancelRide, rateRide, createCheckoutSession, declareRidePaid } from '../../api/rideApi';
+import { getRide, cancelRide, rateRide, createCheckoutSession, declareRidePaid, getShareLink } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
 import RideSummaryCard from '../../components/RideSummaryCard';
@@ -13,8 +13,10 @@ import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { callPhone } from '../../utils/call.util';
+import { shareText } from '../../utils/share.util';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const TERMINAL_STATUSES = [RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCELLED];
 
@@ -22,9 +24,12 @@ export default function ActiveRideScreen({ route, navigation }) {
   const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [ride, setRide] = useState(route.params.ride);
   const [driverLocation, setDriverLocation] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [error, setError] = useState(null);
 
   const handleStatus = useCallback((updated) => {
@@ -79,6 +84,19 @@ export default function ActiveRideScreen({ route, navigation }) {
   const handleRate = async (value, comment) => {
     const updated = await rateRide(rideId, value, comment);
     setRide(updated);
+  };
+
+  const handleShare = async () => {
+    setError(null);
+    setSharing(true);
+    try {
+      const { url } = await getShareLink(rideId);
+      shareText(t('shareTrip.message', { url }));
+    } catch (err) {
+      setError(err.message || t('shareTrip.error'));
+    } finally {
+      setSharing(false);
+    }
   };
 
   // The ride is COMPLETED by the time this can be called, so polling has
@@ -157,13 +175,19 @@ export default function ActiveRideScreen({ route, navigation }) {
             style={styles.buttonRowItem}
           />
         </View>
+        <PrimaryButton
+          title={t('common.shareTrip')}
+          variant="secondary"
+          onPress={handleShare}
+          loading={sharing}
+        />
         <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={cancelling} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

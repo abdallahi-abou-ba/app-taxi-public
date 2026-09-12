@@ -1,8 +1,12 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius } from '../theme/theme';
+import { radius } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function QuickActionsGrid({ items }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const basis = `${100 / items.length}%`;
 
   return (
@@ -21,7 +25,7 @@ export default function QuickActionsGrid({ items }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

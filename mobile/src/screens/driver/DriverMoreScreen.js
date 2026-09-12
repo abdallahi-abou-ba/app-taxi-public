@@ -1,10 +1,13 @@
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import MoreMenuList from '../../components/MoreMenuList';
-import { colors } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function DriverMoreScreen({ navigation }) {
   const { t } = useTranslation();
+  const { colors, theme, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const items = [
     { key: 'history', icon: 'time-outline', label: t('common.history'), onPress: () => navigation.navigate('RideHistory') },
@@ -12,6 +15,13 @@ export default function DriverMoreScreen({ navigation }) {
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
     { key: 'notifications', icon: 'notifications-outline', label: t('common.notifications'), onPress: () => navigation.navigate('Notifications') },
     { key: 'recharge', icon: 'card-outline', label: t('common.recharge'), onPress: () => navigation.navigate('Recharge') },
+    {
+      key: 'theme',
+      icon: theme === 'dark' ? 'sunny-outline' : 'moon-outline',
+      label: theme === 'dark' ? t('common.lightMode') : t('common.darkMode'),
+      onPress: toggleTheme,
+      showChevron: false,
+    },
   ];
 
   return (
@@ -21,7 +31,7 @@ export default function DriverMoreScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

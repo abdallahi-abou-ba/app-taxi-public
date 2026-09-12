@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,11 +9,14 @@ import TextField from '../../components/TextField';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { isValidEmail } from '../../utils/validators';
-import { colors, radius, spacing } from '../../theme/theme';
+import { radius, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function RegisterScreen({ navigation }) {
   const { t } = useTranslation();
   const { register } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -131,6 +134,8 @@ export default function RegisterScreen({ navigation }) {
 }
 
 function RolePill({ icon, label, active, onPress }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable onPress={onPress} style={[styles.pill, active && styles.pillActive]}>
       <Ionicons name={icon} size={16} color={active ? colors.onPrimary : colors.textSecondary} />
@@ -139,7 +144,7 @@ function RolePill({ icon, label, active, onPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   flex: {
     flex: 1,
     backgroundColor: colors.background,

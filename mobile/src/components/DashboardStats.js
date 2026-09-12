@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { getRideStats } from '../api/rideApi';
 import { formatFare } from '../utils/formatters';
 import { ROLE } from '../config/constants';
-import { colors, radius, shadow, spacing } from '../theme/theme';
+import { radius, shadow, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function DashboardStats({ role }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function DashboardStats({ role }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: spacing.md,

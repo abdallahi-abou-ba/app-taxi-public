@@ -1,35 +1,74 @@
-export const colors = {
-  primary: '#FFC629',
-  primaryDark: '#E6A800',
-  primarySoft: '#FFF3D1',
+// charcoal/onPrimary/textOnDark* are intentionally identical in both themes -
+// they represent "always dark" or "always light" surfaces (e.g. the taxi
+// brand mark, text sitting on a solid-color button), not theme-relative ones.
+const FIXED = {
   onPrimary: '#1C1C1E',
-
   charcoal: '#1C1C1E',
   charcoalLight: '#2C2C2E',
   charcoalSoft: '#3A3A3D',
-
-  background: '#F7F7F9',
-  surface: '#FFFFFF',
-  surfaceAlt: '#F1F1F4',
-
-  border: '#E7E7EA',
-  divider: '#ECECEF',
-
-  textPrimary: '#1C1C1E',
-  textSecondary: '#6C6C72',
-  textMuted: '#9B9BA1',
   textOnDark: '#FFFFFF',
   textOnDarkMuted: 'rgba(255,255,255,0.68)',
+};
+
+export const lightColors = {
+  ...FIXED,
+  primary: '#fdc700',
+  primaryDark: '#987700',
+  primarySoft: '#fff6d6',
+  secondary: '#00bcff',
+
+  background: '#fafafa',
+  surface: '#ffffff',
+  surfaceAlt: '#f5f5f5',
+
+  border: '#e5e5e5',
+  divider: '#e5e5e5',
+
+  textPrimary: '#0a0a0a',
+  textSecondary: '#737373',
+  textMuted: '#a1a1a1',
 
   success: '#1FA463',
-  successSoft: '#E4F7ED',
-  danger: '#E5484D',
-  dangerSoft: '#FCE8E8',
+  successSoft: '#dbf0e6',
+  danger: '#e7000b',
+  dangerSoft: '#fbd6d8',
   warning: '#F5A623',
-  warningSoft: '#FDF1DC',
-  info: '#3478F6',
-  infoSoft: '#E8F0FE',
+  warningSoft: '#fdf1dc',
+  info: '#00bcff',
+  infoSoft: '#d6f4ff',
 };
+
+export const darkColors = {
+  ...FIXED,
+  primary: '#ffdf20',
+  primaryDark: '#ffe963',
+  primarySoft: '#413b19',
+  secondary: '#74d4ff',
+
+  background: '#0a0a0a',
+  surface: '#171717',
+  surfaceAlt: '#262626',
+
+  border: '#282828',
+  divider: '#282828',
+
+  textPrimary: '#fafafa',
+  textSecondary: '#a1a1a1',
+  textMuted: '#737373',
+
+  success: '#1FA463',
+  successSoft: '#183025',
+  danger: '#ff6467',
+  dangerSoft: '#452627',
+  warning: '#F5A623',
+  warningSoft: '#3f3119',
+  info: '#74d4ff',
+  infoSoft: '#283941',
+};
+
+// Default export kept for any straggler import during the light/dark
+// migration - prefer useTheme().colors from ThemeContext everywhere else.
+export const colors = lightColors;
 
 export const spacing = {
   xs: 4,
@@ -75,7 +114,7 @@ export const shadow = {
     elevation: 10,
   },
   button: {
-    shadowColor: '#FFC629',
+    shadowColor: '#fdc700',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -83,12 +122,17 @@ export const shadow = {
   },
 };
 
-export const STATUS_COLORS = {
-  REQUESTED: { fg: colors.warning, bg: colors.warningSoft },
-  ACCEPTED: { fg: colors.info, bg: colors.infoSoft },
-  ARRIVED: { fg: colors.info, bg: colors.infoSoft },
-  IN_PROGRESS: { fg: colors.success, bg: colors.successSoft },
-  COMPLETED: { fg: colors.textSecondary, bg: colors.surfaceAlt },
-  CANCELLED: { fg: colors.danger, bg: colors.dangerSoft },
-  SCHEDULED: { fg: colors.primaryDark, bg: colors.primarySoft },
-};
+export function getStatusColors(colors) {
+  return {
+    REQUESTED: { fg: colors.warning, bg: colors.warningSoft },
+    ACCEPTED: { fg: colors.info, bg: colors.infoSoft },
+    ARRIVED: { fg: colors.info, bg: colors.infoSoft },
+    IN_PROGRESS: { fg: colors.success, bg: colors.successSoft },
+    COMPLETED: { fg: colors.textSecondary, bg: colors.surfaceAlt },
+    CANCELLED: { fg: colors.danger, bg: colors.dangerSoft },
+    SCHEDULED: { fg: colors.primaryDark, bg: colors.primarySoft },
+  };
+}
+
+// Kept for any straggler import - prefer getStatusColors(useTheme().colors).
+export const STATUS_COLORS = getStatusColors(lightColors);

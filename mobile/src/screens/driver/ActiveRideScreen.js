@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
@@ -12,6 +12,7 @@ import {
   rateRide,
   markRidePaid,
   confirmRidePayment,
+  getShareLink,
 } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
@@ -21,8 +22,10 @@ import PaymentStatus from '../../components/PaymentStatus';
 import PrimaryButton from '../../components/PrimaryButton';
 import ErrorBanner from '../../components/ErrorBanner';
 import { callPhone } from '../../utils/call.util';
+import { shareText } from '../../utils/share.util';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const NEXT_ACTION = {
   [RIDE_STATUS.ACCEPTED]: { labelKey: 'driver.arrived', action: arriveRide },
@@ -34,9 +37,12 @@ export default function DriverActiveRideScreen({ route, navigation }) {
   const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { setHasActiveRide } = useDriverLocationStatus();
   const [ride, setRide] = useState(route.params.ride);
   const [busy, setBusy] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -104,6 +110,19 @@ export default function DriverActiveRideScreen({ route, navigation }) {
     setRide(updated);
   };
 
+  const handleShare = async () => {
+    setError(null);
+    setSharing(true);
+    try {
+      const { url } = await getShareLink(rideId);
+      shareText(t('shareTrip.message', { url }));
+    } catch (err) {
+      setError(err.message || t('shareTrip.error'));
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const handleMarkPaid = async () => {
     const updated = await markRidePaid(rideId);
     setRide(updated);
@@ -167,6 +186,12 @@ export default function DriverActiveRideScreen({ route, navigation }) {
             style={styles.buttonRowItem}
           />
         </View>
+        <PrimaryButton
+          title={t('common.shareTrip')}
+          variant="secondary"
+          onPress={handleShare}
+          loading={sharing}
+        />
         {step ? <PrimaryButton title={t(step.labelKey)} onPress={handleAdvance} loading={busy} /> : null}
         <PrimaryButton title={t('common.cancelRide')} variant="danger" onPress={handleCancel} loading={busy} />
       </View>
@@ -174,7 +199,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

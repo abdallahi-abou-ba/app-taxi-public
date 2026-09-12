@@ -1,15 +1,25 @@
+import { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import MoreMenuList from '../../components/MoreMenuList';
-import { colors } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ClientMoreScreen({ navigation }) {
   const { t } = useTranslation();
+  const { colors, theme, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const items = [
     { key: 'stats', icon: 'stats-chart-outline', label: t('common.stats'), onPress: () => navigation.navigate('Dashboard') },
     { key: 'reservations', icon: 'calendar-outline', label: t('common.reservations'), onPress: () => navigation.navigate('ScheduledRides') },
     { key: 'referral', icon: 'gift-outline', label: t('common.referral'), onPress: () => navigation.navigate('Referral') },
+    {
+      key: 'theme',
+      icon: theme === 'dark' ? 'sunny-outline' : 'moon-outline',
+      label: theme === 'dark' ? t('common.lightMode') : t('common.darkMode'),
+      onPress: toggleTheme,
+      showChevron: false,
+    },
   ];
 
   return (
@@ -19,7 +29,7 @@ export default function ClientMoreScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

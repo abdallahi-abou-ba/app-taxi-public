@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, Pressable, RefreshControl, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -10,11 +10,14 @@ import RideSummaryCard from '../../components/RideSummaryCard';
 import PrimaryButton from '../../components/PrimaryButton';
 import { formatDateTime } from '../../utils/formatters';
 import { ROLE } from '../../config/constants';
-import { colors, spacing } from '../../theme/theme';
+import { spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ScheduledRidesScreen() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [rides, setRides] = useState(null);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -96,7 +99,7 @@ export default function ScheduledRidesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

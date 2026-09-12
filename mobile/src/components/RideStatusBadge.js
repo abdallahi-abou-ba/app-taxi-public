@@ -2,7 +2,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { RIDE_STATUS } from '../config/constants';
-import { STATUS_COLORS, radius } from '../theme/theme';
+import { getStatusColors, radius } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const ICONS = {
   [RIDE_STATUS.SCHEDULED]: 'calendar',
@@ -16,7 +17,9 @@ const ICONS = {
 
 export default function RideStatusBadge({ status }) {
   const { t } = useTranslation();
-  const palette = STATUS_COLORS[status] || STATUS_COLORS.COMPLETED;
+  const { colors } = useTheme();
+  const statusColors = getStatusColors(colors);
+  const palette = statusColors[status] || statusColors.COMPLETED;
 
   return (
     <View style={[styles.badge, { backgroundColor: palette.bg }]}>

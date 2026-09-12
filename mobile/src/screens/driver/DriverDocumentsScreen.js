@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,19 +7,27 @@ import { useTranslation } from 'react-i18next';
 import ErrorBanner from '../../components/ErrorBanner';
 import PrimaryButton from '../../components/PrimaryButton';
 import { getMyDocuments, uploadDocument } from '../../api/userApi';
-import { colors, radius, shadow, spacing, typography } from '../../theme/theme';
+import { radius, shadow, spacing, typography } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const DOCUMENT_TYPES = ['PHOTO', 'ID_CARD', 'LICENSE', 'VEHICLE_PHOTO'];
 
-const TYPE_STYLE = {
-  PHOTO: { icon: 'person-circle-outline', bg: colors.charcoal, fg: colors.textOnDark },
-  ID_CARD: { icon: 'card-outline', bg: colors.primarySoft, fg: colors.primaryDark },
-  LICENSE: { icon: 'document-text-outline', bg: colors.infoSoft, fg: colors.info },
-  VEHICLE_PHOTO: { icon: 'car-outline', bg: colors.successSoft, fg: colors.success },
-};
+// Depends on colors, so it's rebuilt per-theme just like styles - see
+// getTypeStyle(colors) call inside the component.
+function getTypeStyle(colors) {
+  return {
+    PHOTO: { icon: 'person-circle-outline', bg: colors.charcoal, fg: colors.textOnDark },
+    ID_CARD: { icon: 'card-outline', bg: colors.primarySoft, fg: colors.primaryDark },
+    LICENSE: { icon: 'document-text-outline', bg: colors.infoSoft, fg: colors.info },
+    VEHICLE_PHOTO: { icon: 'car-outline', bg: colors.successSoft, fg: colors.success },
+  };
+}
 
 export default function DriverDocumentsScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const TYPE_STYLE = useMemo(() => getTypeStyle(colors), [colors]);
   const [statusByType, setStatusByType] = useState({});
   // Picked but not yet uploaded - only sent to the server once "Envoyer le
   // dossier" is pressed, so a driver can attach all 3 documents before
@@ -261,7 +269,7 @@ export default function DriverDocumentsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   centered: {
     flex: 1,
     alignItems: 'center',

@@ -15,7 +15,7 @@ import SettlementsScreen from '../screens/driver/SettlementsScreen';
 import RechargeScreen from '../screens/driver/RechargeScreen';
 import NotificationsScreen from '../screens/common/NotificationsScreen';
 import ChatScreen from '../screens/common/ChatScreen';
-import { colors } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +29,7 @@ function DriverLocationTracker() {
 
 export default function DriverNavigator() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
 
   return (
     <DriverLocationProvider>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Animated, Easing, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,8 @@ import { getRide, cancelRide } from '../../api/rideApi';
 import RideSummaryCard from '../../components/RideSummaryCard';
 import ErrorBanner from '../../components/ErrorBanner';
 import { RIDE_STATUS, RIDE_POLL_INTERVAL_MS, ROLE } from '../../config/constants';
-import { colors, spacing, shadow } from '../../theme/theme';
+import { spacing, shadow } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const STEP_INTERVAL_MS = 3200;
 
@@ -15,6 +16,8 @@ export default function WaitingForDriverScreen({ route, navigation }) {
   const { t } = useTranslation();
   const { rideId } = route.params;
   const socket = useSocket();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [ride, setRide] = useState(route.params.ride);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState(null);
@@ -139,7 +142,7 @@ export default function WaitingForDriverScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,

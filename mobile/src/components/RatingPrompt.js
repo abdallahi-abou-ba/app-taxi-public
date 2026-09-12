@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -6,10 +6,13 @@ import TextField from './TextField';
 import PrimaryButton from './PrimaryButton';
 import ErrorBanner from './ErrorBanner';
 import { ROLE } from '../config/constants';
-import { colors, radius, shadow, spacing } from '../theme/theme';
+import { radius, shadow, spacing } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
   const { t } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -68,7 +71,7 @@ export default function RatingPrompt({ ride, viewerRole, onSubmit }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,

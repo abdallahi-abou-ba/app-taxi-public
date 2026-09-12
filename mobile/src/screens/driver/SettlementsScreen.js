@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,8 @@ import PaymentMethodIcon from '../../components/PaymentMethodIcon';
 import { getMySettlements, declareSettlementPaid } from '../../api/userApi';
 import { formatFare, formatDateTime, formatPaymentMethod } from '../../utils/formatters';
 import { SUPPORTED_MOBILE_MONEY_METHODS } from '../../config/constants';
-import { colors, radius, shadow, spacing } from '../../theme/theme';
+import { radius, shadow, spacing } from '../../theme/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const PAYMENT_ICONS = {
   BANKILY: 'phone-portrait-outline',
@@ -19,6 +20,8 @@ const PAYMENT_ICONS = {
 
 export default function SettlementsScreen() {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [settlements, setSettlements] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -68,6 +71,8 @@ export default function SettlementsScreen() {
 }
 
 function SettlementCard({ settlement, t, i18n, onChanged }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [method, setMethod] = useState(null);
   const [busy, setBusy] = useState(false);
   const [cardError, setCardError] = useState(null);
@@ -149,6 +154,8 @@ function SettlementCard({ settlement, t, i18n, onChanged }) {
 }
 
 function StatusPill({ status, t }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const style =
     status === 'PAID' ? [styles.pill, styles.pillPaid] : status === 'CANCELLED' ? [styles.pill, styles.pillCancelled] : [styles.pill, styles.pillPending];
   const textStyle =
@@ -160,7 +167,7 @@ function StatusPill({ status, t }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   centered: {
     flex: 1,
     alignItems: 'center',
