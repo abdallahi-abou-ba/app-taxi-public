@@ -6,6 +6,10 @@ const env = require('./config/env');
 const logger = require('./config/logger');
 const routes = require('./routes');
 const paymentController = require('./controllers/payment.controller');
+const trackController = require('./controllers/track.controller');
+const validate = require('./middleware/validate.middleware');
+const { trackTokenParamSchema } = require('./validators/track.validators');
+const { shareViewRateLimiter } = require('./middleware/rateLimit.middleware');
 const notFoundMiddleware = require('./middleware/notFound.middleware');
 const errorMiddleware = require('./middleware/error.middleware');
 
@@ -42,6 +46,16 @@ app.use(
 );
 
 app.use('/api', routes);
+
+// Public share-trip page - lives outside /api since it's an HTML page, not a
+// JSON endpoint. The token itself is validated here too so a malformed one
+// never reaches buildTrackingPageHtml (see track.controller.js).
+app.get(
+  '/track/:token',
+  shareViewRateLimiter,
+  validate(trackTokenParamSchema, 'params'),
+  trackController.getTrackingPage
+);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

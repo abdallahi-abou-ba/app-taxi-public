@@ -10,6 +10,7 @@ const complaintRoutes = require('./complaint.routes');
 const realtimeRoutes = require('./realtime.routes');
 const locationRoutes = require('./location.routes');
 const cronRoutes = require('./cron.routes');
+const trackRoutes = require('./track.routes');
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/complaints', complaintRoutes);
 router.use('/realtime', realtimeRoutes);
 router.use('/location', locationRoutes);
 router.use('/cron', cronRoutes);
+router.use('/track', trackRoutes);
 
 module.exports = router;

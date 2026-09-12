@@ -73,6 +73,11 @@ router.delete(
   validate(rideIdParamSchema, 'params'),
   rideController.hideFromHistory
 );
+router.post(
+  '/:id/share-link',
+  validate(rideIdParamSchema, 'params'),
+  rideController.createShareLink
+);
 router.get(
   '/:id/messages',
   validate(rideIdParamSchema, 'params'),

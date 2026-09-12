@@ -97,6 +97,11 @@ const getStats = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: stats });
 });
 
+const createShareLink = asyncHandler(async (req, res) => {
+  const { token } = await rideService.getOrCreateShareToken(req.params.id, req.user.id);
+  sendSuccess(res, { data: { url: `${req.protocol}://${req.get('host')}/track/${token}` } });
+});
+
 const estimateRide = asyncHandler(async (req, res) => {
   const { pickupLat, pickupLng, destinationLat, destinationLng } = req.query;
   const { distanceKm, durationMin, estimatedFare } = await rideService.computeRouteAndFare(
@@ -129,4 +134,5 @@ module.exports = {
   hideFromHistory,
   getStats,
   estimateRide,
+  createShareLink,
 };

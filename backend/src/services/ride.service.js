@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const prisma = require('../lib/prisma');
 const env = require('../config/env');
 const logger = require('../config/logger');
@@ -290,6 +291,60 @@ async function getRideById(userId, rideId) {
   }
   assertParticipant(ride, userId);
   return ride;
+}
+
+// Creates (once) or returns the existing public tracking token for this
+// ride, so repeated taps on "share" reuse the same link instead of
+// invalidating whatever the client already sent to someone.
+async function getOrCreateShareToken(rideId, userId) {
+  const ride = await getRideById(userId, rideId);
+  if (!ACTIVE_STATUSES.includes(ride.status)) {
+    throw new AppError('Ride is not active', 409, 'RIDE_NOT_ACTIVE');
+  }
+  if (ride.shareToken) {
+    return { token: ride.shareToken };
+  }
+  const token = crypto.randomBytes(16).toString('hex');
+  await prisma.ride.update({ where: { id: rideId }, data: { shareToken: token } });
+  return { token };
+}
+
+// Deliberately returns only what an outside, unauthenticated viewer needs to
+// watch the vehicle approach - no phone numbers, no client identity at all.
+async function getPublicTrackingView(token) {
+  const ride = await prisma.ride.findUnique({
+    where: { shareToken: token },
+    select: {
+      status: true,
+      pickupLat: true,
+      pickupLng: true,
+      pickupAddress: true,
+      destinationLat: true,
+      destinationLng: true,
+      destinationAddress: true,
+      driver: { select: { fullName: true, vehicleModel: true, vehiclePlate: true, currentLat: true, currentLng: true } },
+    },
+  });
+  if (!ride) {
+    throw new AppError('Tracking link not found', 404, 'NOT_FOUND');
+  }
+  if (ride.status === 'COMPLETED' || ride.status === 'CANCELLED') {
+    throw new AppError('This ride has ended', 410, 'RIDE_ENDED');
+  }
+  return {
+    status: ride.status,
+    pickupLat: ride.pickupLat,
+    pickupLng: ride.pickupLng,
+    pickupAddress: ride.pickupAddress,
+    destinationLat: ride.destinationLat,
+    destinationLng: ride.destinationLng,
+    destinationAddress: ride.destinationAddress,
+    driverName: ride.driver?.fullName || null,
+    vehicleModel: ride.driver?.vehicleModel || null,
+    vehiclePlate: ride.driver?.vehiclePlate || null,
+    driverLat: ride.driver?.currentLat ?? null,
+    driverLng: ride.driver?.currentLng ?? null,
+  };
 }
 
 async function listRides(userId) {
@@ -852,4 +907,6 @@ module.exports = {
   adminGetRideById,
   ACTIVE_STATUSES,
   assertNotAutoSuspended,
+  getOrCreateShareToken,
+  getPublicTrackingView,
 };

@@ -789,6 +789,12 @@ model Ride {
   searchReminderSentAt DateTime?
   ratingReminderSentAt DateTime?
 
+  // Lets a participant hand this ride's live position to someone outside the
+  // app via a public, unauthenticated link (see ride.service.js#getOrCreate
+  // ShareToken / GET /track/:token) - null until first requested, then
+  // reused for the rest of the ride's life.
+  shareToken String? @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
