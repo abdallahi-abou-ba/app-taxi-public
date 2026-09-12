@@ -15,6 +15,7 @@
     "darkMode": "Mode sombre",
     "lightMode": "Mode clair",
     "client": "Client",
+    "passenger": "Passager",
     "driver": "Capitaine",
     "documents": "Documents",
     "settlements": "Règlements",
@@ -137,6 +138,9 @@
     "dragToFineTune": "Ajustez les repères, puis demandez une course",
     "addStop": "Ajouter un arrêt",
     "stopLabel": "Arrêt {{n}}",
+    "bookForSomeoneElse": "Réserver pour quelqu'un d'autre",
+    "passengerNamePlaceholder": "Nom du passager",
+    "passengerPhonePlaceholder": "Téléphone du passager",
     "requestRide": "Demander une course",
     "requestError": "Impossible de demander une course",
     "cancelError": "Impossible d'annuler la course",
@@ -255,7 +259,8 @@
   },
   "rideSummary": {
     "from": "Départ : {{address}}",
-    "to": "Destination : {{address}}"
+    "to": "Destination : {{address}}",
+    "bookedFor": "Réservé pour : {{name}}"
   },
   "rideDetail": {
     "requested": "Demandée : {{date}}",

@@ -715,6 +715,13 @@ model Ride {
   // order is just array position, mirroring routeGeometry's shape above.
   stops Json?
 
+  // Set when the client books this ride for someone else (a parent, a
+  // friend...) - the driver-facing screens show/call this instead of the
+  // client's own name/phone, since this is who's actually waiting at pickup.
+  // Null for the common case (client is the rider).
+  passengerName  String?
+  passengerPhone String?
+
   // Set only for a booked-ahead ride (status starts at SCHEDULED). Null for
   // an immediate request. The scheduling job (src/jobs/scheduling.job.js)
   // flips SCHEDULED -> REQUESTED (and resets requestedAt to that moment) once

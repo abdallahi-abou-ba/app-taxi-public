@@ -181,8 +181,8 @@ export default function DriverActiveRideScreen({ route, navigation }) {
           <PrimaryButton
             title={t('common.call')}
             variant="secondary"
-            onPress={() => callPhone(ride.client?.phone)}
-            disabled={!ride.client?.phone}
+            onPress={() => callPhone(ride.passengerPhone || ride.client?.phone)}
+            disabled={!(ride.passengerPhone || ride.client?.phone)}
             style={styles.buttonRowItem}
           />
           <PrimaryButton

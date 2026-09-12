@@ -15,6 +15,7 @@
     "darkMode": "الوضع الداكن",
     "lightMode": "الوضع الفاتح",
     "client": "عميل",
+    "passenger": "الراكب",
     "driver": "كابتن",
     "documents": "المستندات",
     "settlements": "التسويات",
@@ -137,6 +138,9 @@
     "dragToFineTune": "اسحب العلامات للضبط، ثم اطلب رحلة",
     "addStop": "إضافة توقف",
     "stopLabel": "توقف {{n}}",
+    "bookForSomeoneElse": "الحجز لشخص آخر",
+    "passengerNamePlaceholder": "اسم الراكب",
+    "passengerPhonePlaceholder": "هاتف الراكب",
     "requestRide": "طلب رحلة",
     "requestError": "تعذّر طلب الرحلة",
     "cancelError": "تعذّر إلغاء الرحلة",
@@ -255,7 +259,8 @@
   },
   "rideSummary": {
     "from": "الانطلاق: {{address}}",
-    "to": "الوجهة: {{address}}"
+    "to": "الوجهة: {{address}}",
+    "bookedFor": "محجوزة لـ: {{name}}"
   },
   "rideDetail": {
     "requested": "تاريخ الطلب: {{date}}",

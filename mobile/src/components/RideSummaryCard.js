@@ -11,8 +11,11 @@ export default function RideSummaryCard({ ride, viewerRole }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const bookedForSomeoneElse = viewerRole === ROLE.DRIVER && !!ride.passengerName;
   const counterpart = viewerRole === ROLE.DRIVER ? ride.client : ride.driver;
-  const counterpartLabel = t(viewerRole === ROLE.DRIVER ? 'common.client' : 'common.driver');
+  const displayName = bookedForSomeoneElse ? ride.passengerName : counterpart?.fullName;
+  const displayPhone = bookedForSomeoneElse ? ride.passengerPhone || counterpart?.phone : counterpart?.phone;
+  const counterpartLabel = t(viewerRole === ROLE.DRIVER ? (bookedForSomeoneElse ? 'common.passenger' : 'common.client') : 'common.driver');
   const hasCredit = ride.creditApplied > 0;
   const amountDue = getAmountDue(ride);
   const isArabic = i18n.language === 'ar';
@@ -33,17 +36,20 @@ export default function RideSummaryCard({ ride, viewerRole }) {
       {counterpart ? (
         <View style={styles.counterpartRow}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{counterpart.fullName?.trim()?.[0]?.toUpperCase() || '?'}</Text>
+            <Text style={styles.avatarText}>{displayName?.trim()?.[0]?.toUpperCase() || '?'}</Text>
           </View>
           <View style={styles.counterpartInfo}>
-            <Text style={styles.counterpartName}>{counterpart.fullName}</Text>
+            <Text style={styles.counterpartName}>{displayName}</Text>
             <Text style={styles.counterpartMeta}>
               {counterpartLabel}
-              {counterpart.phone ? ` · ${counterpart.phone}` : ''}
+              {displayPhone ? ` · ${displayPhone}` : ''}
               {counterpart.ratingCount > 0 ? ` · ★ ${counterpart.ratingAverage.toFixed(1)}` : ''}
             </Text>
           </View>
         </View>
+      ) : null}
+      {viewerRole === ROLE.CLIENT && ride.passengerName ? (
+        <Text style={styles.passengerNote}>{t('rideSummary.bookedFor', { name: ride.passengerName })}</Text>
       ) : null}
 
       <View style={styles.routeBlock}>
@@ -118,6 +124,11 @@ const createStyles = (colors) => StyleSheet.create({
     fontSize: 12.5,
     color: colors.textSecondary,
     marginTop: 1,
+  },
+  passengerNote: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: colors.info,
   },
   routeBlock: {
     gap: 2,

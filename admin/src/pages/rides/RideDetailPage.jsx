@@ -45,6 +45,15 @@ export default function RideDetailPage() {
             <strong>Client</strong>
             <div className="hint">{ride.client?.fullName || '—'}</div>
           </div>
+          {ride.passengerName && (
+            <div>
+              <strong>Passager</strong>
+              <div className="hint">
+                {ride.passengerName}
+                {ride.passengerPhone ? ` · ${ride.passengerPhone}` : ''}
+              </div>
+            </div>
+          )}
           <div>
             <strong>Capitaine</strong>
             <div className="hint">

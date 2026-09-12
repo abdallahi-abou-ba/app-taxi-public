@@ -13,6 +13,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
+import TextField from '../../components/TextField';
 import { formatPaymentMethod, formatDateTime, formatDistance, formatDuration, formatFare } from '../../utils/formatters';
 import { RIDE_STATUS, MAP_DEFAULTS, PAYMENT_METHOD, CLIENT_PAYMENT_METHODS, MIN_SCHEDULE_LEAD_MIN, MAX_SCHEDULE_LEAD_DAYS, MAX_STOPS } from '../../config/constants';
 import { radius, shadow, spacing } from '../../theme/theme';
@@ -39,6 +40,9 @@ export default function ClientHomeScreen({ navigation }) {
   const [destination, setDestination] = useState(null);
   const [stops, setStops] = useState([]);
   const [addingStop, setAddingStop] = useState(false);
+  const [bookingForSomeoneElse, setBookingForSomeoneElse] = useState(false);
+  const [passengerName, setPassengerName] = useState('');
+  const [passengerPhone, setPassengerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHOD.CASH);
   const [bookingMode, setBookingMode] = useState(BOOKING_MODE.NOW);
   const [scheduledDate, setScheduledDate] = useState(null);
@@ -120,6 +124,7 @@ export default function ClientHomeScreen({ navigation }) {
         destinationLng: destination.longitude,
         paymentMethod,
         stops: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
+        ...(bookingForSomeoneElse && { passengerName: passengerName.trim(), passengerPhone: passengerPhone.trim() }),
       });
       navigation.replace('WaitingForDriver', { rideId: ride.id, ride });
     } catch (err) {
@@ -141,6 +146,7 @@ export default function ClientHomeScreen({ navigation }) {
         paymentMethod,
         scheduledFor: scheduledDate.toISOString(),
         stops: stops.map((s) => ({ lat: s.latitude, lng: s.longitude })),
+        ...(bookingForSomeoneElse && { passengerName: passengerName.trim(), passengerPhone: passengerPhone.trim() }),
       });
       navigation.navigate('ScheduledRides');
     } catch (err) {
@@ -222,7 +228,8 @@ export default function ClientHomeScreen({ navigation }) {
       : []),
   ];
 
-  const canSubmit = pickup && destination && (bookingMode === BOOKING_MODE.NOW || scheduledDate);
+  const passengerDetailsValid = !bookingForSomeoneElse || (passengerName.trim().length > 0 && passengerPhone.trim().length >= 6);
+  const canSubmit = pickup && destination && (bookingMode === BOOKING_MODE.NOW || scheduledDate) && passengerDetailsValid;
 
   const quickActions = [
     { key: 'profile', icon: 'person-outline', label: t('common.profile'), onPress: () => navigation.navigate('EditProfile') },
@@ -342,6 +349,32 @@ export default function ClientHomeScreen({ navigation }) {
                 ))}
               </View>
             </View>
+            <Pressable
+              onPress={() => setBookingForSomeoneElse((prev) => !prev)}
+              style={styles.someoneElseRow}
+            >
+              <Ionicons
+                name={bookingForSomeoneElse ? 'checkbox' : 'square-outline'}
+                size={20}
+                color={bookingForSomeoneElse ? colors.primary : colors.textSecondary}
+              />
+              <Text style={styles.someoneElseText}>{t('client.bookForSomeoneElse')}</Text>
+            </Pressable>
+            {bookingForSomeoneElse ? (
+              <View style={styles.passengerFields}>
+                <TextField
+                  placeholder={t('client.passengerNamePlaceholder')}
+                  value={passengerName}
+                  onChangeText={setPassengerName}
+                />
+                <TextField
+                  placeholder={t('client.passengerPhonePlaceholder')}
+                  value={passengerPhone}
+                  onChangeText={setPassengerPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+            ) : null}
           </>
         ) : null}
 
@@ -475,6 +508,19 @@ const createStyles = (colors) => StyleSheet.create({
   },
   segmentTextActive: {
     color: colors.textOnDark,
+  },
+  someoneElseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  someoneElseText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  passengerFields: {
+    marginTop: -spacing.sm,
   },
   paymentRow: {
     gap: 8,

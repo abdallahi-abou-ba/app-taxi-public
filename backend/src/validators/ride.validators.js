@@ -26,6 +26,8 @@ const requestRideSchema = z.object({
   destinationAddress: z.string().trim().min(1).optional(),
   paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
   stops: z.array(stopSchema).max(MAX_STOPS).optional(),
+  passengerName: z.string().trim().min(1).max(100).optional(),
+  passengerPhone: z.string().trim().min(6).max(20).optional(),
 });
 
 const scheduleRideSchema = z.object({
@@ -38,6 +40,8 @@ const scheduleRideSchema = z.object({
   paymentMethod: z.enum(REQUESTABLE_PAYMENT_METHODS).optional(),
   scheduledFor: z.string().datetime({ message: 'scheduledFor must be an ISO 8601 datetime' }),
   stops: z.array(stopSchema).max(MAX_STOPS).optional(),
+  passengerName: z.string().trim().min(1).max(100).optional(),
+  passengerPhone: z.string().trim().min(6).max(20).optional(),
 });
 
 const cancelRideSchema = z.object({
