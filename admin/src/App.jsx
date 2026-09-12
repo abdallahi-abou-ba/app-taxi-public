@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
@@ -28,38 +29,40 @@ import SettingsPage from './pages/settings/SettingsPage';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route element={<Layout />}>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/drivers" element={<DriverListPage />} />
-              <Route path="/drivers/new" element={<DriverFormPage />} />
-              <Route path="/drivers/:id" element={<DriverDetailPage />} />
-              <Route path="/drivers/:id/edit" element={<DriverFormPage />} />
-              <Route path="/vehicles" element={<VehicleListPage />} />
-              <Route path="/vehicles/new" element={<VehicleFormPage />} />
-              <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-              <Route path="/vehicles/:id/edit" element={<VehicleFormPage />} />
-              <Route path="/rides" element={<RideListPage />} />
-              <Route path="/rides/:id" element={<RideDetailPage />} />
-              <Route path="/revenue" element={<RevenuePage />} />
-              <Route path="/clients" element={<ClientListPage />} />
-              <Route path="/expenses" element={<ExpenseListPage />} />
-              <Route path="/expenses/new" element={<ExpenseFormPage />} />
-              <Route path="/settlements" element={<SettlementListPage />} />
-              <Route path="/wallet-topups" element={<WalletTopUpListPage />} />
-              <Route path="/complaints" element={<ComplaintListPage />} />
-              <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              <Route path="/activity-log" element={<ActivityLogPage />} />
-              <Route path="/admins" element={<AdminListPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/drivers" element={<DriverListPage />} />
+                <Route path="/drivers/new" element={<DriverFormPage />} />
+                <Route path="/drivers/:id" element={<DriverDetailPage />} />
+                <Route path="/drivers/:id/edit" element={<DriverFormPage />} />
+                <Route path="/vehicles" element={<VehicleListPage />} />
+                <Route path="/vehicles/new" element={<VehicleFormPage />} />
+                <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+                <Route path="/vehicles/:id/edit" element={<VehicleFormPage />} />
+                <Route path="/rides" element={<RideListPage />} />
+                <Route path="/rides/:id" element={<RideDetailPage />} />
+                <Route path="/revenue" element={<RevenuePage />} />
+                <Route path="/clients" element={<ClientListPage />} />
+                <Route path="/expenses" element={<ExpenseListPage />} />
+                <Route path="/expenses/new" element={<ExpenseFormPage />} />
+                <Route path="/settlements" element={<SettlementListPage />} />
+                <Route path="/wallet-topups" element={<WalletTopUpListPage />} />
+                <Route path="/complaints" element={<ComplaintListPage />} />
+                <Route path="/complaints/:id" element={<ComplaintDetailPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/activity-log" element={<ActivityLogPage />} />
+                <Route path="/admins" element={<AdminListPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-      </AuthProvider>
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

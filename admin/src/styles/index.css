@@ -1,25 +1,26 @@
 :root {
   color-scheme: light;
-  --primary: #f5c518;
-  --primary-dark: #cc9f00;
-  --primary-soft: #fdf3d0;
+  --primary: oklch(0.8535 0.1744 88.7734);
+  --primary-dark: color-mix(in oklch, var(--primary) 60%, black);
+  --primary-soft: color-mix(in oklch, var(--primary) 16%, var(--surface));
+  --secondary: oklch(0.7484 0.1551 233.2517);
   --charcoal: #1c1c1e;
   --charcoal-light: #2c2c2e;
-  --text: #1c1c1e;
-  --text-secondary: #5a5a5e;
-  --text-muted: #9b9ba1;
-  --border: #e2e2e5;
-  --surface: #ffffff;
-  --surface-alt: #f1f1f4;
-  --background: #f4f4f6;
-  --danger: #d64545;
-  --danger-soft: #fbe4e4;
+  --text: oklch(0.1448 0 0);
+  --text-secondary: oklch(0.5555 0 0);
+  --text-muted: oklch(0.7090 0 0);
+  --border: oklch(0.9219 0 0);
+  --surface: oklch(1.0000 0 0);
+  --surface-alt: oklch(0.9702 0 0);
+  --background: oklch(0.9851 0 0);
+  --danger: oklch(0.5830 0.2387 28.4765);
+  --danger-soft: color-mix(in oklch, var(--danger) 16%, var(--surface));
   --success: #2e9e5b;
-  --success-soft: #e1f5e9;
+  --success-soft: color-mix(in oklch, var(--success) 16%, var(--surface));
   --warning: #b57a12;
-  --warning-soft: #fdf0dc;
-  --info: #3478f6;
-  --info-soft: #e8f0fe;
+  --warning-soft: color-mix(in oklch, var(--warning) 16%, var(--surface));
+  --info: var(--secondary);
+  --info-soft: color-mix(in oklch, var(--info) 16%, var(--surface));
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -34,6 +35,27 @@
 
   --shadow-card: 0 1px 6px rgba(0, 0, 0, 0.06);
   --shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+/* Sidebar chrome (--charcoal/--charcoal-light) stays fixed dark in both
+   themes on purpose - only the main content area's palette switches. */
+.dark {
+  color-scheme: dark;
+  --primary: oklch(0.9032 0.1817 98.2711);
+  --primary-dark: color-mix(in oklch, var(--primary) 70%, white);
+  --primary-soft: color-mix(in oklch, var(--primary) 18%, var(--surface));
+  --secondary: oklch(0.8271 0.1090 229.1984);
+  --text: oklch(0.9851 0 0);
+  --text-secondary: oklch(0.7090 0 0);
+  --text-muted: oklch(0.5555 0 0);
+  --border: oklch(0.2768 0 0);
+  --surface: oklch(0.2046 0 0);
+  --surface-alt: oklch(0.2686 0 0);
+  --background: oklch(0.1448 0 0);
+  --danger: oklch(0.7022 0.1892 22.2279);
+  --danger-soft: color-mix(in oklch, var(--danger) 20%, var(--surface));
+  --info: var(--secondary);
+  --info-soft: color-mix(in oklch, var(--info) 18%, var(--surface));
 }
 
 * {
@@ -283,8 +305,8 @@ a {
 }
 
 .panel-pending {
-  border-color: #f0d989;
-  background: #fffdf5;
+  border-color: color-mix(in oklch, var(--primary) 45%, var(--border));
+  background: var(--primary-soft);
 }
 
 .stats-grid {
@@ -461,7 +483,7 @@ a {
 }
 
 .btn-secondary {
-  background: #ececef;
+  background: var(--surface-alt);
   color: var(--text);
 }
 
@@ -505,8 +527,8 @@ a {
 .status-PENDING,
 .status-REQUESTED,
 .status-OPEN {
-  background: #fdf0c9;
-  color: #8a6d1a;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
 }
 
 .status-APPROVED,
@@ -515,27 +537,27 @@ a {
 .status-CONFIRMED,
 .status-RESOLVED,
 .status-COMPLETED {
-  background: #d9f2e3;
+  background: var(--success-soft);
   color: var(--success);
 }
 
 .status-REJECTED,
 .status-BLOCKED,
 .status-CANCELLED {
-  background: #fbdcdc;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 
 .status-SUSPENDED,
 .status-MAINTENANCE {
-  background: #fde3cf;
+  background: var(--warning-soft);
   color: var(--warning);
 }
 
 .status-UNAVAILABLE,
 .status-ARCHIVED,
 .status-CLOSED {
-  background: #e4e4e7;
+  background: var(--surface-alt);
   color: var(--text-secondary);
 }
 

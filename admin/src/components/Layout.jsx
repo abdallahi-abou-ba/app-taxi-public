@@ -16,8 +16,11 @@ import {
   LogOut,
   CarTaxiFront,
   Settings,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { hasPermission } from '../permissions';
 
 const NAV_ITEMS = [
@@ -39,6 +42,7 @@ const NAV_ITEMS = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const visibleItems = NAV_ITEMS.filter((item) => !item.permission || hasPermission(user, ...item.permission));
   const initial = user?.fullName?.trim()?.[0]?.toUpperCase() || '?';
 
@@ -64,6 +68,14 @@ export default function Layout() {
             <div className="sidebar-avatar">{initial}</div>
             <div className="sidebar-user-name">{user?.fullName}</div>
           </div>
+          <button
+            className="btn btn-secondary"
+            onClick={toggleTheme}
+            style={{ width: '100%', justifyContent: 'center', marginBottom: 8 }}
+          >
+            {theme === 'dark' ? <Sun size={14} strokeWidth={2.25} /> : <Moon size={14} strokeWidth={2.25} />}
+            {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+          </button>
           <button className="btn btn-secondary" onClick={logout} style={{ width: '100%', justifyContent: 'center' }}>
             <LogOut size={14} strokeWidth={2.25} />
             Déconnexion
