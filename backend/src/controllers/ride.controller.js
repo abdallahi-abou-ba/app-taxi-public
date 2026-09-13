@@ -97,6 +97,11 @@ const getStats = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: stats });
 });
 
+const getDemandZones = asyncHandler(async (req, res) => {
+  const zones = await rideService.getDemandZones();
+  sendSuccess(res, { data: zones });
+});
+
 const createShareLink = asyncHandler(async (req, res) => {
   const { token } = await rideService.getOrCreateShareToken(req.params.id, req.user.id);
   sendSuccess(res, { data: { url: `${req.protocol}://${req.get('host')}/track/${token}` } });
@@ -138,4 +143,5 @@ module.exports = {
   getStats,
   estimateRide,
   createShareLink,
+  getDemandZones,
 };

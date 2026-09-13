@@ -13,6 +13,7 @@ const { safeWaitUntil } = require('../lib/waitUntil');
 const paymentService = require('./payment.service');
 const { getDefaultCommissionRate, getMinBalanceToGoOnline, getDriverAutoSuspendHours } = require('./appSetting.service');
 const { MOBILE_MONEY_METHODS } = require('../utils/paymentMethod.util');
+const { DEMAND_ZONES } = require('../config/demandZones');
 
 // Real road-network distance/duration come from OSRM when reachable (see
 // utils/osrm.util.js). This flat speed assumption is only the fallback for
@@ -934,6 +935,34 @@ async function getStats(userId, role) {
   return stats;
 }
 
+// Buckets currently-searching rides by nearest district center (no polygon
+// boundary data exists for Nouakchott's moughataas, so nearest-center is the
+// Voronoi-style approximation of "which district") - see
+// src/config/demandZones.js for how those centers were sourced.
+async function getDemandZones() {
+  const pendingRides = await prisma.ride.findMany({
+    where: { status: 'REQUESTED' },
+    select: { pickupLat: true, pickupLng: true },
+  });
+
+  const zones = DEMAND_ZONES.map((zone) => ({ name: zone.name, lat: zone.lat, lng: zone.lng, count: 0 }));
+
+  for (const ride of pendingRides) {
+    let nearest = zones[0];
+    let nearestDist = haversineDistanceKm(ride.pickupLat, ride.pickupLng, nearest.lat, nearest.lng);
+    for (let i = 1; i < zones.length; i++) {
+      const dist = haversineDistanceKm(ride.pickupLat, ride.pickupLng, zones[i].lat, zones[i].lng);
+      if (dist < nearestDist) {
+        nearest = zones[i];
+        nearestDist = dist;
+      }
+    }
+    nearest.count += 1;
+  }
+
+  return zones.map(({ name, count }) => ({ name, count })).sort((a, b) => b.count - a.count);
+}
+
 // Replaces the old Socket.io 'location:update' handler now that the backend
 // is stateless (see lib/realtime.js) - the in-memory rideTracker Map it used
 // to consult is gone, so the driver's active ride is looked up straight from
@@ -983,4 +1012,5 @@ module.exports = {
   assertNotAutoSuspended,
   getOrCreateShareToken,
   getPublicTrackingView,
+  getDemandZones,
 };

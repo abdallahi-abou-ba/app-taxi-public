@@ -22,6 +22,7 @@ router.post('/', requireRole('CLIENT'), validate(requestRideSchema), rideControl
 router.get('/', rideController.listRides);
 router.get('/active', rideController.getActiveRide);
 router.get('/stats', rideController.getStats);
+router.get('/demand-zones', requireRole('DRIVER'), rideController.getDemandZones);
 router.get('/estimate', validate(estimateRideSchema, 'query'), rideController.estimateRide);
 router.post('/scheduled', requireRole('CLIENT'), validate(scheduleRideSchema), rideController.scheduleRide);
 router.get('/scheduled', rideController.listScheduledRides);

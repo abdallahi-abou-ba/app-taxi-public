@@ -17,6 +17,7 @@ import ErrorBanner from '../../components/ErrorBanner';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import IncomingRideModal from '../../components/IncomingRideModal';
 import QuickActionsGrid from '../../components/QuickActionsGrid';
+import DemandZones from '../../components/DemandZones';
 import { MAP_DEFAULTS } from '../../config/constants';
 import { radius, shadow, spacing } from '../../theme/theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -202,6 +203,8 @@ export default function DriverHomeScreen({ navigation }) {
             })}
           </Text>
         ) : null}
+
+        <DemandZones />
 
         <QuickActionsGrid items={quickActions} />
 
