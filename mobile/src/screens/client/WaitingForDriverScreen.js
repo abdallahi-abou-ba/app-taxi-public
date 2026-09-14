@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, Animated, Easing, Pressable 
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSocket } from '../../context/SocketContext';
+import { useClientLocationStatus } from '../../context/ClientLocationContext';
 import { getRide, cancelRide } from '../../api/rideApi';
 import RideSummaryCard from '../../components/RideSummaryCard';
 import ErrorBanner from '../../components/ErrorBanner';
@@ -18,10 +19,16 @@ export default function WaitingForDriverScreen({ route, navigation }) {
   const socket = useSocket();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { setHasActiveRide } = useClientLocationStatus();
   const [ride, setRide] = useState(route.params.ride);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState(null);
   const handledRef = useRef(false);
+
+  useEffect(() => {
+    setHasActiveRide(true);
+    return () => setHasActiveRide(false);
+  }, [setHasActiveRide]);
 
   const steps = t('client.searchingSteps', { returnObjects: true });
   const [stepIndex, setStepIndex] = useState(0);

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { useSocket } from '../../context/SocketContext';
+import { useClientLocationStatus } from '../../context/ClientLocationContext';
 import { getRide, cancelRide, rateRide, createCheckoutSession, declareRidePaid, getShareLink } from '../../api/rideApi';
 import OsmMapView from '../../components/OsmMapView';
 import RideStatusBadge from '../../components/RideStatusBadge';
@@ -26,11 +27,17 @@ export default function ActiveRideScreen({ route, navigation }) {
   const socket = useSocket();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { setHasActiveRide } = useClientLocationStatus();
   const [ride, setRide] = useState(route.params.ride);
   const [driverLocation, setDriverLocation] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setHasActiveRide(true);
+    return () => setHasActiveRide(false);
+  }, [setHasActiveRide]);
 
   const handleStatus = useCallback((updated) => {
     if (!updated || updated.id !== rideId) return;

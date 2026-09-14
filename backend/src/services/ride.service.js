@@ -982,6 +982,24 @@ async function updateDriverLocation(driverId, lat, lng) {
   }
 }
 
+// Mirrors updateDriverLocation above - a still-REQUESTED ride has no driverId
+// yet, so this just stores the position and no-ops the emit (nothing to
+// notify until someone accepts).
+async function updateClientLocation(clientId, lat, lng) {
+  await prisma.user.update({
+    where: { id: clientId },
+    data: { currentLat: lat, currentLng: lng, lastLocationUpdatedAt: new Date() },
+  });
+
+  const activeRide = await prisma.ride.findFirst({
+    where: { clientId, status: { in: ACTIVE_STATUSES } },
+    select: { id: true, driverId: true },
+  });
+  if (activeRide?.driverId) {
+    emitToUser(activeRide.driverId, 'client:location', { rideId: activeRide.id, lat, lng });
+  }
+}
+
 module.exports = {
   computeRouteAndFare,
   updateDriverLocation,
@@ -1013,4 +1031,5 @@ module.exports = {
   getOrCreateShareToken,
   getPublicTrackingView,
   getDemandZones,
+  updateClientLocation,
 };

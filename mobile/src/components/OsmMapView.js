@@ -71,6 +71,7 @@ function buildHtml(initialRegion, isArabic) {
     });
 
     var CAR_SVG_PATH = '${CAR_SVG_PATH}';
+    var PERSON_SVG_PATH = 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z';
 
     function iconForMarker(id) {
       if (id === 'driver' || id === 'me') {
@@ -81,6 +82,16 @@ function buildHtml(initialRegion, isArabic) {
             '<svg width="17" height="17" viewBox="0 0 24 24" fill="#ffffff"><path d="' + CAR_SVG_PATH + '"/></svg></div>',
           iconSize: [34, 34],
           iconAnchor: [17, 17],
+        });
+      }
+      if (id === 'client') {
+        return L.divIcon({
+          className: '',
+          html: '<div style="width:30px;height:30px;border-radius:15px;background:#34C759;border:3px solid #ffffff;' +
+            'box-shadow:0 3px 8px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="' + PERSON_SVG_PATH + '"/></svg></div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 15],
         });
       }
       var isStop = id.indexOf('stop-') === 0;
@@ -120,7 +131,7 @@ function buildHtml(initialRegion, isArabic) {
         incomingIds[m.id] = true;
         var existing = markersById[m.id];
         if (existing) {
-          if (m.id === 'driver' || m.id === 'me') {
+          if (m.id === 'driver' || m.id === 'me' || m.id === 'client') {
             animateMarkerTo(existing, m.latitude, m.longitude);
           } else {
             existing.setLatLng([m.latitude, m.longitude]);

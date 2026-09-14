@@ -128,6 +128,7 @@
     "pickup": "Départ",
     "destination": "Destination",
     "driver": "Capitaine",
+    "client": "Client",
     "you": "Vous"
   },
   "client": {

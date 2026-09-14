@@ -12,37 +12,51 @@ import ScheduledRidesScreen from '../screens/client/ScheduledRidesScreen';
 import ReferralScreen from '../screens/common/ReferralScreen';
 import ChatScreen from '../screens/common/ChatScreen';
 import { useTheme } from '../context/ThemeContext';
+import { ClientLocationProvider, useClientLocationStatus } from '../context/ClientLocationContext';
+import useClientLocationTracking from '../hooks/useClientLocationTracking';
 
 const Stack = createNativeStackNavigator();
+
+// Mounted once, above all client screens, so the GPS watch survives
+// navigation between WaitingForDriver and ActiveRide (mirrors
+// DriverNavigator.js's DriverLocationTracker).
+function ClientLocationTracker() {
+  const { hasActiveRide } = useClientLocationStatus();
+  useClientLocationTracking(hasActiveRide);
+  return null;
+}
 
 export default function ClientNavigator() {
   const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: colors.charcoal },
-        headerTintColor: colors.textOnDark,
-        headerTitleStyle: { fontWeight: '700' },
-        headerShadowVisible: false,
-      }}
-    >
-      <Stack.Screen name="ClientHome" component={ClientHomeScreen} options={{ title: t('nav.ride') }} />
-      <Stack.Screen name="ClientMore" component={ClientMoreScreen} options={{ title: t('nav.more') }} />
-      <Stack.Screen
-        name="WaitingForDriver"
-        component={WaitingForDriverScreen}
-        options={{ title: t('nav.findingDriver'), headerBackVisible: false }}
-      />
-      <Stack.Screen name="ActiveRide" component={ActiveRideScreen} options={{ title: t('nav.yourRide'), headerBackVisible: false }} />
-      <Stack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: t('nav.history') }} />
-      <Stack.Screen name="RideDetail" component={RideDetailScreen} options={{ title: t('nav.rideDetails') }} />
-      <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('nav.editProfile') }} />
-      <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
-      <Stack.Screen name="ScheduledRides" component={ScheduledRidesScreen} options={{ title: t('nav.scheduledRides') }} />
-      <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: t('nav.chat') }} />
-    </Stack.Navigator>
+    <ClientLocationProvider>
+      <ClientLocationTracker />
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.charcoal },
+          headerTintColor: colors.textOnDark,
+          headerTitleStyle: { fontWeight: '700' },
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen name="ClientHome" component={ClientHomeScreen} options={{ title: t('nav.ride') }} />
+        <Stack.Screen name="ClientMore" component={ClientMoreScreen} options={{ title: t('nav.more') }} />
+        <Stack.Screen
+          name="WaitingForDriver"
+          component={WaitingForDriverScreen}
+          options={{ title: t('nav.findingDriver'), headerBackVisible: false }}
+        />
+        <Stack.Screen name="ActiveRide" component={ActiveRideScreen} options={{ title: t('nav.yourRide'), headerBackVisible: false }} />
+        <Stack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: t('nav.history') }} />
+        <Stack.Screen name="RideDetail" component={RideDetailScreen} options={{ title: t('nav.rideDetails') }} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: t('nav.editProfile') }} />
+        <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: t('nav.dashboard') }} />
+        <Stack.Screen name="ScheduledRides" component={ScheduledRidesScreen} options={{ title: t('nav.scheduledRides') }} />
+        <Stack.Screen name="Referral" component={ReferralScreen} options={{ title: t('nav.referral') }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ title: t('nav.chat') }} />
+      </Stack.Navigator>
+    </ClientLocationProvider>
   );
 }

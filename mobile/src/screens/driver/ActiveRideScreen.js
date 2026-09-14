@@ -41,6 +41,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { setHasActiveRide } = useDriverLocationStatus();
   const [ride, setRide] = useState(route.params.ride);
+  const [clientLocation, setClientLocation] = useState(null);
   const [busy, setBusy] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState(null);
@@ -58,11 +59,23 @@ export default function DriverActiveRideScreen({ route, navigation }) {
     [rideId]
   );
 
+  const handleClientLocation = useCallback(
+    (payload) => {
+      if (!payload || payload.rideId !== rideId) return;
+      setClientLocation({ latitude: payload.lat, longitude: payload.lng });
+    },
+    [rideId]
+  );
+
   useEffect(() => {
     if (!socket) return undefined;
     socket.on('ride:status', handleStatus);
-    return () => socket.off('ride:status', handleStatus);
-  }, [socket, handleStatus]);
+    socket.on('client:location', handleClientLocation);
+    return () => {
+      socket.off('ride:status', handleStatus);
+      socket.off('client:location', handleClientLocation);
+    };
+  }, [socket, handleStatus, handleClientLocation]);
 
   useEffect(() => {
     if (ride?.status === RIDE_STATUS.COMPLETED || ride?.status === RIDE_STATUS.CANCELLED) return undefined;
@@ -160,6 +173,7 @@ export default function DriverActiveRideScreen({ route, navigation }) {
       label: t('client.stopLabel', { n: i + 1 }),
     })),
     { id: 'destination', latitude: ride.destinationLat, longitude: ride.destinationLng, label: t('map.destination') },
+    ...(clientLocation ? [{ id: 'client', latitude: clientLocation.latitude, longitude: clientLocation.longitude, label: t('map.client') }] : []),
   ];
 
   const step = NEXT_ACTION[ride.status];
