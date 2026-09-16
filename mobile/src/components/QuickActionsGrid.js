@@ -14,7 +14,7 @@ export default function QuickActionsGrid({ items }) {
       {items.map((item) => (
         <Pressable key={item.key} onPress={item.onPress} style={[styles.item, { width: basis }]}>
           <View style={styles.iconWrap}>
-            <Ionicons name={item.icon} size={20} color={colors.charcoal} />
+            <Ionicons name={item.icon} size={20} color={colors.textPrimary} />
           </View>
           <Text style={styles.label} numberOfLines={1}>
             {item.label}

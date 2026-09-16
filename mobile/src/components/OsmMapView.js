@@ -258,7 +258,7 @@ const OsmMapView = forwardRef(function OsmMapView({ initialRegion, markers = [],
         domStorageEnabled
       />
       <TouchableOpacity style={styles.recenterButton} onPress={handleRecenter} activeOpacity={0.75}>
-        <Ionicons name="locate" size={20} color={colors.charcoal} />
+        <Ionicons name="locate" size={20} color={colors.textPrimary} />
       </TouchableOpacity>
     </View>
   );

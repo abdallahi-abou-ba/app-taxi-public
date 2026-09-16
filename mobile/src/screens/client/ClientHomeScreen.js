@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -238,7 +238,7 @@ export default function ClientHomeScreen({ navigation }) {
   ];
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <OsmMapView
         ref={mapRef}
         initialRegion={initialRegion}
@@ -392,7 +392,7 @@ export default function ClientHomeScreen({ navigation }) {
         <DateTimePicker value={scheduledDate || minDate} mode="date" minimumDate={minDate} maximumDate={maxDate} onChange={handleDateChange} />
       ) : null}
       {showTimePicker ? <DateTimePicker value={scheduledDate || minDate} mode="time" onChange={handleTimeChange} /> : null}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

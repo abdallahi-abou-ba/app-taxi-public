@@ -39,7 +39,7 @@ export default function DashboardStats({ role }) {
       {items.map((item) => (
         <View key={item.label} style={[styles.stat, item.highlight && styles.statHighlight]}>
           <View style={[styles.iconWrap, item.highlight && styles.iconWrapHighlight]}>
-            <Ionicons name={item.icon} size={18} color={item.highlight ? colors.onPrimary : colors.charcoal} />
+            <Ionicons name={item.icon} size={18} color={item.highlight ? colors.onPrimary : colors.textPrimary} />
           </View>
           <Text style={[styles.value, item.highlight && styles.valueHighlight]}>{item.value}</Text>
           <Text style={[styles.label, item.highlight && styles.labelHighlight]}>{item.label}</Text>
