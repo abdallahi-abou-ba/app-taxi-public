@@ -111,6 +111,8 @@ router.patch(
 );
 
 router.get('/rides', requirePermission('RIDES'), validate(adminListRidesQuerySchema, 'query'), adminController.listRides);
+// Must come before /rides/:id or Express would match "live" as the :id param.
+router.get('/rides/live', requirePermission('RIDES'), adminController.getLiveRides);
 router.get('/rides/:id', requirePermission('RIDES'), validate(rideIdParamSchema, 'params'), adminController.getRide);
 
 router.get('/revenue', requirePermission('REVENUE'), validate(revenueQuerySchema, 'query'), adminController.getRevenue);

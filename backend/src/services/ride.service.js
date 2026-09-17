@@ -867,6 +867,72 @@ async function adminGetRideById(rideId) {
   return ride;
 }
 
+// Rides worth putting on the admin live map: matched to a driver and not yet
+// finished. REQUESTED is excluded - there's no driver position to show yet.
+const LIVE_MAP_STATUSES = ['ACCEPTED', 'ARRIVED', 'IN_PROGRESS'];
+
+async function adminListLiveRides() {
+  const rides = await prisma.ride.findMany({
+    where: { status: { in: LIVE_MAP_STATUSES } },
+    orderBy: { requestedAt: 'desc' },
+    select: {
+      id: true,
+      status: true,
+      pickupLat: true,
+      pickupLng: true,
+      pickupAddress: true,
+      destinationLat: true,
+      destinationLng: true,
+      destinationAddress: true,
+      client: { select: { fullName: true, currentLat: true, currentLng: true } },
+      driver: {
+        select: {
+          id: true,
+          fullName: true,
+          vehicleModel: true,
+          vehiclePlate: true,
+          currentLat: true,
+          currentLng: true,
+          lastLocationUpdatedAt: true,
+        },
+      },
+    },
+  });
+
+  return rides.map((ride) => {
+    const driverLat = ride.driver?.currentLat ?? null;
+    const driverLng = ride.driver?.currentLng ?? null;
+    const clientLat = ride.client?.currentLat ?? null;
+    const clientLng = ride.client?.currentLng ?? null;
+    const distanceToClientKm =
+      driverLat != null && driverLng != null && clientLat != null && clientLng != null
+        ? haversineDistanceKm(driverLat, driverLng, clientLat, clientLng)
+        : null;
+
+    return {
+      id: ride.id,
+      status: ride.status,
+      pickupLat: ride.pickupLat,
+      pickupLng: ride.pickupLng,
+      pickupAddress: ride.pickupAddress,
+      destinationLat: ride.destinationLat,
+      destinationLng: ride.destinationLng,
+      destinationAddress: ride.destinationAddress,
+      clientName: ride.client?.fullName ?? null,
+      clientLat,
+      clientLng,
+      driverId: ride.driver?.id ?? null,
+      driverName: ride.driver?.fullName ?? null,
+      vehicleModel: ride.driver?.vehicleModel ?? null,
+      vehiclePlate: ride.driver?.vehiclePlate ?? null,
+      driverLat,
+      driverLng,
+      driverLocationUpdatedAt: ride.driver?.lastLocationUpdatedAt ?? null,
+      distanceToClientKm,
+    };
+  });
+}
+
 async function getStats(userId, role) {
   const field = role === 'DRIVER' ? 'driverId' : 'clientId';
   const startOfMonth = new Date();
@@ -1026,6 +1092,7 @@ module.exports = {
   getStats,
   adminListRides,
   adminGetRideById,
+  adminListLiveRides,
   ACTIVE_STATUSES,
   assertNotAutoSuspended,
   getOrCreateShareToken,

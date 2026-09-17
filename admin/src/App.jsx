@@ -13,6 +13,7 @@ import VehicleDetailPage from './pages/vehicles/VehicleDetailPage';
 import VehicleFormPage from './pages/vehicles/VehicleFormPage';
 import RideListPage from './pages/rides/RideListPage';
 import RideDetailPage from './pages/rides/RideDetailPage';
+import LiveMapPage from './pages/rides/LiveMapPage';
 import RevenuePage from './pages/revenue/RevenuePage';
 import ClientListPage from './pages/clients/ClientListPage';
 import ExpenseListPage from './pages/expenses/ExpenseListPage';
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
                 <Route path="/vehicles/:id/edit" element={<VehicleFormPage />} />
                 <Route path="/rides" element={<RideListPage />} />
+                <Route path="/rides/live" element={<LiveMapPage />} />
                 <Route path="/rides/:id" element={<RideDetailPage />} />
                 <Route path="/revenue" element={<RevenuePage />} />
                 <Route path="/clients" element={<ClientListPage />} />

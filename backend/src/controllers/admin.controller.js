@@ -214,6 +214,11 @@ const getRide = asyncHandler(async (req, res) => {
   sendSuccess(res, { data: ride });
 });
 
+const getLiveRides = asyncHandler(async (req, res) => {
+  const rides = await rideService.adminListLiveRides();
+  sendSuccess(res, { data: rides });
+});
+
 const getRevenue = asyncHandler(async (req, res) => {
   const revenue = await revenueService.getRevenueAggregate(req.query);
   sendSuccess(res, { data: revenue });
@@ -246,6 +251,7 @@ module.exports = {
   getStats,
   listRides,
   getRide,
+  getLiveRides,
   getRevenue,
   getActivityLog,
 };

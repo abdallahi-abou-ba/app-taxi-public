@@ -7,3 +7,7 @@ export function listRides(filters = {}) {
 export function getRide(id) {
   return api.get(`/api/admin/rides/${id}`);
 }
+
+export function getLiveRides() {
+  return api.get('/api/admin/rides/live');
+}
