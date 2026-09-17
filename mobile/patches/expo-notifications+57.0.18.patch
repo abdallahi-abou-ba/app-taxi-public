@@ -1,0 +1,92 @@
+diff --git a/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js b/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
+index 85cd97c..12e1a68 100644
+--- a/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
++++ b/node_modules/expo-notifications/build/DevicePushTokenAutoRegistration.fx.js
+@@ -75,33 +75,45 @@ export async function __handlePersistedRegistrationInfoAsync(registrationInfo) {
+ if (ServerRegistrationModule.getRegistrationInfoAsync) {
+     // A global scope (to get all the updates) device push token
+     // subscription, never cleared.
+-    addPushTokenListener(async (token) => {
+-        try {
+-            // Before updating the push token on server we always check if we should
+-            // Since modules can't change their method availability while running, we
+-            // can assert it's defined.
+-            const registrationInfo = await ServerRegistrationModule.getRegistrationInfoAsync();
+-            if (!registrationInfo) {
+-                // Registration is not enabled
+-                return;
++    //
++    // PATCHED (see mobile/patches/expo-notifications+*.patch): addPushTokenListener
++    // calls warnOfExpoGoPushUsage() synchronously, which THROWS (not warns) on
++    // Android + Expo Go since SDK 53 - and this whole block runs unconditionally
++    // at import time, before any app code (or its try/catch) ever runs, crashing
++    // Expo Go on Android the moment `expo-notifications` is imported at all. Auto
++    // server-registration genuinely can't work there anyway, so skip it silently.
++    try {
++        addPushTokenListener(async (token) => {
++            try {
++                // Before updating the push token on server we always check if we should
++                // Since modules can't change their method availability while running, we
++                // can assert it's defined.
++                const registrationInfo = await ServerRegistrationModule.getRegistrationInfoAsync();
++                if (!registrationInfo) {
++                    // Registration is not enabled
++                    return;
++                }
++                const registration = JSON.parse(registrationInfo);
++                if (registration?.isEnabled) {
++                    // Dispatch an abortable task to update
++                    // registration with new token.
++                    await updatePushTokenAsync(token);
++                }
+             }
+-            const registration = JSON.parse(registrationInfo);
+-            if (registration?.isEnabled) {
+-                // Dispatch an abortable task to update
+-                // registration with new token.
+-                await updatePushTokenAsync(token);
++            catch (e) {
++                console.warn('[expo-notifications] Error encountered while updating server registration with latest device push token.', e);
+             }
+-        }
+-        catch (e) {
+-            console.warn('[expo-notifications] Error encountered while updating server registration with latest device push token.', e);
+-        }
+-    });
+-    // Verify if persisted registration
+-    // has successfully uploaded last known
+-    // device push token. If not, retry.
+-    ServerRegistrationModule.getRegistrationInfoAsync().then(__handlePersistedRegistrationInfoAsync, (e) => {
+-        console.error('[expo-notifications] Error reading persisted server registration info: ', e);
+-    });
++        });
++        // Verify if persisted registration
++        // has successfully uploaded last known
++        // device push token. If not, retry.
++        ServerRegistrationModule.getRegistrationInfoAsync().then(__handlePersistedRegistrationInfoAsync, (e) => {
++            console.error('[expo-notifications] Error reading persisted server registration info: ', e);
++        });
++    }
++    catch (e) {
++        console.warn('[expo-notifications] Skipping auto server-registration (unsupported in this environment, e.g. Android + Expo Go):', e?.message ?? e);
++    }
+ }
+ else {
+     console.warn(`[expo-notifications] Error encountered while fetching auto-registration state, new tokens will not be automatically registered on server.`, new UnavailabilityError('ServerRegistrationModule', 'getRegistrationInfoAsync'));
+diff --git a/node_modules/expo-notifications/build/TopicSubscriptionModule.android.js b/node_modules/expo-notifications/build/TopicSubscriptionModule.android.js
+index 644a8bb..15ced94 100644
+--- a/node_modules/expo-notifications/build/TopicSubscriptionModule.android.js
++++ b/node_modules/expo-notifications/build/TopicSubscriptionModule.android.js
+@@ -1,3 +1,9 @@
+-import { requireNativeModule } from 'expo-modules-core';
+-export default requireNativeModule('ExpoTopicSubscriptionModule');
++import { requireOptionalNativeModule } from 'expo-modules-core';
++// PATCHED (see mobile/patches/expo-notifications+*.patch): ExpoTopicSubscriptionModule
++// isn't registered in Expo Go on Android (removed along with remote push in SDK 53) -
++// requireNativeModule threw "Cannot find native module" at import time, unconditionally,
++// crashing the app the moment `expo-notifications` was imported at all. subscribeToTopicAsync
++// / unsubscribeFromTopicAsync (topicSubscription.js) already check for a missing method
++// before calling it, so degrading to {} here is exactly what they expect.
++export default requireOptionalNativeModule('ExpoTopicSubscriptionModule') ?? {};
+ //# sourceMappingURL=TopicSubscriptionModule.android.js.map
+\ No newline at end of file

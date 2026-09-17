@@ -2,8 +2,15 @@ import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { updatePushToken } from '../api/userApi';
+
+// Expo Go on Android dropped remote push support entirely as of SDK 53 -
+// every expo-notifications call below (channel creation, permission
+// request, token fetch) throws immediately there, only a dev/standalone
+// build can register for push. iOS Expo Go is unaffected.
+const isBlockedOnAndroidExpoGo =
+  Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 // Dedicated high-importance channel for ride-request pushes (ride:new) -
 // separate from the default channel so a driver's phone gives a heads-up
@@ -28,21 +35,22 @@ async function ensureRideAlertsChannel() {
 // convention in useDriverLocationTracking.js).
 export default function usePushRegistration(enabled) {
   useEffect(() => {
-    if (!enabled || !Device.isDevice) return undefined;
+    if (!enabled || !Device.isDevice || isBlockedOnAndroidExpoGo) return undefined;
 
     let cancelled = false;
 
     (async () => {
-      await ensureRideAlertsChannel();
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted' || cancelled) return;
-
       try {
+        await ensureRideAlertsChannel();
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted' || cancelled) return;
+
         const projectId = Constants.expoConfig?.extra?.eas?.projectId;
         const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         if (!cancelled) await updatePushToken(token);
       } catch {
-        // Network hiccup, missing projectId, etc. - nothing to surface here.
+        // Denied permission, network hiccup, missing projectId, unsupported
+        // platform/client, etc. - push is supplementary, nothing to surface here.
       }
     })();
 
